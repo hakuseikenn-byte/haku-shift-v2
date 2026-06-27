@@ -13,8 +13,8 @@ html,body{height:100%;overflow:hidden;font-family:'Hiragino Kaku Gothic ProN','N
 /* ===== PAGE SYSTEM ===== */
 .page{position:fixed;top:0;left:0;right:0;bottom:0;overflow-y:auto;-webkit-overflow-scrolling:touch;display:none;background:#f5f3ef;}
 .page.show{display:block;}
-#p-login{background:linear-gradient(135deg,#2c3e50 0%,#4a6741 100%);display:none;align-items:center;justify-content:center;padding:20px;z-index:30;}
-#p-login.show{display:flex;}
+#p-login{background:linear-gradient(135deg,#2c3e50 0%,#4a6741 100%);align-items:center;justify-content:center;padding:20px;z-index:30;display:none;}
+#p-login.show{display:flex!important;}
 #p-cal,#p-attendance,#p-leave,#p-swap,#p-admin{top:52px;}
 
 /* ===== HEADER ===== */
@@ -155,7 +155,7 @@ textarea{resize:vertical;min-height:60px;}
 </div>
 
 <!-- LOGIN -->
-<div id="p-login" class="page">
+<div id="p-login" class="page show">
   <div class="login-card">
     <div class="logo-wrap">
       <span class="logo-circle">H</span>

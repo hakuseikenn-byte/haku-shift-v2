@@ -1055,9 +1055,9 @@ async function renderAdmin(){
       }
       html+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">';
       if(isOwner){
-        html+='<button class="bsm bd" onclick="openEditStaff(''+s.id+'')">編集</button>';
-        html+='<button class="bsm bgold" onclick="openSetPW(''+s.id+'',''+s.name.replace(/'/g,"\'")+'')">PW設定</button>';
-        html+='<button class="bsm br" onclick="delStaff(''+s.id+'',''+s.name.replace(/'/g,"\'")+'')">削除</button>';
+        html+='<button class="bsm bd" onclick="openEditStaff(&quot;'+s.id+'&quot;)">編集</button>';
+        html+='<button class="bsm bgold" onclick="openSetPW(&quot;'+s.id+'&quot;,&quot;'+s.name+'&quot;)">PW設定</button>';
+        html+='<button class="bsm br" onclick="delStaff(&quot;'+s.id+'&quot;,&quot;'+s.name+'&quot;)">削除</button>';
       } else {
         html+='<span style="font-size:11px;color:#aaa;">（編集はオーナーのみ）</span>';
       }

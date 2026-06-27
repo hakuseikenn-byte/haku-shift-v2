@@ -176,13 +176,19 @@ textarea{resize:vertical;min-height:60px;}
     <div id="lt-reg" class="tpane">
       <div class="fcol">
         <input type="text" id="reg-name" placeholder="お名前"/>
-        <select id="reg-type">
+        <select id="reg-type" onchange="toggleRegFields(this.value)">
           <option value="part">アルバイト</option>
           <option value="full">正社員</option>
           <option value="manager">店長</option>
         </select>
-        <input type="number" id="reg-wage" placeholder="時給（円）"/>
-        <input type="number" id="reg-max" placeholder="月最大時間（空白=デフォルト）"/>
+        <div id="part-fields">
+          <input type="number" id="reg-wage" placeholder="時給（円）"/>
+          <input type="number" id="reg-week" placeholder="週最大時間（デフォルト：20h）"/>
+        </div>
+        <div id="full-fields" style="display:none;">
+          <input type="number" id="reg-salary" placeholder="月給（円）"/>
+          <input type="number" id="reg-max" placeholder="月最大時間"/>
+        </div>
         <button class="btn" onclick="doRegister()">登録する</button>
       </div>
     </div>
@@ -315,16 +321,33 @@ function doAdminLogin(){
   document.getElementById('nb-admin').style.display='block';
   showP('cal');renderCal();
 }
+function toggleAdminFields(val){
+  const isPart=val==='part';
+  document.getElementById('admin-part-fields').style.display=isPart?'flex':'none';
+  document.getElementById('admin-full-fields').style.display=isPart?'none':'flex';
+}
+function toggleRegFields(val){
+  const isPart=val==='part';
+  document.getElementById('part-fields').style.display=isPart?'flex':'none';
+  document.getElementById('part-fields').style.flexDirection='column';
+  document.getElementById('part-fields').style.gap='10px';
+  document.getElementById('full-fields').style.display=isPart?'none':'flex';
+  document.getElementById('full-fields').style.flexDirection='column';
+  document.getElementById('full-fields').style.gap='10px';
+}
 async function doRegister(){
   const name=document.getElementById('reg-name').value.trim();
   const stype=document.getElementById('reg-type').value;
-  const wage=parseInt(document.getElementById('reg-wage').value)||settings.wage_per_hour;
-  const maxH=parseInt(document.getElementById('reg-max').value)||settings.max_hours_per_month;
+  const isPart=stype==='part';
+  const wage=isPart?(parseInt(document.getElementById('reg-wage').value)||settings.wage_per_hour):0;
+  const maxWeek=isPart?(parseInt(document.getElementById('reg-week').value)||20):0;
+  const salary=!isPart?(parseInt(document.getElementById('reg-salary').value)||0):0;
+  const maxH=!isPart?(parseInt(document.getElementById('reg-max').value)||settings.max_hours_per_month):0;
   if(!name){toast('名前を入力してください','err');return;}
   if(staff.find(s=>s.name===name)){toast('同じ名前が既にあります','err');return;}
   const roleV=stype==='manager'?'manager':stype==='full'?'full':'part';
   const stypeV=stype==='manager'?'full':stype;
-  const{data,error}=await sb.from('shift_staff').insert({name,staff_type:stypeV,role:roleV,wage,max_hours:maxH}).select().single();
+  const{data,error}=await sb.from('shift_staff').insert({name,staff_type:stypeV,role:roleV,wage,max_hours:maxH,max_hours_per_week:maxWeek,monthly_salary:salary}).select().single();
   if(error){toast('登録に失敗しました','err');return;}
   staff.push(data);renderSlogin();
   document.getElementById('reg-name').value='';toast(`${name} を登録しました`);ltab('staff');
@@ -524,45 +547,67 @@ function buildWeek(sm,em,am){
   sw.setDate(today.getDate()-today.getDay()+wOff*7);
   const days=Array.from({length:7},(_,i)=>{const d=new Date(sw);d.setDate(d.getDate()+i);return d;});
   const ts=fd(today);
-  let th=`<tr><th class="wtc">時間</th>`;
-  days.forEach((d,i)=>{
-    const ds=fd(d),isT=ds===ts;
-    th+=`<th style="${isT?'background:#d4af7a;color:#2c3e50;':''}">
-      <div style="color:${i===0?'#fbb':'i'===6?'#bbf':'inherit'};font-size:9px;">${DJP[i]}</div>
-      <div>${d.getDate()}</div>
-    </th>`;
-  });
-  th+='</tr>';
-  let tb='';
-  for(let h=6;h<=23;h++){
-    tb+=`<tr><td class="wtc">${String(h).padStart(2,'0')}</td>`;
-    days.forEach(d=>{
-      const ds=fd(d),daySlots=sm[ds]||[];
-      let cell='';
-      daySlots.forEach(slot=>{
-        const sh=parseInt(slot.start_time)||0,eh=parseInt(slot.end_time)||0;
-        if(h<sh||h>=eh)return;
-        const ents=em[slot.id]||[];
-        const isMine=ents.some(e=>e.staff_id===me?.id);
-        const dispE=me.role==='admin'||me.role==='manager'?ents:ents.filter(e=>e.staff_id===me?.id);
-        const bg=isMine?'#d4af7a':slot.staff_type==='full'?'#cce5ff':'#d4edda';
-        const tc=isMine?'#2c3e50':slot.staff_type==='full'?'#004085':'#155724';
-        const names=dispE.map(e=>e.shift_staff?.name?.[0]||'?').join('');
-        cell+=`<div class="wchip" style="background:${bg};color:${tc};">${slot.slot_name}${names?' '+names:''}</div>`;
-      });
-      tb+=`<td>${cell}</td>`;
-    });
-    tb+='</tr>';
-  }
+  // Build using divs with absolute positioning for continuous blocks
   const ws=fd(days[0]),we=fd(days[6]);
-  return`<div>
+  const HOUR_H=36; // px per hour
+  const START_H=6,END_H=23,TOTAL_H=END_H-START_H;
+  let html=`<div>
     <div class="mnav">
       <button class="arr" onclick="chW(-1)">‹</button>
       <span class="mtitle" style="font-size:13px;">${ws}〜${we.slice(5)}</span>
       <div style="display:flex;gap:4px;"><button class="tbtn2" onclick="wOff=0;renderCal()">今週</button><button class="arr" onclick="chW(1)">›</button></div>
     </div>
-    <div class="wgrid"><table class="wtbl"><thead>${th}</thead><tbody>${tb}</tbody></table></div>
-  </div>`;
+    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+      <div style="min-width:340px;">
+        <div style="display:flex;">
+          <div style="width:36px;flex-shrink:0;"></div>`;
+  // Day headers
+  days.forEach((d,i)=>{
+    const ds=fd(d),isT=ds===ts;
+    html+=`<div style="flex:1;text-align:center;padding:4px 2px;font-size:10px;font-weight:700;background:${isT?'#d4af7a':'#2c3e50'};color:${isT?'#2c3e50':'#fff'};">
+      <div>${DJP[i]}</div><div>${d.getDate()}</div>
+    </div>`;
+  });
+  html+=`</div>
+        <div style="display:flex;">
+          <div style="width:36px;flex-shrink:0;position:relative;">`;
+  // Time labels
+  for(let h=START_H;h<=END_H;h++){
+    html+=`<div style="position:absolute;top:${(h-START_H)*HOUR_H}px;left:0;right:0;font-size:9px;color:#888;text-align:center;border-top:1px solid #eee;padding-top:2px;">${String(h).padStart(2,'0')}</div>`;
+  }
+  html+=`<div style="height:${TOTAL_H*HOUR_H}px;"></div></div>`;
+  // Day columns
+  days.forEach(d=>{
+    const ds=fd(d),daySlots=sm[ds]||[];
+    html+=`<div style="flex:1;position:relative;border-left:1px solid #eee;">`;
+    // Hour lines
+    for(let h=START_H;h<=END_H;h++){
+      html+=`<div style="position:absolute;top:${(h-START_H)*HOUR_H}px;left:0;right:0;border-top:1px solid #f0f0f0;height:${HOUR_H}px;"></div>`;
+    }
+    // Slot blocks
+    daySlots.forEach(slot=>{
+      const[ssh,ssm]=slot.start_time.split(':').map(Number);
+      const[seh,sem]=slot.end_time.split(':').map(Number);
+      const startMin=(ssh+ssm/60-START_H)*HOUR_H;
+      const heightMin=((seh+sem/60)-(ssh+ssm/60))*HOUR_H;
+      if(startMin<0||startMin>=TOTAL_H*HOUR_H)return;
+      const ents=em[slot.id]||[];
+      const isMine=ents.some(e=>e.staff_id===me?.id);
+      const dispE=me.role==='admin'||me.role==='manager'?ents:ents.filter(e=>e.staff_id===me?.id);
+      if(me.role==='staff'&&dispE.length===0)return;
+      const bg=isMine?'#d4af7a':slot.staff_type==='full'?'#cce5ff':'#d4edda';
+      const tc=isMine?'#2c3e50':slot.staff_type==='full'?'#004085':'#155724';
+      const border=isMine?'#c09050':slot.staff_type==='full'?'#90b8e0':'#90c8a0';
+      const names=dispE.map(e=>e.shift_staff?.name?.[0]||'?').join('');
+      html+=`<div style="position:absolute;top:${startMin}px;left:1px;right:1px;height:${Math.max(heightMin-2,14)}px;background:${bg};color:${tc};border-radius:4px;border-left:3px solid ${border};padding:2px 3px;overflow:hidden;font-size:9px;font-weight:700;z-index:1;">
+        <div style="line-height:1.2;">${slot.slot_name}</div>
+        ${names?`<div style="font-size:8px;opacity:.8;">${names}</div>`:''}
+      </div>`;
+    });
+    html+=`<div style="height:${TOTAL_H*HOUR_H}px;"></div></div>`;
+  });
+  html+=`</div></div></div></div>`;
+  return html;
 }
 
 function selD(d){selDay=selDay===d?null:d;renderCal();}
@@ -877,9 +922,19 @@ async function renderAdmin(){
   <div class="card"><div class="stitle">＋ スタッフ追加</div>
     <div class="fcol">
       <input type="text" id="aname" placeholder="名前"/>
-      <select id="atype"><option value="part">アルバイト</option><option value="full">正社員</option><option value="manager">店長</option></select>
-      <input type="number" id="awage" placeholder="時給（円）"/>
-      <input type="number" id="amax" placeholder="月最大時間"/>
+      <select id="atype" onchange="toggleAdminFields(this.value)">
+        <option value="part">アルバイト</option>
+        <option value="full">正社員</option>
+        <option value="manager">店長</option>
+      </select>
+      <div id="admin-part-fields" style="display:flex;flex-direction:column;gap:10px;">
+        <input type="number" id="awage" placeholder="時給（円）"/>
+        <input type="number" id="awkh" placeholder="週最大時間（デフォルト：20h）"/>
+      </div>
+      <div id="admin-full-fields" style="display:none;flex-direction:column;gap:10px;">
+        <input type="number" id="asal" placeholder="月給（円）"/>
+        <input type="number" id="amax" placeholder="月最大時間"/>
+      </div>
       <button class="btn" onclick="adminAddStaff()">追加する</button>
     </div></div>`;
 
@@ -891,9 +946,12 @@ async function renderAdmin(){
           <span class="av ${s.staff_type==='full'?'avf':'avp'}">${s.name[0]}</span>
           ${s.name}<span style="font-size:10px;color:#888;">${s.role==='manager'?'店長':s.staff_type==='full'?'正社員':'バイト'}</span>
         </div>
-        ${isOwner?`<div style="font-size:11px;color:#777;margin-bottom:2px;">時給¥${s.wage}　最大${s.max_hours}h　PW:${s.password||'0000'}</div>
-        <div style="font-size:11px;color:#555;margin-bottom:7px;">今月:${h}h　¥${(h*s.wage).toLocaleString()}</div>`
-        :`<div style="font-size:11px;color:#777;margin-bottom:7px;">最大${s.max_hours}h　今月:${h}h</div>`}
+        ${isOwner?(s.staff_type==='part'?
+          `<div style="font-size:11px;color:#777;margin-bottom:2px;">時給¥${s.wage}　週最大${s.max_hours_per_week||20}h　PW:${s.password||'0000'}</div>
+          <div style="font-size:11px;color:#555;margin-bottom:7px;">今月:${h}h　¥${(h*s.wage).toLocaleString()}</div>`
+          :`<div style="font-size:11px;color:#777;margin-bottom:2px;">月給¥${(s.monthly_salary||0).toLocaleString()}　月最大${s.max_hours}h　PW:${s.password||'0000'}</div>
+          <div style="font-size:11px;color:#555;margin-bottom:7px;">今月:${h}h</div>`)
+        :`<div style="font-size:11px;color:#777;margin-bottom:7px;">${s.staff_type==='part'?`週最大${s.max_hours_per_week||20}h`:'月給制'} 今月:${h}h</div>`}
         <div style="display:flex;gap:6px;flex-wrap:wrap;">
           ${isOwner?`<button class="bsm bd" onclick="openEditStaff('${s.id}')">編集</button>
           <button class="bsm bgold" onclick="openSetPW('${s.id}','${s.name}')">PW設定</button>
@@ -919,35 +977,58 @@ async function changeAdminPW(){
 }
 async function adminAddStaff(){
   const name=document.getElementById('aname').value.trim(),stype=document.getElementById('atype').value;
-  const wage=parseInt(document.getElementById('awage').value)||settings.wage_per_hour;
-  const maxH=parseInt(document.getElementById('amax').value)||settings.max_hours_per_month;
   if(!name){toast('名前を入力してください','err');return;}
   if(staff.find(s=>s.name===name)){toast('同じ名前が既にあります','err');return;}
   const roleV=stype==='manager'?'manager':stype==='full'?'full':'part';
   const stypeV=stype==='manager'?'full':stype;
-  const{data,error}=await sb.from('shift_staff').insert({name,staff_type:stypeV,role:roleV,wage,max_hours:maxH}).select().single();
+  const isPart=stype==='part';
+  const wage=isPart?parseInt(document.getElementById('awage').value)||settings.wage_per_hour:0;
+  const maxWeek=isPart?parseInt(document.getElementById('awkh').value)||20:0;
+  const salary=!isPart?parseInt(document.getElementById('asal').value)||0:0;
+  const maxH=!isPart?parseInt(document.getElementById('amax').value)||settings.max_hours_per_month:0;
+  const{data,error}=await sb.from('shift_staff').insert({name,staff_type:stypeV,role:roleV,wage,max_hours:maxH,max_hours_per_week:maxWeek,monthly_salary:salary}).select().single();
   if(error){toast('追加に失敗しました','err');return;}
   staff.push(data);toast(`${name} を追加しました`);renderAdmin();
 }
 function openEditStaff(id){
   const s=staff.find(x=>x.id===id);if(!s)return;
+  const isPart=s.staff_type==='part';
   openM(`<div class="mtit">${s.name} の編集</div>
     <div class="fcol">
       <input type="text" id="esn" value="${s.name}"/>
-      <select id="est"><option value="part"${s.role==='part'?' selected':''}>アルバイト</option><option value="full"${s.role==='full'?' selected':''}>正社員</option><option value="manager"${s.role==='manager'?' selected':''}>店長</option></select>
-      <input type="number" id="esw" value="${s.wage}" placeholder="時給"/>
-      <input type="number" id="esm" value="${s.max_hours}" placeholder="月最大時間"/>
+      <select id="est" onchange="toggleEditFields(this.value)">
+        <option value="part"${s.role==='part'?' selected':''}>アルバイト</option>
+        <option value="full"${s.role==='full'?' selected':''}>正社員</option>
+        <option value="manager"${s.role==='manager'?' selected':''}>店長</option>
+      </select>
+      <div id="edit-part" style="${isPart?'':`display:none;`}">
+        <input type="number" id="esw" value="${s.wage}" placeholder="時給（円）"/>
+        <input type="number" id="eswk" value="${s.max_hours_per_week||20}" placeholder="週最大時間"/>
+      </div>
+      <div id="edit-full" style="${!isPart?'':`display:none;`}">
+        <input type="number" id="esal" value="${s.monthly_salary||0}" placeholder="月給（円）"/>
+        <input type="number" id="esm" value="${s.max_hours}" placeholder="月最大時間"/>
+      </div>
     </div>
     <div class="mbtns"><button class="bsm bg" onclick="doEditStaff('${id}')">保存</button><button class="bsm bgr" onclick="closeM()">キャンセル</button></div>`);
 }
+function toggleEditFields(val){
+  const isPart=val==='part';
+  document.getElementById('edit-part').style.display=isPart?'block':'none';
+  document.getElementById('edit-full').style.display=isPart?'none':'block';
+}
 async function doEditStaff(id){
   const name=document.getElementById('esn').value.trim(),stype=document.getElementById('est').value;
-  const wage=parseInt(document.getElementById('esw').value),maxH=parseInt(document.getElementById('esm').value);
   if(!name){toast('名前を入力してください','err');return;}
   const roleV=stype==='manager'?'manager':stype==='full'?'full':'part';
   const stypeV=stype==='manager'?'full':stype;
-  await sb.from('shift_staff').update({name,staff_type:stypeV,role:roleV,wage,max_hours:maxH}).eq('id',id);
-  staff=staff.map(s=>s.id===id?{...s,name,staff_type:stypeV,role:roleV,wage,max_hours:maxH}:s);
+  const isPart=stype==='part';
+  const wage=isPart?parseInt(document.getElementById('esw').value)||0:0;
+  const maxWeek=isPart?parseInt(document.getElementById('eswk').value)||20:0;
+  const salary=!isPart?parseInt(document.getElementById('esal').value)||0:0;
+  const maxH=!isPart?parseInt(document.getElementById('esm').value)||settings.max_hours_per_month:0;
+  await sb.from('shift_staff').update({name,staff_type:stypeV,role:roleV,wage,max_hours:maxH,max_hours_per_week:maxWeek,monthly_salary:salary}).eq('id',id);
+  staff=staff.map(s=>s.id===id?{...s,name,staff_type:stypeV,role:roleV,wage,max_hours:maxH,max_hours_per_week:maxWeek,monthly_salary:salary}:s);
   closeM();toast('更新しました');renderAdmin();
 }
 async function delStaff(id,name){

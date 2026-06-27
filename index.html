@@ -14,31 +14,33 @@ html,body{height:100%;overflow:hidden;font-family:'Hiragino Kaku Gothic ProN','N
 .page.show{display:block;}
 #p-login{background:linear-gradient(135deg,#2c3e50 0%,#4a6741 100%);display:none;align-items:center;justify-content:center;padding:20px;z-index:30;}
 #p-login.show{display:flex;}
-#p-cal,#p-att,#p-leave,#p-swap,#p-admin{top:52px;}
+#p-cal,#p-leave,#p-requests,#p-admin{top:52px;}
 #hdr{position:fixed;top:0;left:0;right:0;height:52px;background:#2c3e50;color:#fff;display:none;align-items:center;justify-content:space-between;padding:0 10px;z-index:100;}
 #hdr.show{display:flex;}
-.hlogo{font-weight:800;font-size:11px;color:#d4af7a;line-height:1.3;max-width:110px;}
-.huser{font-size:10px;color:rgba(255,255,255,.6);margin-left:4px;}
+.hlogo{font-weight:800;font-size:11px;color:#d4af7a;line-height:1.3;max-width:96px;}
+.huser{font-size:10px;color:rgba(255,255,255,.6);margin-left:4px;max-width:74px;overflow:hidden;white-space:nowrap;}
 .hnav{display:flex;gap:3px;align-items:center;}
-.hbtn{padding:5px 7px;background:transparent;border:1px solid rgba(255,255,255,.25);border-radius:6px;color:rgba(255,255,255,.7);font-size:11px;cursor:pointer;}
+.hbtn{padding:5px 7px;background:transparent;border:1px solid rgba(255,255,255,.25);border-radius:6px;color:rgba(255,255,255,.7);font-size:11px;cursor:pointer;position:relative;}
 .hbtn.on{background:rgba(255,255,255,.18);color:#fff;border-color:rgba(255,255,255,.5);}
 .hout{padding:4px 6px;background:transparent;border:none;color:rgba(255,255,255,.4);font-size:11px;cursor:pointer;}
+.ndot{position:absolute;top:-3px;right:-3px;background:#e74c3c;color:#fff;font-size:8px;font-weight:700;min-width:14px;height:14px;border-radius:99px;display:flex;align-items:center;justify-content:center;padding:0 3px;}
 .lcard{background:#fff;border-radius:18px;padding:28px 22px;width:100%;max-width:370px;box-shadow:0 8px 32px rgba(0,0,0,.2);}
 .lwrap{text-align:center;margin-bottom:22px;}
 .lmark{display:block;width:50px;height:50px;line-height:50px;border-radius:50%;background:#2c3e50;color:#d4af7a;font-size:22px;font-weight:800;margin:0 auto 10px;}
 .lname{font-weight:700;font-size:15px;color:#2c3e50;display:block;}
 .lsub{font-size:11px;color:#888;margin-top:3px;letter-spacing:2px;display:block;}
 .tbar{display:flex;border-radius:8px;overflow:hidden;border:1px solid #e0e0e0;margin-bottom:16px;}
-.tbtn{flex:1;padding:8px 0;background:#f8f6f2;border:none;cursor:pointer;font-size:12px;color:#666;font-weight:600;}
+.tbtn{flex:1;padding:9px 0;background:#f8f6f2;border:none;cursor:pointer;font-size:13px;color:#666;font-weight:600;}
 .tbtn.on{background:#2c3e50;color:#fff;}
 .tpane{display:none;}
 .tpane.on{display:block;}
-.wrap{max-width:520px;margin:0 auto;padding:14px 12px 80px;}
+.wrap{max-width:520px;margin:0 auto;padding:14px 12px 90px;}
 .card{background:#fff;border-radius:14px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:12px;}
 .stitle{font-weight:800;font-size:14px;color:#2c3e50;margin-bottom:12px;}
 .fcol{display:flex;flex-direction:column;gap:10px;}
 input,select,textarea{padding:9px 11px;border-radius:8px;border:1px solid #d0d0d0;font-size:14px;outline:none;background:#fafafa;color:#222;width:100%;font-family:inherit;}
 textarea{resize:vertical;min-height:60px;}
+.flabel{font-size:12px;color:#666;margin-bottom:3px;display:block;font-weight:600;}
 .btn{padding:11px 0;background:#2c3e50;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;width:100%;}
 .bsm{padding:5px 11px;border:none;border-radius:6px;font-size:12px;cursor:pointer;font-weight:700;}
 .bg{background:#2c5f2e;color:#fff;}
@@ -46,87 +48,84 @@ textarea{resize:vertical;min-height:60px;}
 .bd{background:#2c3e50;color:#fff;}
 .bgr{background:#ddd;color:#555;}
 .bgold{background:#d4af7a;color:#2c3e50;}
-.empty{text-align:center;color:#999;font-size:13px;padding:14px 0;line-height:1.8;}
-.av{width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;flex-shrink:0;}
-.avf{background:#2c3e50;color:#d4af7a;}
-.avp{background:#4a6741;color:#fff;}
-.prog{height:5px;border-radius:99px;background:#eee;overflow:hidden;margin:4px 0;}
+.empty{text-align:center;color:#999;font-size:13px;padding:18px 0;line-height:1.8;}
+.av{width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;flex-shrink:0;color:#fff;}
+.prog{height:6px;border-radius:99px;background:#eee;overflow:hidden;margin:5px 0;}
 .progf{height:100%;border-radius:99px;}
-.warn{background:#fef9e7;border:1px solid #f0c040;border-radius:8px;padding:6px 10px;font-size:11px;color:#7d6608;margin-top:6px;}
-.badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;}
+.warn{background:#fdecea;border:1px solid #e74c3c;border-radius:8px;padding:8px 11px;font-size:11px;color:#922b21;margin-top:8px;font-weight:600;}
+.hint{font-size:11px;color:#888;line-height:1.6;}
+.badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;}
 .bp{background:#fef3cd;color:#856404;}
 .ba{background:#d4edda;color:#155724;}
 .brej{background:#f8d7da;color:#721c24;}
+.perm-badge{font-size:10px;padding:2px 8px;border-radius:99px;font-weight:700;}
+.perm-on{background:#d4edda;color:#155724;}
+.perm-off{background:#f1f1f1;color:#aaa;}
 .mnav{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
 .mtitle{font-weight:800;font-size:17px;color:#2c3e50;cursor:pointer;border-bottom:1px dashed #aaa;}
-.arr{background:none;border:1px solid #ddd;border-radius:6px;font-size:18px;cursor:pointer;color:#2c3e50;padding:2px 9px;line-height:1.4;}
-.tbtn2{padding:3px 10px;background:#d4af7a;color:#2c3e50;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;}
+.arr{background:#fff;border:1px solid #ddd;border-radius:6px;font-size:18px;cursor:pointer;color:#2c3e50;padding:3px 10px;line-height:1.4;}
+.tbtn2{padding:4px 11px;background:#d4af7a;color:#2c3e50;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;}
 .vtabs{display:flex;gap:4px;margin-bottom:10px;}
-.vt{flex:1;padding:7px 0;background:#fff;border:1px solid #ddd;border-radius:8px;font-size:12px;font-weight:600;color:#666;cursor:pointer;text-align:center;}
+.vt{flex:1;padding:8px 0;background:#fff;border:1px solid #ddd;border-radius:8px;font-size:13px;font-weight:600;color:#666;cursor:pointer;text-align:center;}
 .vt.on{background:#2c3e50;color:#fff;border-color:#2c3e50;}
 .cgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:10px;}
 .dh{text-align:center;font-size:10px;font-weight:700;padding:4px 0;}
-.cd{border:1px solid #e8e8e8;border-radius:6px;padding:3px 2px 2px;min-height:62px;cursor:pointer;display:flex;flex-direction:column;background:#fff;overflow:hidden;}
+.cd{border:1px solid #e8e8e8;border-radius:6px;padding:3px 2px 2px;min-height:64px;cursor:pointer;display:flex;flex-direction:column;background:#fff;overflow:hidden;}
 .cd.sel{border-color:#2c3e50;box-shadow:0 0 0 2px #2c3e50;}
 .cd.tod{background:#fef9e7;}
 .cdn{font-size:11px;font-weight:700;line-height:1;margin-bottom:2px;}
-.chip{font-size:8px;padding:1px 3px;border-radius:3px;margin-bottom:1px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.chip{font-size:8px;padding:1px 3px;border-radius:3px;margin-bottom:1px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff;}
 .dp{background:#fff;border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:0 2px 10px rgba(0,0,0,.07);}
-.dptitle{font-weight:800;font-size:15px;color:#2c3e50;margin-bottom:12px;padding-bottom:7px;border-bottom:2px solid #f0ede8;}
-.scard{border-radius:10px;padding:10px 12px;margin-bottom:8px;border:1px solid #e0e0e0;}
+.dptitle{font-weight:800;font-size:15px;color:#2c3e50;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid #f0ede8;}
+.slabel{font-size:12px;font-weight:700;margin-bottom:7px;display:flex;align-items:center;gap:5px;}
+.scard{border-radius:10px;padding:11px 13px;margin-bottom:8px;border:1px solid #e0e0e0;}
 .scard.part-s{background:#f0fff4;border-color:#c3e6cb;}
-.scard.full-s{background:#f0f4ff;border-color:#b8d4f0;}
+.scard.full-s{background:#eff5ff;border-color:#b8d4f0;}
 .shed{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
-.sname{font-weight:700;font-size:13px;color:#2c3e50;}
-.stime{font-size:11px;color:#666;}
-.smems{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px;min-height:22px;}
-.mtag{display:flex;align-items:center;gap:4px;background:#fff;border:1px solid #ddd;border-radius:20px;padding:2px 8px;font-size:11px;font-weight:600;}
+.sname{font-weight:700;font-size:14px;color:#2c3e50;}
+.stime{font-size:12px;color:#555;font-weight:600;}
+.scap{font-size:11px;color:#888;margin-bottom:7px;}
+.smems{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;min-height:24px;}
+.mtag{display:flex;align-items:center;gap:4px;background:#fff;border:1.5px solid #ddd;border-radius:20px;padding:3px 9px;font-size:11px;font-weight:600;}
 .mtag.me{background:#d4af7a;border-color:#d4af7a;color:#2c3e50;}
 .sacts{display:flex;gap:6px;flex-wrap:wrap;}
-.joinbtn{padding:5px 14px;background:#2c5f2e;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;}
-.lvbtn{padding:5px 14px;background:#c0392b;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;}
-.clkbar{display:flex;align-items:center;justify-content:space-between;gap:8px;background:#fff;border-radius:12px;padding:12px 14px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,.06);}
-.clinbtn{padding:9px 16px;background:#2c5f2e;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;}
-.cloutbtn{padding:9px 16px;background:#c0392b;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;}
-.leg{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
+.joinbtn{padding:6px 15px;background:#2c5f2e;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;}
+.leg{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
 .legitem{display:flex;align-items:center;gap:4px;font-size:10px;color:#555;}
-.legdot{width:10px;height:10px;border-radius:3px;}
+.legdot{width:11px;height:11px;border-radius:3px;}
 .mbg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:flex-end;justify-content:center;}
 .mbg.show{display:flex;}
-.mbox{background:#fff;border-radius:18px 18px 0 0;padding:22px 18px 40px;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;}
+.mbox{background:#fff;border-radius:18px 18px 0 0;padding:22px 18px 40px;width:100%;max-width:480px;max-height:88vh;overflow-y:auto;}
 .mtit{font-weight:800;font-size:15px;color:#2c3e50;margin-bottom:14px;}
-.mbtns{display:flex;gap:8px;margin-top:14px;}
-#toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);padding:9px 20px;border-radius:8px;color:#fff;font-size:13px;font-weight:600;z-index:999;box-shadow:0 4px 16px rgba(0,0,0,.2);display:none;white-space:nowrap;max-width:90vw;}
+.mbtns{display:flex;gap:8px;margin-top:16px;}
+#toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);padding:10px 20px;border-radius:8px;color:#fff;font-size:13px;font-weight:600;z-index:999;box-shadow:0 4px 16px rgba(0,0,0,.2);display:none;white-space:nowrap;max-width:90vw;}
 @keyframes spin{to{transform:rotate(360deg);}}
 .spin{display:inline-block;width:14px;height:14px;border:2px solid #ddd;border-top-color:#2c3e50;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px;}
 .loading{text-align:center;color:#aaa;font-size:13px;padding:30px 0;}
-.arow{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #eee;font-size:12px;}
-.arow:last-child{border-bottom:none;}
-.perm-badge{font-size:10px;padding:2px 7px;border-radius:99px;font-weight:700;}
-.perm-on{background:#d4edda;color:#155724;}
-.perm-off{background:#f8f9fa;color:#aaa;}
-/* Week view */
-.wk-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:12px;}
-.wk-table{border-collapse:collapse;min-width:340px;width:100%;}
-.wk-table th{background:#2c3e50;color:#fff;padding:5px 2px;text-align:center;font-size:10px;border:1px solid #3d5166;}
-.wk-table td{border:1px solid #eee;padding:0;vertical-align:top;}
-.wk-time{background:#f8f6f2;font-size:9px;color:#888;text-align:center;padding:2px;width:32px;min-width:32px;}
-.wk-cell{display:flex;min-height:20px;cursor:pointer;}
-.wk-person{flex:1;font-size:8px;font-weight:700;border-radius:2px;padding:1px 2px;text-align:center;margin:1px;overflow:hidden;white-space:nowrap;}
+.reqcard{background:#fff;border-radius:12px;padding:13px;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,.06);border-left:4px solid #d4af7a;}
+.reqcard.leave-r{border-left-color:#27ae60;}
+.reqcard.cancel-r{border-left-color:#e67e22;}
+.seg{display:flex;gap:4px;margin-bottom:12px;}
+.segb{flex:1;padding:7px 0;background:#fff;border:1px solid #ddd;border-radius:8px;font-size:12px;font-weight:600;color:#666;cursor:pointer;text-align:center;}
+.segb.on{background:#2c3e50;color:#fff;border-color:#2c3e50;}
+.wk-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid #e8e8e8;border-radius:10px;}
+.logrow{font-size:11px;color:#666;padding:7px 0;border-bottom:1px solid #f0f0f0;line-height:1.5;}
+.logrow:last-child{border-bottom:none;}
 </style>
 </head>
 <body>
 <div id="toast"></div>
+
 <div id="hdr">
   <div style="display:flex;align-items:center;gap:4px;">
     <span class="hlogo">Café La<br>Petite Haku</span>
     <span class="huser" id="huser"></span>
   </div>
   <div class="hnav">
-    <button class="hbtn on" id="nb-cal" onclick="nav('cal')">📅</button>
-    <button class="hbtn" id="nb-att" onclick="nav('att')">🕐</button>
-    <button class="hbtn" id="nb-leave" onclick="nav('leave')">🌿</button>
-    <button class="hbtn" id="nb-admin" style="display:none;" onclick="nav('admin')">⚙</button>
+    <button class="hbtn on" id="nb-cal" onclick="nav('cal')" title="シフト表">📅</button>
+    <button class="hbtn" id="nb-leave" onclick="nav('leave')" title="休暇申請" style="display:none;">🌿</button>
+    <button class="hbtn" id="nb-requests" onclick="nav('requests')" title="申請確認" style="display:none;">📋<span class="ndot" id="reqdot" style="display:none;">0</span></button>
+    <button class="hbtn" id="nb-admin" onclick="nav('admin')" title="管理" style="display:none;">⚙</button>
     <button class="hout" onclick="logout()">退出</button>
   </div>
 </div>
@@ -140,31 +139,10 @@ textarea{resize:vertical;min-height:60px;}
     </div>
     <div class="tbar">
       <button class="tbtn on" onclick="ltab('staff')">スタッフ</button>
-      <button class="tbtn" onclick="ltab('reg')">新規登録</button>
       <button class="tbtn" onclick="ltab('admin')">管理者</button>
     </div>
     <div id="lt-staff" class="tpane on">
       <div id="slogin"><div class="loading"><span class="spin"></span>読み込み中…</div></div>
-    </div>
-    <div id="lt-reg" class="tpane">
-      <div class="fcol">
-        <input type="text" id="reg-name" placeholder="お名前"/>
-        <select id="reg-type" onchange="toggleRegFields(this.value)">
-          <option value="part">アルバイト</option>
-          <option value="full">正社員</option>
-          <option value="manager">店長</option>
-          <option value="owner">オーナー</option>
-        </select>
-        <div id="reg-part-f" style="display:flex;flex-direction:column;gap:10px;">
-          <input type="number" id="reg-wage" placeholder="時給（円）"/>
-          <input type="number" id="reg-week" placeholder="週最大時間（デフォルト：20h）"/>
-        </div>
-        <div id="reg-full-f" style="display:none;flex-direction:column;gap:10px;">
-          <input type="number" id="reg-salary" placeholder="月給（円）"/>
-          <input type="number" id="reg-max" placeholder="月最大時間"/>
-        </div>
-        <button class="btn" onclick="doRegister()">登録する</button>
-      </div>
     </div>
     <div id="lt-admin" class="tpane">
       <div class="fcol">
@@ -176,8 +154,8 @@ textarea{resize:vertical;min-height:60px;}
 </div>
 
 <div id="p-cal" class="page"><div class="wrap" id="wcal"></div></div>
-<div id="p-att" class="page"><div class="wrap" id="watt"></div></div>
 <div id="p-leave" class="page"><div class="wrap" id="wleave"></div></div>
+<div id="p-requests" class="page"><div class="wrap" id="wrequests"></div></div>
 <div id="p-admin" class="page"><div class="wrap" id="wadmin"></div></div>
 
 <div id="mbg" class="mbg" onclick="if(event.target===this)closeM()">
@@ -185,23 +163,27 @@ textarea{resize:vertical;min-height:60px;}
 </div>
 
 <script>
+// ── 設定 ──
 const SBU='https://hqddrswyqmammuwwrvna.supabase.co';
 const SBK='sb_publishable_766-Q62xxyGNiARJhTg13A_lb7YxuEQ';
 const sb=supabase.createClient(SBU,SBK);
-const SLAT=34.719172,SLNG=135.477891,SR=200;
-const DJP=['日','月','火','水','木','金','土'];
-const LT={paid:'有給休暇',sick:'病欠',mourning:'忌引き',unpaid:'無給休暇'};
-
 const STAFF_COLORS=['#2c5f2e','#2471a3','#7d3c98','#c0392b','#c87941','#1a5276',
   '#117a65','#784212','#6e2f8f','#0e6655','#7b241c','#1f618d','#145a32',
   '#6c3483','#1a252f','#0b5345','#512e5f','#4a235a','#1b4332','#154360'];
-let APW='haku2026',GPS_GLOBAL=false;
-let me=null;
-let staff=[],settings={wage_per_hour:1100,max_hours_per_month:80,insurance_threshold_weekly:20};
-let calY=new Date().getFullYear(),calM=new Date().getMonth(),selDay=null,calView='month',wOff=0;
-let SC={},EC={},AC={},todayAtt=null;
+const DJP_MON=['月','火','水','木','金','土','日'];
+const LT={paid:'有給休暇',sick:'病欠',mourning:'忌引き',unpaid:'無給休暇'};
+const DUR={full:'全日',half_am:'午前半休',half_pm:'午後半休',custom:'時間指定'};
 
-// ── Toast & Modal ──────────────────────────────────────────────────────────────
+// ── 状態 ──
+let APW='haku2026';
+let me=null;
+let staff=[],settings={insurance_threshold_weekly:20};
+let calY=new Date().getFullYear(),calM=new Date().getMonth(),selDay=null,calView='month',wOff=0;
+let SC={},EC={};
+let staffColorMap={};
+let pendingCount=0;
+
+// ── ユーティリティ ──
 function toast(m,t='ok'){
   const e=document.getElementById('toast');
   e.textContent=m;e.style.background=t==='err'?'#c0392b':'#2c5f2e';
@@ -210,8 +192,12 @@ function toast(m,t='ok'){
 }
 function openM(h){document.getElementById('mbox').innerHTML=h;document.getElementById('mbg').classList.add('show');}
 function closeM(){document.getElementById('mbg').classList.remove('show');}
+function fd(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function chft(s,e){const[sh,sm]=s.split(':').map(Number);const[eh,em]=e.split(':').map(Number);return Math.max(0,(eh*60+em-sh*60-sm)/60);}
+function roleLabel(s){return s.role==='owner'?'オーナー':s.role==='manager'?'店長':s.staff_type==='full'?'正社員':'アルバイト';}
+function buildStaffColorMap(){staffColorMap={};staff.forEach((s,i)=>staffColorMap[s.id]=STAFF_COLORS[i%STAFF_COLORS.length]);}
 
-// ── Page nav ───────────────────────────────────────────────────────────────────
+// ── ページナビ ──
 function showP(name){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('show'));
   document.querySelectorAll('.hbtn').forEach(b=>b.classList.remove('on'));
@@ -227,143 +213,95 @@ function showP(name){
 function nav(name){
   showP(name);
   if(name==='cal')renderCal();
-  else if(name==='att')renderAtt();
   else if(name==='leave')renderLeave();
-  else if(name==='swap')renderSwap();
+  else if(name==='requests')renderRequests();
   else if(name==='admin')renderAdmin();
 }
 function ltab(n){
-  document.querySelectorAll('.tbtn').forEach((b,i)=>b.classList.toggle('on',['staff','reg','admin'][i]===n));
-  document.querySelectorAll('.tpane').forEach((p,i)=>p.classList.toggle('on',['lt-staff','lt-reg','lt-admin'][i]==='lt-'+n));
-}
-function toggleRegFields(v){
-  const ip=v==='part';
-  document.getElementById('reg-part-f').style.display=ip?'flex':'none';
-  document.getElementById('reg-full-f').style.display=ip?'none':'flex';
+  document.querySelectorAll('.tbtn').forEach((b,i)=>b.classList.toggle('on',['staff','admin'][i]===n));
+  document.querySelectorAll('.tpane').forEach(p=>p.classList.remove('on'));
+  document.getElementById('lt-'+n).classList.add('on');
 }
 
-// ── Utils ──────────────────────────────────────────────────────────────────────
-function ft(ts){if(!ts)return'--:--';const d=new Date(ts);return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');}
-function fd(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
-function ch(i,o){if(!i||!o)return 0;return Math.round((new Date(o)-new Date(i))/36000)/100;}
-function chft(s,e){const[sh,sm]=s.split(':').map(Number);const[eh,em]=e.split(':').map(Number);return Math.max(0,(eh*60+em-sh*60-sm)/60);}
-function cw(h,wage,i,o){
-  if(!i||!o||h<=0)return h*wage;
-  let t=0,c=new Date(i);const ou=new Date(o);
-  while(c<ou){const n=new Date(Math.min(c.getTime()+3600000,ou.getTime()));const hr=c.getHours();t+=(n-c)/3600000*wage*(hr>=22||hr<5?1.25:1);c=n;}
-  return Math.round(t);
-}
-function distM(la1,lo1,la2,lo2){
-  const R=6371000,dLa=(la2-la1)*Math.PI/180,dLo=(lo2-lo1)*Math.PI/180;
-  const a=Math.sin(dLa/2)**2+Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(dLo/2)**2;
-  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
-}
-
-// ── Data ───────────────────────────────────────────────────────────────────────
-function buildStaffColorMap(){
-  staffColorMap={};
-  staff.forEach((s,i)=>staffColorMap[s.id]=STAFF_COLORS[i%STAFF_COLORS.length]);
-}
+// ── データ読み込み ──
 async function loadAll(){
-  await Promise.all([loadStaff(),loadSettings()]);
-}
-async function loadStaff(){
   const{data,error}=await sb.from('shift_staff').select('*').order('created_at');
-  if(error){document.getElementById('slogin').innerHTML='<p style="color:red;font-size:12px;">読込エラー: '+error.message+'</p>';return;}
+  if(error){document.getElementById('slogin').innerHTML='<p style="color:red;font-size:12px;padding:10px;">読み込みエラー: '+error.message+'</p>';return;}
   staff=data||[];
+  buildStaffColorMap();
   renderSlogin();
+  const{data:sd}=await sb.from('shift_settings').select('*').eq('id',1).single();
+  if(sd){settings=sd;if(sd.admin_password)APW=sd.admin_password;}
 }
-async function loadSettings(){
-  const{data}=await sb.from('shift_settings').select('*').eq('id',1).single();
-  if(data){settings=data;if(data.admin_password)APW=data.admin_password;GPS_GLOBAL=data.gps_required||false;}
-}
+
 async function loadMonth(y,m){
   const from=y+'-'+String(m+1).padStart(2,'0')+'-01';
   const to=y+'-'+String(m+1).padStart(2,'0')+'-'+new Date(y,m+1,0).getDate();
   const k=y+'-'+m;
-  const[sr,er,ar]=await Promise.all([
+  const[sr,er]=await Promise.all([
     sb.from('shift_slots').select('*').gte('date',from).lte('date',to).order('start_time'),
-    sb.from('slot_entries').select('*,shift_staff(id,name,staff_type)'),
-    sb.from('attendance').select('*').gte('date',from).lte('date',to)
+    sb.from('slot_entries').select('*,shift_staff(id,name,staff_type,role)')
   ]);
-  // SC: {date: [slots]}
   const sm={};(sr.data||[]).forEach(s=>{if(!sm[s.date])sm[s.date]=[];sm[s.date].push(s);});
   SC[k]=sm;
-  // EC: {slot_id: [entries]}
   const em={};(er.data||[]).forEach(e=>{if(!em[e.slot_id])em[e.slot_id]=[];em[e.slot_id].push(e);});
   EC[k]=em;
-  // AC: {date: {staff_id: attendance}}
-  const am={};(ar.data||[]).forEach(a=>{if(!am[a.date])am[a.date]={};am[a.date][a.staff_id]=a;});
-  AC[k]=am;
-  if(me&&me.id!=='admin'){todayAtt=(AC[k][fd(new Date())]||{})[me.id]||null;}
 }
-function getMonthlyH(y,m,leavesData){
-  const k=y+'-'+m,am=AC[k]||{},sm=SC[k]||{},em=EC[k]||{},res={};
-  staff.forEach(s=>res[s.id]=0);
-  // 1. Actual clock-in/out hours
-  Object.values(am).forEach(dm=>Object.entries(dm).forEach(([sid,a])=>{
-    if(a.clock_in&&a.clock_out)res[sid]=(res[sid]||0)+ch(a.clock_in,a.clock_out);
-  }));
-  // 2. Scheduled slots without attendance
-  Object.entries(sm).forEach(([date,slots])=>slots.forEach(slot=>{
-    (em[slot.id]||[]).forEach(e=>{
-      const att=(am[date]||{})[e.staff_id];
-      const s=staff.find(st=>st.id===e.staff_id);
-      const isPart=s?.staff_type==='part';
-      if(!att){
-        // No attendance - use scheduled hours
-        res[e.staff_id]=(res[e.staff_id]||0)+chft(slot.start_time,slot.end_time);
-      } else if(att.status==='absent'){
-        // Absent: part-time=0 (A), full-time check leave type (C)
-        if(!isPart&&leavesData){
-          // Full-time: paid leave counts, sick leave = 0
-          const leave=leavesData.find(l=>l.staff_id===e.staff_id&&l.date===date&&l.status==='approved');
-          if(leave&&leave.leave_type==='paid'){
-            res[e.staff_id]=(res[e.staff_id]||0)+chft(slot.start_time,slot.end_time);
-          }
-          // sick/unpaid = 0, mourning = 0 (no change)
-        }
-        // part-time absent = 0 (already 0, no addition)
-      }
-    });
-  }));
-  return res;
-}
-function getWeeklyH(staffId,y,m){
-  const k=y+'-'+m,sm=SC[k]||{},em=EC[k]||{},am=AC[k]||{};
+
+// 週合計時数（月曜始まり）
+function getWeeklyH(staffId){
+  const k=calY+'-'+calM,sm=SC[k]||{},em=EC[k]||{};
   const today=new Date();
-  const ws=new Date(today);ws.setDate(today.getDate()-((today.getDay()+6)%7)+wOff*7);ws.setHours(0,0,0,0);
+  const diffToMon=(today.getDay()+6)%7;
+  const ws=new Date(today);ws.setDate(today.getDate()-diffToMon+wOff*7);ws.setHours(0,0,0,0);
   const we=new Date(ws);we.setDate(ws.getDate()+6);we.setHours(23,59,59,999);
   let total=0;
   Object.entries(sm).forEach(([date,slots])=>{
-    const d=new Date(date);if(d<ws||d>we)return;
+    const d=new Date(date+'T00:00:00');if(d<ws||d>we)return;
     slots.forEach(slot=>{
-      if(!(em[slot.id]||[]).find(e=>e.staff_id===staffId))return;
-      const att=(am[date]||{})[staffId];
-      if(att&&att.clock_in&&att.clock_out)total+=ch(att.clock_in,att.clock_out);
-      else total+=chft(slot.start_time,slot.end_time);
+      if((em[slot.id]||[]).find(e=>e.staff_id===staffId))total+=chft(slot.start_time,slot.end_time);
     });
   });
   return Math.round(total*10)/10;
 }
+// 月合計時数
+function getMonthlyH(staffId){
+  const k=calY+'-'+calM,sm=SC[k]||{},em=EC[k]||{};
+  let total=0;
+  Object.values(sm).forEach(slots=>slots.forEach(slot=>{
+    if((em[slot.id]||[]).find(e=>e.staff_id===staffId))total+=chft(slot.start_time,slot.end_time);
+  }));
+  return Math.round(total*10)/10;
+}
 
-// ── Auth ───────────────────────────────────────────────────────────────────────
+// 監査ログ記録
+async function logAction(action,targetDate,detail){
+  if(!me)return;
+  await sb.from('audit_log').insert({
+    actor_id:me.id==='admin'?null:me.id,
+    actor_name:me.name,
+    actor_role:me.srole==='owner'?'Owner':'Manager',
+    action,target_date:targetDate||null,detail
+  });
+}
+
+// ── 認証 ──
 function renderSlogin(){
   const el=document.getElementById('slogin');if(!el)return;
-  if(staff.length===0){el.innerHTML='<p class="empty">スタッフが登録されていません</p>';return;}
+  if(staff.length===0){el.innerHTML='<p class="empty">スタッフが登録されていません<br>管理者がスタッフを追加してください</p>';return;}
   let html='<div class="fcol">';
   html+='<select id="ssel" style="font-size:14px;padding:11px;"><option value="">スタッフを選択…</option>';
   staff.forEach(s=>{
     const lbl=s.role==='owner'?' 【オーナー】':s.role==='manager'?' 【店長】':s.staff_type==='full'?' 【正社員】':'';
     html+='<option value="'+s.id+'">'+s.name+lbl+'</option>';
   });
-  html+='</select>';
-  html+='<input type="password" id="spw" placeholder="パスワード（初期：0000）"/>';
+  html+='</select><input type="password" id="spw" placeholder="パスワード（初期：0000）"/>';
   html+='<button class="btn" onclick="doStaffLogin()">ログイン</button></div>';
   el.innerHTML=html;
   const spwEl=document.getElementById('spw');
-  if(spwEl)spwEl.addEventListener('keydown',function(e){if(e.key==='Enter')doStaffLogin();});
+  if(spwEl)spwEl.addEventListener('keydown',e=>{if(e.key==='Enter')doStaffLogin();});
 }
+
 function doStaffLogin(){
   const id=document.getElementById('ssel').value,pw=document.getElementById('spw').value;
   if(!id){toast('スタッフを選択してください','err');return;}
@@ -372,122 +310,119 @@ function doStaffLogin(){
   const isOwnerRole=s.role==='owner';
   const isManagerRole=s.role==='manager';
   const canManage=s.can_manage_shift||isManagerRole||isOwnerRole;
-  let myRole='staff';
-  if(isOwnerRole)myRole='admin';
-  else if(isManagerRole||canManage)myRole='manager';
-  const salaryVisible=isOwnerRole||isManagerRole;
   const _isPart=s.staff_type==='part';
-  me={id:s.id,name:s.name,role:myRole,stype:s.staff_type||'part',srole:s.role||'part',
-      canManage,salaryVisible,gpsReq:s.gps_required!==false,isPart:_isPart};
-  const roleDisp=isOwnerRole?' 【オーナー】':isManagerRole?' 【店長】':s.staff_type==='full'?' 【正社員】':'';
+  me={id:s.id,name:s.name,stype:s.staff_type||'part',srole:s.role||'part',
+      canManage,isPart:_isPart};
+  const roleDisp=isOwnerRole?' 【オーナー】':isManagerRole?' 【店長】':s.staff_type==='full'?' 【正社員】':' 【アルバイト】';
   document.getElementById('huser').textContent=s.name+roleDisp;
-  document.getElementById('nb-admin').style.display=canManage?'block':'none';
-  document.getElementById('nb-leave').style.display=(!_isPart||canManage)?'block':'none';
-  document.getElementById('nb-cancel').style.display=(_isPart||canManage)?'block':'none';
+  applyNav();
   showP('cal');renderCal();
+  refreshPendingCount();
 }
+
 function doAdminLogin(){
   const pw=document.getElementById('admpw').value;
   if(pw!==APW){toast('パスワードが違います','err');return;}
-  me={id:'admin',name:'管理者',role:'admin',stype:'full',srole:'owner',canManage:true,salaryVisible:true,gpsReq:false};
+  me={id:'admin',name:'管理者',stype:'full',srole:'owner',canManage:true,isPart:false};
   document.getElementById('huser').textContent='管理者';
-  document.getElementById('nb-admin').style.display='block';
+  applyNav();
   showP('cal');renderCal();
+  refreshPendingCount();
 }
-async function doRegister(){
-  const name=document.getElementById('reg-name').value.trim();
-  const stype=document.getElementById('reg-type').value;
-  if(!name){toast('名前を入力してください','err');return;}
-  if(staff.find(s=>s.name===name)){toast('同じ名前が既にあります','err');return;}
-  const isPart=stype==='part';
-  const wage=isPart?(parseInt(document.getElementById('reg-wage').value)||settings.wage_per_hour):0;
-  const maxWeek=isPart?(parseInt(document.getElementById('reg-week').value)||20):0;
-  const salary=!isPart?(parseInt(document.getElementById('reg-salary').value)||0):0;
-  const maxH=!isPart?(parseInt(document.getElementById('reg-max').value)||settings.max_hours_per_month):0;
-  const roleV=stype==='owner'?'owner':stype==='manager'?'manager':stype==='full'?'full':'part';
-  const stypeV=(stype==='manager'||stype==='owner')?'full':stype;
-  const{data,error}=await sb.from('shift_staff').insert({name,staff_type:stypeV,role:roleV,wage,max_hours:maxH,max_hours_per_week:maxWeek,monthly_salary:salary}).select().single();
-  if(error){toast('登録に失敗しました','err');return;}
-  staff.push(data);renderSlogin();
-  document.getElementById('reg-name').value='';toast(name+' を登録しました');ltab('staff');
-}
-function logout(){me=null;selDay=null;document.getElementById('admpw').value='';renderSlogin();showP('login');}
 
-// ── Calendar ───────────────────────────────────────────────────────────────────
+// ナビ表示制御：管理権限者は全員と同じ画面＋申請確認
+function applyNav(){
+  document.getElementById('nb-admin').style.display=me.canManage?'block':'none';
+  document.getElementById('nb-requests').style.display=me.canManage?'block':'none';
+  // 休暇申請：正社員のみ（管理者でない一般正社員も）。アルバイトは表示しない
+  document.getElementById('nb-leave').style.display=(!me.isPart&&me.id!=='admin')?'block':'none';
+}
+
+function logout(){
+  me=null;selDay=null;
+  document.getElementById('admpw').value='';
+  ltab('staff');renderSlogin();showP('login');
+}
+
+async function refreshPendingCount(){
+  if(!me||!me.canManage){return;}
+  const[lr,cr]=await Promise.all([
+    sb.from('leave_requests').select('id').eq('status','pending'),
+    sb.from('cancel_requests').select('id').eq('status','pending')
+  ]);
+  pendingCount=((lr.data||[]).length)+((cr.data||[]).length);
+  const dot=document.getElementById('reqdot');
+  if(dot){
+    if(pendingCount>0){dot.style.display='flex';dot.textContent=pendingCount;}
+    else dot.style.display='none';
+  }
+}
+// ════════════════════════════════════════════════════════════
+// カレンダー
+// ════════════════════════════════════════════════════════════
 async function renderCal(){
   const wrap=document.getElementById('wcal');
   wrap.innerHTML='<div class="loading"><span class="spin"></span>読み込み中…</div>';
   await loadMonth(calY,calM);
-  const k=calY+'-'+calM,sm=SC[k]||{},em=EC[k]||{},am=AC[k]||{};
-  const mh=getMonthlyH(calY,calM,[]);
+  const k=calY+'-'+calM,sm=SC[k]||{},em=EC[k]||{};
   let html='';
 
-  // Clock banner (all staff who logged in as staff, not admin login)
+  // 自分のサマリー（管理者ログイン以外）
   if(me.id!=='admin'){
-    const a=todayAtt;
-    if(!a||!a.clock_in){
-      html+='<div class="clkbar"><div style="font-size:12px;color:#555;">本日未出勤</div><button class="clinbtn" onclick="clockIn()">出勤 🟢</button></div>';
-    } else if(!a.clock_out){
-      html+='<div class="clkbar"><div style="font-size:12px;color:#555;">出勤中 <strong>'+ft(a.clock_in)+'〜</strong></div><button class="cloutbtn" onclick="clockOut()">退勤 🔴</button></div>';
-    } else {
-      html+='<div class="clkbar"><div style="font-size:12px;color:#555;"><strong>'+ft(a.clock_in)+'〜'+ft(a.clock_out)+'</strong> 退勤済</div><span style="font-size:11px;color:#aaa;">お疲れ様！</span></div>';
-    }
-    const myS=staff.find(s=>s.id===me.id);
-    const isPart=myS?.staff_type==='part';
-    const myH=Math.round((mh[me.id]||0)*10)/10;
-    const wkH=isPart?getWeeklyH(me.id,calY,calM):0;
-    const maxWk=myS?.max_hours_per_week||20;
-    const maxMon=myS?.max_hours||settings.max_hours_per_month;
-    const wage=myS?.wage||settings.wage_per_hour;
-    const wkLabel=wOff===0?'今週':wOff===1?'来週':wOff===-1?'先週':(wOff>0?wOff+'週後':Math.abs(wOff)+'週前');
-    if(isPart){
+    const myMH=getMonthlyH(me.id);
+    if(me.isPart){
+      const wkH=getWeeklyH(me.id);
+      const myS=staff.find(s=>s.id===me.id);
+      const maxWk=myS?.max_hours_per_week||settings.insurance_threshold_weekly||20;
       const pct=Math.min(wkH/maxWk*100,100);
-      const fc=pct>90?'#c0392b':pct>70?'#e67e22':'#2c5f2e';
+      const over=wkH>=maxWk;
+      const near=wkH>=maxWk*0.85;
+      const fc=over?'#c0392b':near?'#e67e22':'#2c5f2e';
+      const wkLabel=wOff===0?'今週':wOff===1?'来週':wOff===-1?'先週':(wOff>0?wOff+'週後':Math.abs(wOff)+'週前');
       html+='<div class="card">';
-      html+='<div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:12px;color:#666;">'+wkLabel+'の勤務時間</span><span style="font-size:13px;font-weight:600;color:#2c3e50;">'+wkH+'h / '+maxWk+'h</span></div>';
+      html+='<div style="display:flex;justify-content:space-between;margin-bottom:3px;"><span style="font-size:12px;color:#666;">'+wkLabel+'のシフト時間</span><span style="font-size:13px;font-weight:700;color:'+fc+';">'+wkH+'h / '+maxWk+'h</span></div>';
       html+='<div class="prog"><div class="progf" style="width:'+pct+'%;background:'+fc+';"></div></div>';
-      html+='<div style="display:flex;justify-content:space-between;"><span style="font-size:12px;color:#666;">今月の合計 / 推定給与</span><span style="font-size:13px;font-weight:600;color:#2c3e50;">'+myH+'h　¥'+(myH*wage).toLocaleString()+'</span></div>';
-      if(wkH>=settings.insurance_threshold_weekly*0.85){
-        html+='<div class="warn">⚠ 今週'+wkH+'h — 雇用保険加入基準（週'+settings.insurance_threshold_weekly+'h）に近づいています</div>';
-      }
-      html+='<div style="text-align:right;margin-top:6px;"><button onclick="openSelfPW()" style="background:none;border:none;color:#aaa;font-size:10px;cursor:pointer;text-decoration:underline;">🔑 PW変更</button></div></div>';
+      html+='<div style="display:flex;justify-content:space-between;"><span style="font-size:12px;color:#666;">今月のシフト合計</span><span style="font-size:13px;font-weight:600;color:#2c3e50;">'+myMH+'h</span></div>';
+      if(over)html+='<div class="warn">⚠ 今週'+wkH+'h — 週'+maxWk+'時間を超えています。雇用保険の加入義務が発生する可能性があります。</div>';
+      else if(near)html+='<div class="warn" style="background:#fef9e7;border-color:#f0c040;color:#7d6608;">今週'+wkH+'h — 週'+maxWk+'時間の上限に近づいています。</div>';
+      html+='<div style="text-align:right;margin-top:6px;"><button onclick="openSelfPW()" style="background:none;border:none;color:#aaa;font-size:10px;cursor:pointer;text-decoration:underline;">🔑 パスワード変更</button></div>';
+      html+='</div>';
     } else {
-      const sal=myS?.monthly_salary||0;
+      const maxMon=(staff.find(s=>s.id===me.id)?.max_hours)||0;
       html+='<div class="card">';
-      html+='<div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:12px;color:#666;">今月の勤務時間</span><span style="font-size:13px;font-weight:600;color:#2c3e50;">'+myH+'h / '+maxMon+'h</span></div>';
-      html+='<div style="display:flex;justify-content:space-between;"><span style="font-size:12px;color:#666;">月給</span><span style="font-size:13px;font-weight:600;color:#2c3e50;">¥'+sal.toLocaleString()+'</span></div>';
-      html+='<div style="text-align:right;margin-top:6px;"><button onclick="openSelfPW()" style="background:none;border:none;color:#aaa;font-size:10px;cursor:pointer;text-decoration:underline;">🔑 PW変更</button></div></div>';
+      html+='<div style="display:flex;justify-content:space-between;"><span style="font-size:12px;color:#666;">今月のシフト時間</span><span style="font-size:13px;font-weight:600;color:#2c3e50;">'+myMH+'h'+(maxMon?' / '+maxMon+'h':'')+'</span></div>';
+      html+='<div style="text-align:right;margin-top:6px;"><button onclick="openSelfPW()" style="background:none;border:none;color:#aaa;font-size:10px;cursor:pointer;text-decoration:underline;">🔑 パスワード変更</button></div>';
+      html+='</div>';
     }
   }
 
-  // View tabs
-  html+='<div class="vtabs"><button class="vt'+(calView==='month'?' on':'')+'" onclick="swView(\'month\')">月</button><button class="vt'+(calView==='week'?' on':'')+'" onclick="swView(\'week\')">週</button></div>';
+  // ビュー切替
+  html+='<div class="vtabs"><button class="vt'+(calView==='month'?' on':'')+'" onclick="swView(\'month\')">月表示</button><button class="vt'+(calView==='week'?' on':'')+'" onclick="swView(\'week\')">週表示</button></div>';
 
-  if(calView==='week'){
-    html+=buildWeek(sm,em,am);
-    wrap.innerHTML=html;
-    return;
-  }
+  if(calView==='week'){html+=buildWeek(sm,em);wrap.innerHTML=html;return;}
 
-  // Legend
+  // 凡例
   html+='<div class="leg">';
-  html+='<div class="legitem"><div class="legdot" style="background:#d4edda;border:1px solid #c3e6cb;"></div>バイト枠</div>';
+  html+='<div class="legitem"><div class="legdot" style="background:#d4edda;border:1px solid #c3e6cb;"></div>アルバイト枠</div>';
   html+='<div class="legitem"><div class="legdot" style="background:#cce5ff;border:1px solid #b8d4f0;"></div>正社員枠</div>';
   html+='<div class="legitem"><div class="legdot" style="background:#e74c3c;"></div>満員</div>';
-  html+='<div class="legitem"><div class="legdot" style="background:#d4af7a;"></div>自分</div>';
   html+='</div>';
 
-  // Month nav
+  // 月ナビ
   html+='<div class="mnav"><button class="arr" onclick="chM(-1)">‹</button>';
   html+='<span class="mtitle" onclick="openJump()">'+calY+'年'+(calM+1)+'月</span>';
   html+='<div style="display:flex;gap:4px;"><button class="tbtn2" onclick="goToday()">今日</button><button class="arr" onclick="chM(1)">›</button></div></div>';
 
-  // Grid
-  const dim=new Date(calY,calM+1,0).getDate(),fdow=new Date(calY,calM,1).getDay(),ts=fd(new Date());
-  let g=DJP.map((d,i)=>'<div class="dh" style="color:'+(i===0?'#c0392b':i===6?'#2471a3':'#555')+'">'+d+'</div>').join('');
-  for(let i=0;i<fdow;i++)g+='<div></div>';
+  // グリッド（月曜始まり）
+  const dim=new Date(calY,calM+1,0).getDate();
+  const fdow=new Date(calY,calM,1).getDay();
+  const fdowMon=(fdow+6)%7;
+  const ts=fd(new Date());
+  let g=DJP_MON.map((d,i)=>'<div class="dh" style="color:'+(i===5?'#2471a3':i===6?'#c0392b':'#555')+'">'+d+'</div>').join('');
+  for(let i=0;i<fdowMon;i++)g+='<div></div>';
   for(let day=1;day<=dim;day++){
-    const dow=(fdow+day-1)%7;
+    const thisDate=new Date(calY,calM,day);
+    const dow=thisDate.getDay();
     const ds=calY+'-'+String(calM+1).padStart(2,'0')+'-'+String(day).padStart(2,'0');
     const isSel=selDay===day,isToday=ds===ts;
     const daySlots=sm[ds]||[];
@@ -496,244 +431,213 @@ async function renderCal(){
       const ents=em[slot.id]||[];
       const isFull=ents.length>=slot.max_staff;
       const isMine=ents.some(e=>e.staff_id===me?.id);
-      let bg=isMine?'#d4af7a':isFull?'#e74c3c':slot.staff_type==='full'?'#cce5ff':'#d4edda';
-      let tc=isMine?'#2c3e50':isFull?'#fff':slot.staff_type==='full'?'#004085':'#155724';
-      chips+='<div class="chip" style="background:'+bg+';color:'+tc+';">'+slot.slot_name+' '+ents.length+'/'+slot.max_staff+'</div>';
+      let bg=isMine?(staffColorMap[me.id]||'#d4af7a'):isFull?'#e74c3c':slot.staff_type==='full'?'#3a6ea5':'#5a9e5e';
+      chips+='<div class="chip" style="background:'+bg+';">'+slot.slot_name+' '+ents.length+'/'+slot.max_staff+'</div>';
     });
+    const numColor=dow===6?'#c0392b':dow===0?'#2471a3':'#222';
     g+='<button class="cd'+(isSel?' sel':'')+(isToday?' tod':'')+'" onclick="selD('+day+')">';
-    g+='<span class="cdn" style="color:'+(isSel?'#2c3e50':dow===0?'#c0392b':dow===6?'#2471a3':'#222')+'">'+day+'</span>';
+    g+='<span class="cdn" style="color:'+(isSel?'#2c3e50':numColor)+'">'+day+'</span>';
     g+=chips+'</button>';
   }
   html+='<div class="cgrid">'+g+'</div>';
 
-  // Day panel
-  if(selDay)html+=buildDayPanel(selDay,sm,em,am,mh);
+  if(selDay)html+=buildDayPanel(selDay,sm,em);
 
-  // Summary (admin/manager)
+  // 管理者・店長：スタッフ時間一覧
   if(me.canManage){
     html+='<div class="card"><div class="stitle">今月のスタッフ時間</div>';
     staff.forEach(s=>{
-      const h=Math.round((mh[s.id]||0)*10)/10;
+      const h=getMonthlyH(s.id);
       const isPart=s.staff_type==='part';
-      const wkH=isPart?getWeeklyH(s.id,calY,calM):0;
-      const maxWk=s.max_hours_per_week||20;
-      const pct=isPart?Math.min(wkH/maxWk*100,100):0;
-      const fc=pct>90?'#c0392b':'#2c5f2e';
-      const roleLabel=s.role==='owner'?'オーナー':s.role==='manager'?'店長':isPart?'バイト':'正社員';
-      const avClass=isPart?'avp':'avf';
+      const wkH=isPart?getWeeklyH(s.id):0;
+      const maxWk=s.max_hours_per_week||settings.insurance_threshold_weekly||20;
+      const sc=staffColorMap[s.id]||'#2c3e50';
+      const over=isPart&&wkH>=maxWk;
       let timeStr=isPart?'今週'+wkH+'h / 今月'+h+'h':'今月'+h+'h';
-      let salStr='';
-      if(me.salaryVisible&&isPart){
-        salStr=' ¥'+(h*(s.wage||settings.wage_per_hour)).toLocaleString();
-      }
-      html+='<div style="margin-bottom:8px;">';
-      html+='<div style="display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;margin-bottom:2px;">';
-      html+='<span class="av '+avClass+'">'+s.name[0]+'</span>'+s.name;
-      html+='<span style="font-size:10px;color:#888;margin-left:2px;">'+roleLabel+'</span>';
-      html+='<span style="margin-left:auto;font-size:11px;color:#555;">'+timeStr+salStr+'</span></div>';
-      if(isPart)html+='<div class="prog"><div class="progf" style="width:'+pct+'%;background:'+fc+';"></div></div>';
+      html+='<div style="margin-bottom:9px;">';
+      html+='<div style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;">';
+      html+='<span class="av" style="background:'+sc+';">'+s.name[0]+'</span>'+s.name;
+      html+='<span style="font-size:10px;color:#888;">'+roleLabel(s)+'</span>';
+      html+='<span style="margin-left:auto;font-size:11px;color:'+(over?'#c0392b':'#555')+';font-weight:'+(over?'700':'400')+';">'+timeStr+(over?' ⚠':'')+'</span></div>';
+      if(isPart){const pct=Math.min(wkH/maxWk*100,100);html+='<div class="prog" style="margin-top:3px;"><div class="progf" style="width:'+pct+'%;background:'+(over?'#c0392b':'#2c5f2e')+';"></div></div>';}
       html+='</div>';
     });
     html+='</div>';
+    // PDF出力
+    html+='<div class="card"><div class="stitle">📄 シフト表PDF出力</div>';
+    html+='<p class="hint" style="margin-bottom:10px;">店内掲示やLINE共有用のシフト表を出力します。</p>';
+    html+='<button class="btn" onclick="exportMonthPDF()">'+calY+'年'+(calM+1)+'月のシフト表を出力</button></div>';
   }
   wrap.innerHTML=html;
 }
 
-function buildDayPanel(day,sm,em,am,mh){
+function buildDayPanel(day,sm,em){
   const ds=calY+'-'+String(calM+1).padStart(2,'0')+'-'+String(day).padStart(2,'0');
-  const daySlots=sm[ds]||[],dayAtt=am[ds]||{};
+  const daySlots=sm[ds]||[];
   const isAdmin=me.canManage;
-  let html='<div class="dp"><div class="dptitle">'+(calM+1)+'月'+day+'日</div>';
+  const dateObj=new Date(calY,calM,day);
+  const dowName=DJP_MON[(dateObj.getDay()+6)%7];
+  let html='<div class="dp"><div class="dptitle">'+(calM+1)+'月'+day+'日（'+dowName+'）</div>';
   const pSlots=daySlots.filter(s=>s.staff_type==='part');
   const fSlots=daySlots.filter(s=>s.staff_type==='full');
 
-  function buildSlotCard(slot,typeClass){
-    const ents=em[slot.id]||[],isFull=ents.length>=slot.max_staff;
+  function slotCard(slot,cls){
+    const ents=em[slot.id]||[];
+    const isFull=ents.length>=slot.max_staff;
     const myE=ents.find(e=>e.staff_id===me?.id);
-    const mems=ents.map(e=>'<span class="mtag'+(e.staff_id===me?.id?' me':'')+'">'+(e.shift_staff?.name||'?')+'</span>').join('');
+    const mems=ents.map(e=>{
+      const sc=staffColorMap[e.staff_id]||'#2c3e50';
+      const isMe=e.staff_id===me?.id;
+      return '<span class="mtag'+(isMe?' me':'')+'" style="'+(isMe?'':'border-color:'+sc+';color:'+sc+';')+'">'+(e.shift_staff?.name||'?')+'</span>';
+    }).join('');
     let acts='';
     if(isAdmin){
-      acts+='<button class="bsm bd" onclick="openManageSlot(\''+slot.id+'\',\''+slot.slot_name+'\',\''+ds+'\')">管理</button> ';
+      acts+='<button class="bsm bd" onclick="openManageSlot(\''+slot.id+'\',\''+ds+'\')">割当</button> ';
       acts+='<button class="bsm bg" onclick="openEditSlot(\''+slot.id+'\')">編集</button> ';
       acts+='<button class="bsm br" onclick="delSlot(\''+slot.id+'\',\''+ds+'\')">削除</button>';
     } else {
-      const canJoin=(slot.staff_type==='part'&&me.stype==='part')||(slot.staff_type==='full'&&me.stype==='full');
+      const canJoin=(slot.staff_type==='part'&&me.isPart)||(slot.staff_type==='full'&&!me.isPart);
       if(canJoin){
-        if(myE)acts='<button class="lvbtn" onclick="leaveSlot(\''+myE.id+'\',\''+slot.id+'\',\''+ds+'\')">キャンセル</button>';
+        if(myE)acts='<button class="bsm br" onclick="openCancelReq(\''+myE.id+'\',\''+slot.id+'\',\''+ds+'\',\''+slot.slot_name+'\')">取消申請</button>';
         else if(!isFull)acts='<button class="joinbtn" onclick="joinSlot(\''+slot.id+'\',\''+ds+'\')">参加する</button>';
         else acts='<span style="font-size:11px;color:#888;">満員</span>';
       }
     }
-    return '<div class="scard '+typeClass+'">'
+    return '<div class="scard '+cls+'">'
       +'<div class="shed"><span class="sname">'+slot.slot_name+'</span><span class="stime">'+slot.start_time.slice(0,5)+'〜'+slot.end_time.slice(0,5)+'</span></div>'
-      +'<div style="font-size:11px;color:#888;margin-bottom:5px;">定員'+slot.max_staff+'人　残り'+Math.max(0,slot.max_staff-ents.length)+'人</div>'
+      +'<div class="scap">定員'+slot.max_staff+'人　残り'+Math.max(0,slot.max_staff-ents.length)+'人</div>'
       +'<div class="smems">'+(mems||'<span style="color:#bbb;font-size:11px;font-style:italic;">まだ誰もいません</span>')+'</div>'
       +'<div class="sacts">'+acts+'</div></div>';
   }
 
   if(pSlots.length>0){
-    html+='<div style="font-size:12px;font-weight:700;color:#2c5f2e;margin-bottom:6px;">🟩 アルバイト枠</div>';
-    pSlots.forEach(s=>html+=buildSlotCard(s,'part-s'));
+    html+='<div class="slabel" style="color:#2c5f2e;">🟩 アルバイト枠</div>';
+    pSlots.forEach(s=>html+=slotCard(s,'part-s'));
   }
   if(fSlots.length>0){
-    html+='<div style="font-size:12px;font-weight:700;color:#2471a3;margin-bottom:6px;margin-top:10px;">🟦 正社員枠</div>';
-    fSlots.forEach(s=>html+=buildSlotCard(s,'full-s'));
+    html+='<div class="slabel" style="color:#2471a3;'+(pSlots.length>0?'margin-top:12px;':'')+'">🟦 正社員枠</div>';
+    fSlots.forEach(s=>html+=slotCard(s,'full-s'));
   }
-  if(daySlots.length===0&&!isAdmin)html+='<p class="empty">この日はシフト枠がありません</p>';
+  if(daySlots.length===0&&!isAdmin)html+='<p class="empty">この日のシフト枠はありません</p>';
 
   if(isAdmin){
-    const fStaff=staff.filter(s=>s.staff_type==='full');
-    if(fStaff.length>0){
-      html+='<div style="font-size:12px;font-weight:700;color:#555;margin:10px 0 6px;">正社員 出勤状況</div>';
-      fStaff.forEach(s=>{
-        const a=dayAtt[s.id];
-        const st=a?a.status==='absent'?'休暇':a.clock_in&&a.clock_out?ft(a.clock_in)+'〜'+ft(a.clock_out):a.clock_in?ft(a.clock_in)+'〜出勤中':'未打刻':'予定なし';
-        html+='<div style="display:flex;align-items:center;gap:7px;padding:6px 0;border-bottom:1px solid #f0ede8;font-size:13px;">';
-        html+='<span class="av avf">'+s.name[0]+'</span>'+s.name;
-        html+='<span style="margin-left:auto;color:#555;font-size:12px;">'+st+'</span>';
-      window._attStaff={id:s.id,name:s.name};
-      if(me.role==='admin'||me.salaryVisible){
-        html+='<button class="btn" onclick="openEditAttById()" style="margin-bottom:12px;">出勤修正</button>';
-      }
-      });
-    }
     html+='<div style="margin-top:12px;"><button class="btn" onclick="openAddSlot(\''+ds+'\')">＋ シフト枠を追加</button></div>';
   }
   html+='</div>';
   return html;
 }
 
-// ── Week view ──────────────────────────────────────────────────────────────────
-function buildWeek(sm,em,am){
+// ── 週ビュー（連続ブロック・個人別カラー）──
+function buildWeek(sm,em){
   const today=new Date();
-  const _dow=today.getDay();
-  const sw=new Date(today);sw.setDate(today.getDate()-((_dow+6)%7)+wOff*7);
+  const diffToMon=(today.getDay()+6)%7;
+  const sw=new Date(today);sw.setDate(today.getDate()-diffToMon+wOff*7);
   const days=Array.from({length:7},(_,i)=>{const d=new Date(sw);d.setDate(d.getDate()+i);return d;});
   const ts=fd(today);
-  const WKDAYS=['月','火','水','木','金','土','日'];
-  const START_H=6,END_H=23,HOUR_H=38;
+  const START_H=6,END_H=23,HOUR_H=40;
+  const totalH=(END_H-START_H)*HOUR_H;
 
   let html='<div class="mnav">';
   html+='<button class="arr" onclick="chW(-1)">‹</button>';
-  const ws=fd(days[0]),we=fd(days[6]);
-  html+='<span style="font-size:13px;font-weight:700;color:#2c3e50;">'+ws.slice(5)+' 〜 '+we.slice(5)+'</span>';
+  html+='<span style="font-size:13px;font-weight:700;color:#2c3e50;">'+fd(days[0]).slice(5)+' 〜 '+fd(days[6]).slice(5)+'</span>';
   html+='<div style="display:flex;gap:4px;"><button class="tbtn2" onclick="wOff=0;renderCal()">今週</button><button class="arr" onclick="chW(1)">›</button></div></div>';
+  html+='<p class="hint" style="margin-bottom:8px;">シフトをタップすると詳細・参加できます。</p>';
 
-  // Build using absolute positioning for continuous blocks
-  const COL_W=Math.floor(100/8); // percentage per column
-  html+='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">';
-  html+='<div style="min-width:320px;">';
-
-  // Header row
+  html+='<div class="wk-scroll"><div style="min-width:340px;">';
+  // ヘッダー
   html+='<div style="display:flex;">';
-  html+='<div style="width:36px;flex-shrink:0;"></div>';
+  html+='<div style="width:34px;flex-shrink:0;background:#2c3e50;"></div>';
   days.forEach((d,i)=>{
     const isT=fd(d)===ts;
-    const dow2=d.getDay();
-    const dayColor=dow2===0?'#fde8e8':dow2===6?'#e8f0fe':'#fff';
-    html+='<div style="flex:1;text-align:center;padding:4px 2px;font-size:10px;font-weight:700;'
-      +'background:'+(isT?'#d4af7a':dayColor)+';color:'+(isT?'#2c3e50':dow2===0?'#c0392b':dow2===6?'#2471a3':'#333')
-      +';border:1px solid #e0e0e0;">';
-    html+='<div>'+WKDAYS[i]+'</div><div style="font-size:12px;">'+d.getDate()+'</div></div>';
+    const dow=d.getDay();
+    const tcol=isT?'#2c3e50':dow===0?'#ffb3b3':dow===6?'#b3d4ff':'#fff';
+    html+='<div style="flex:1;text-align:center;padding:5px 1px;background:'+(isT?'#d4af7a':'#2c3e50')+';color:'+tcol+';border-left:1px solid #3d5166;">';
+    html+='<div style="font-size:10px;">'+DJP_MON[i]+'</div><div style="font-size:13px;font-weight:700;">'+d.getDate()+'</div></div>';
   });
   html+='</div>';
-
-  // Time grid + events
-  html+='<div style="display:flex;">';
-  // Time axis
-  html+='<div style="width:36px;flex-shrink:0;position:relative;">';
-  for(let h=START_H;h<=END_H;h++){
-    html+='<div style="height:'+HOUR_H+'px;border-top:1px solid #eee;font-size:8px;color:#aaa;padding-top:1px;text-align:center;">'+String(h).padStart(2,'0')+'</div>';
+  // グリッド本体
+  html+='<div style="display:flex;position:relative;">';
+  // 時間軸
+  html+='<div style="width:34px;flex-shrink:0;">';
+  for(let h=START_H;h<END_H;h++){
+    html+='<div style="height:'+HOUR_H+'px;border-top:1px solid #eee;font-size:8px;color:#aaa;text-align:center;padding-top:1px;">'+String(h).padStart(2,'0')+'</div>';
   }
   html+='</div>';
-
-  // Day columns
+  // 各曜日列
   days.forEach(d=>{
-    const ds=fd(d),daySlots=sm[ds]||[];
+    const ds=fd(d),daySlots=(sm[ds]||[]).slice().sort((a,b)=>a.start_time.localeCompare(b.start_time));
     const isT=ds===ts;
-    html+='<div style="flex:1;position:relative;border-left:1px solid #eee;background:'+(isT?'#fffef5':'#fff')+';min-height:'+(HOUR_H*(END_H-START_H+1))+'px;">';
-
-    // Hour lines
-    for(let h=0;h<=END_H-START_H;h++){
-      html+='<div style="position:absolute;top:'+(h*HOUR_H)+'px;left:0;right:0;border-top:1px solid #f0f0f0;"></div>';
+    html+='<div style="flex:1;position:relative;border-left:1px solid #eee;background:'+(isT?'#fffdf5':'#fff')+';height:'+totalH+'px;" data-ds="'+ds+'" onclick="wkEmptyClick(this)">';
+    for(let h=0;h<END_H-START_H;h++){
+      html+='<div style="position:absolute;top:'+(h*HOUR_H)+'px;left:0;right:0;height:1px;background:#f2f2f2;"></div>';
     }
-
-    // Slot blocks - continuous
-    // Group by staff to avoid overlap
-    const slotsByStaff={};
+    // 重なり防止：列分け
+    const cols=[];
     daySlots.forEach(slot=>{
-      const ents=(am[slot.id]||[]);
-      const dispEnts=me.canManage?ents:ents.filter(e=>e.staff_id===me.id);
-      if(dispEnts.length===0&&me.canManage){
-        // Empty slot
-        const key='slot_'+slot.id;
-        if(!slotsByStaff[key])slotsByStaff[key]=[];
-        slotsByStaff[key].push({slot,staffId:null,name:slot.slot_name[0],color:'#f0f0f0',tc:'#888'});
-      } else {
-        dispEnts.forEach(e=>{
-          const key=e.staff_id;
-          if(!slotsByStaff[key])slotsByStaff[key]=[];
-          const color=staffColorMap[e.staff_id]||'#2c3e50';
-          slotsByStaff[key].push({slot,staffId:e.staff_id,name:e.shift_staff?.name?.[0]||'?',color,tc:'#fff',entId:e.id});
-        });
+      const ss=(parseInt(slot.start_time.slice(0,2))*60+parseInt(slot.start_time.slice(3,5)));
+      const se=(parseInt(slot.end_time.slice(0,2))*60+parseInt(slot.end_time.slice(3,5)));
+      let placed=false;
+      for(const col of cols){
+        if(col.every(x=>x.se<=ss||x.ss>=se)){col.push({slot,ss,se});placed=true;break;}
       }
+      if(!placed)cols.push([{slot,ss,se}]);
     });
-
-    // Calculate column positions to avoid overlap
-    const keys=Object.keys(slotsByStaff);
-    const numCols=Math.max(1,keys.length);
-    const colW=Math.floor(100/numCols);
-
-    keys.forEach((key,colIdx)=>{
-      const items=slotsByStaff[key];
-      items.forEach(({slot,name,color,tc})=>{
-        const[sh,sm2]=slot.start_time.split(':').map(Number);
-        const[eh,em2]=slot.end_time.split(':').map(Number);
-        const topPx=((sh+sm2/60)-START_H)*HOUR_H;
-        const heightPx=((eh+em2/60)-(sh+sm2/60))*HOUR_H;
-        if(topPx<0||topPx>=(END_H-START_H+1)*HOUR_H)return;
-        const left=colIdx*colW;
-        html+='<div data-sid="'+slot.id+'" data-ds="'+ds+'" onclick="event.stopPropagation();wkSlotClick(this)" style="'
-          +'position:absolute;top:'+topPx+'px;left:'+left+'%;width:'+colW+'%;height:'+Math.max(heightPx-2,14)+'px;'
-          +'background:'+color+';color:'+tc+';border-radius:3px;border-left:3px solid rgba(0,0,0,.2);'
-          +'padding:1px 3px;font-size:9px;font-weight:700;overflow:hidden;cursor:pointer;z-index:1;">'
-          +'<div>'+slot.slot_name+'</div>'
-          +'<div style="opacity:.8;font-size:8px;">'+name+'</div>'
-          +'</div>';
+    const nCol=Math.max(1,cols.length);
+    cols.forEach((col,ci)=>{
+      col.forEach(({slot,ss,se})=>{
+        const topPx=((ss/60)-START_H)*HOUR_H;
+        const hPx=((se-ss)/60)*HOUR_H;
+        if(topPx<-5||topPx>totalH)return;
+        const ents=em[slot.id]||[];
+        const isFull=ents.length>=slot.max_staff;
+        const isMine=ents.some(e=>e.staff_id===me?.id);
+        let bg;
+        if(isMine)bg=staffColorMap[me.id]||'#d4af7a';
+        else if(ents.length>0){bg=staffColorMap[ents[0].staff_id]||'#888';}
+        else bg=slot.staff_type==='full'?'#9bb8d4':'#a9d4ab';
+        const w=Math.floor(100/nCol);
+        const left=ci*w;
+        html+='<div data-sid="'+slot.id+'" data-ds="'+ds+'" onclick="event.stopPropagation();wkSlotClick(this)" style="position:absolute;top:'+topPx+'px;left:'+left+'%;width:'+(w-1)+'%;height:'+Math.max(hPx-1,16)+'px;background:'+bg+';color:#fff;border-radius:3px;padding:1px 2px;font-size:8px;font-weight:700;overflow:hidden;cursor:pointer;line-height:1.1;border-left:2px solid rgba(0,0,0,.25);">';
+        html+=slot.slot_name+'<br><span style="opacity:.85;">'+ents.length+'/'+slot.max_staff+'</span></div>';
       });
     });
-
-    html+='<div style="position:absolute;inset:0;" data-ds="'+ds+'" onclick="wkDayClick(this)"></div>';
     html+='</div>';
   });
   html+='</div></div></div>';
   return html;
 }
 
-function wkDayClick(ds){
-  const d=new Date(ds);calY=d.getFullYear();calM=d.getMonth();selDay=d.getDate();
+function wkEmptyClick(el){
+  const ds=el.dataset.ds;if(!ds)return;
+  const d=new Date(ds+'T00:00:00');calY=d.getFullYear();calM=d.getMonth();selDay=d.getDate();
   calView='month';renderCal();
-  setTimeout(()=>{const dp=document.querySelector('.dp');if(dp)dp.scrollIntoView({behavior:'smooth',block:'start'});},300);
+  setTimeout(()=>{const dp=document.querySelector('.dp');if(dp)dp.scrollIntoView({behavior:'smooth',block:'start'});},250);
 }
-function wkSlotClick(slotId,ds){
+function wkSlotClick(el){
+  const slotId=el.dataset.sid,ds=el.dataset.ds;if(!slotId||!ds)return;
   const k=calY+'-'+calM,em=EC[k]||{};
   let slot=null;
   Object.values(SC[k]||{}).forEach(slots=>slots.forEach(s=>{if(s.id===slotId)slot=s;}));
-  if(!slot){wkDayClick(ds);return;}
+  if(!slot){wkEmptyClick(el);return;}
+  window._wk={sid:slotId,ds,sn:slot.slot_name};
   const ents=em[slotId]||[];
   const isFull=ents.length>=slot.max_staff;
   const myE=ents.find(e=>e.staff_id===me?.id);
-  const mems=ents.map(e=>'<span class="mtag'+(e.staff_id===me?.id?' me':'')+'">'+(e.shift_staff?.name||'?')+'</span>').join('');
+  window._wk.eid=myE?.id||'';
+  const mems=ents.map(e=>{
+    const sc=staffColorMap[e.staff_id]||'#2c3e50';
+    return '<span class="mtag" style="border-color:'+sc+';color:'+sc+';">'+(e.shift_staff?.name||'?')+'</span>';
+  }).join('');
   const typeLabel=slot.staff_type==='full'?'🟦 正社員枠':'🟩 アルバイト枠';
   let acts='';
   if(me.canManage){
-    acts='<button class="bsm bd" onclick="closeM();openManageSlot(\''+slotId+'\',\''+slot.slot_name+'\',\''+ds+'\')">管理</button> ';
-    acts+='<button class="bsm bg" onclick="closeM();openEditSlot(\''+slotId+'\')">編集</button>';
+    acts='<button class="bsm bd" onclick="closeM();openManageSlot(window._wk.sid,window._wk.ds)">割当</button> ';
+    acts+='<button class="bsm bg" onclick="closeM();openEditSlot(window._wk.sid)">編集</button>';
   } else {
-    const canJoin=(slot.staff_type==='part'&&me.stype==='part')||(slot.staff_type==='full'&&me.stype==='full');
+    const canJoin=(slot.staff_type==='part'&&me.isPart)||(slot.staff_type==='full'&&!me.isPart);
     if(canJoin){
-      if(myE)acts='<button class="lvbtn" onclick="closeM();leaveSlot(\''+myE.id+'\',\''+slotId+'\',\''+ds+'\')">キャンセル</button>';
-      else if(!isFull)acts='<button class="joinbtn" onclick="closeM();joinSlot(\''+slotId+'\',\''+ds+'\')">参加する</button>';
+      if(myE)acts='<button class="bsm br" onclick="closeM();openCancelReq(window._wk.eid,window._wk.sid,window._wk.ds,window._wk.sn)">取消申請</button>';
+      else if(!isFull)acts='<button class="joinbtn" onclick="closeM();joinSlot(window._wk.sid,window._wk.ds)">参加する</button>';
       else acts='<span style="font-size:12px;color:#888;">満員</span>';
     }
   }
@@ -743,89 +647,44 @@ function wkSlotClick(slotId,ds){
     +'<div class="smems" style="margin-bottom:12px;">'+(mems||'<span style="color:#bbb;font-size:12px;">まだ誰もいません</span>')+'</div>'
     +'<div class="sacts">'+acts+'</div>'
     +'<div class="mbtns"><button class="bsm bgr" onclick="closeM()">閉じる</button>'
-    +(me.canManage?'<button class="bsm bg" onclick="closeM();openAddSlot(\''+ds+'\')">＋ 枠追加</button>':'')
-    +'</div>');
-}
-
-function wkDayClick(el){
-  const ds=el.dataset.ds;if(!ds)return;
-  const d=new Date(ds);calY=d.getFullYear();calM=d.getMonth();selDay=d.getDate();
-  calView='month';renderCal();
-  setTimeout(()=>{const dp=document.querySelector('.dp');if(dp)dp.scrollIntoView({behavior:'smooth',block:'start'});},300);
-}
-function wkSlotClick(el){
-  const slotId=el.dataset.sid,ds=el.dataset.ds;if(!slotId||!ds)return;
-  const k=calY+'-'+calM,em=EC[k]||{};
-  let slot=null;
-  Object.values(SC[k]||{}).forEach(slots=>slots.forEach(s=>{if(s.id===slotId)slot=s;}));
-  if(!slot){wkDayClick(el);return;}
-  const ents=em[slotId]||[];
-  const isFull=ents.length>=slot.max_staff;
-  const myE=ents.find(e=>e.staff_id===me?.id);
-  const mems=ents.map(e=>{
-    const sc=staffColorMap[e.staff_id]||'#2c3e50';
-    return '<span class="mtag" style="border-color:'+sc+';color:'+sc+';">'+(e.shift_staff?.name||'?')+'</span>';
-  }).join('');
-  const typeLabel2=slot.staff_type==='full'?'🟦 正社員枠':'🟩 アルバイト枠';
-  window._wk={sid:slotId,sn:slot.slot_name,ds,eid:myE?.id||''};
-  let acts='';
-  if(me.canManage){
-    acts='<button class="bsm bd" onclick="closeM();openManageSlot(window._wk.sid,window._wk.sn,window._wk.ds)">管理</button> ';
-    acts+='<button class="bsm bg" onclick="closeM();openEditSlot(window._wk.sid)">編集</button>';
-  } else {
-    const canJoin=(slot.staff_type==='part'&&me.isPart)||(slot.staff_type==='full'&&!me.isPart);
-    if(canJoin){
-      if(myE) acts='<button class="bsm br" onclick="closeM();openCancelRequest(window._wk.eid,window._wk.sid,window._wk.ds,window._wk.sn)">取消申請</button>';
-      else if(!isFull) acts='<button class="joinbtn" onclick="closeM();joinSlot(window._wk.sid,window._wk.ds)">参加する</button>';
-      else acts='<span style="font-size:12px;color:#888;">満員</span>';
-    }
-  }
-  openM('<div class="mtit">'+ds.slice(5)+' '+slot.slot_name+'</div>'
-    +'<div style="font-size:13px;color:#555;margin-bottom:6px;">'+typeLabel2+'　'+slot.start_time.slice(0,5)+'〜'+slot.end_time.slice(0,5)+'</div>'
-    +'<div style="font-size:12px;color:#888;margin-bottom:10px;">定員'+slot.max_staff+'人　残り'+Math.max(0,slot.max_staff-ents.length)+'人</div>'
-    +'<div class="smems" style="margin-bottom:12px;">'+(mems||'<span style="color:#bbb;font-size:12px;">まだ誰もいません</span>')+'</div>'
-    +'<div class="sacts">'+acts+'</div>'
-    +'<div class="mbtns"><button class="bsm bgr" onclick="closeM()">閉じる</button>'
     +(me.canManage?'<button class="bsm bg" onclick="closeM();openAddSlot(window._wk.ds)">＋ 枠追加</button>':'')+'</div>');
 }
+
 function selD(d){selDay=selDay===d?null:d;renderCal();}
 async function chM(d){calM+=d;if(calM>11){calM=0;calY++;}if(calM<0){calM=11;calY--;}selDay=null;await renderCal();}
 function chW(d){wOff+=d;renderCal();}
 function swView(v){calView=v;selDay=null;renderCal();}
 function goToday(){const n=new Date();calY=n.getFullYear();calM=n.getMonth();selDay=n.getDate();wOff=0;renderCal();}
 function openJump(){
-  openM('<div class="mtit">📅 日付に移動</div><div class="fcol"><input type="date" id="jd" value="'+fd(new Date())+'"/><button class="btn" onclick="doJump()">移動する</button></div><div class="mbtns"><button class="bsm bgr" onclick="closeM()">キャンセル</button></div>');
+  openM('<div class="mtit">📅 日付に移動</div><div class="fcol"><input type="date" id="jd" value="'+fd(new Date())+'"/><button class="btn" onclick="doJump()">移動</button></div><div class="mbtns"><button class="bsm bgr" onclick="closeM()">キャンセル</button></div>');
 }
 function doJump(){
   const v=document.getElementById('jd').value;if(!v)return;
-  const d=new Date(v);calY=d.getFullYear();calM=d.getMonth();selDay=d.getDate();
+  const d=new Date(v+'T00:00:00');calY=d.getFullYear();calM=d.getMonth();selDay=d.getDate();
   closeM();renderCal();
 }
 
-// ── Slot actions ───────────────────────────────────────────────────────────────
+// ── シフト枠操作 ──
 async function joinSlot(slotId,ds){
   const{error}=await sb.from('slot_entries').insert({slot_id:slotId,staff_id:me.id,status:'confirmed'});
   if(error){toast('参加できませんでした','err');return;}
+  await logAction('シフト参加',ds,me.name+'が参加');
   toast('シフトに参加しました！');await loadMonth(calY,calM);renderCal();
 }
-async function leaveSlot(entId,slotId,ds){
-  if(!confirm('キャンセルしますか？'))return;
-  await sb.from('slot_entries').delete().eq('id',entId);
-  toast('キャンセルしました');await loadMonth(calY,calM);renderCal();
-}
 async function delSlot(slotId,ds){
-  if(!confirm('この枠を削除しますか？'))return;
+  if(!confirm('この枠を削除しますか？参加者も削除されます。'))return;
   await sb.from('shift_slots').delete().eq('id',slotId);
+  await logAction('シフト枠削除',ds,'枠を削除');
   toast('削除しました');await loadMonth(calY,calM);renderCal();
 }
 function openAddSlot(ds){
-  openM('<div class="mtit">シフト枠を追加 ('+ds+')</div>'
+  openM('<div class="mtit">シフト枠を追加（'+ds+'）</div>'
     +'<div class="fcol">'
-    +'<input type="text" id="sln" placeholder="枠名（例：早番、遅番）"/>'
-    +'<select id="sltype"><option value="part">アルバイト枠</option><option value="full">正社員枠</option></select>'
-    +'<div style="display:flex;gap:8px;align-items:center;"><input type="time" id="sls" value="09:00"/><span>〜</span><input type="time" id="sle" value="13:00"/></div>'
-    +'<div style="display:flex;align-items:center;gap:8px;"><span style="font-size:13px;color:#555;white-space:nowrap;">定員：</span><input type="number" id="slmax" value="2" min="1" max="20"/></div>'
-    +'<label style="display:flex;align-items:center;gap:8px;font-size:13px;"><input type="checkbox" id="slrep"/> 今月の同じ曜日に繰り返す</label>'
+    +'<div><span class="flabel">枠名</span><input type="text" id="sln" placeholder="例：早番、遅番"/></div>'
+    +'<div><span class="flabel">対象</span><select id="sltype"><option value="part">アルバイト枠</option><option value="full">正社員枠</option></select></div>'
+    +'<div><span class="flabel">時間</span><div style="display:flex;gap:8px;align-items:center;"><input type="time" id="sls" value="09:00"/><span>〜</span><input type="time" id="sle" value="13:00"/></div></div>'
+    +'<div><span class="flabel">定員（人数）</span><input type="number" id="slmax" value="2" min="1" max="20"/></div>'
+    +'<label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;"><input type="checkbox" id="slrep" style="width:auto;"/> 今月の同じ曜日に繰り返す</label>'
     +'</div>'
     +'<div class="mbtns"><button class="bsm bg" onclick="doAddSlot(\''+ds+'\')">追加</button><button class="bsm bgr" onclick="closeM()">キャンセル</button></div>');
 }
@@ -839,28 +698,28 @@ async function doAddSlot(ds){
   if(!name){toast('枠名を入力してください','err');return;}
   let dates=[ds];
   if(rep){
-    const base=new Date(ds),dow=base.getDay(),dim=new Date(calY,calM+1,0).getDate();
+    const base=new Date(ds+'T00:00:00'),dow=base.getDay(),dim=new Date(calY,calM+1,0).getDate();
     dates=[];
     for(let d=1;d<=dim;d++){const dd=new Date(calY,calM,d);if(dd.getDay()===dow)dates.push(fd(dd));}
   }
   const ins=dates.map(d=>({date:d,slot_name:name,staff_type:stype,start_time:start,end_time:end,max_staff:max}));
   const{error}=await sb.from('shift_slots').insert(ins);
   if(error){toast('追加に失敗しました','err');return;}
+  await logAction('シフト枠追加',ds,name+'（'+start+'〜'+end+'）'+ins.length+'件');
   toast(ins.length+'件追加しました');closeM();await loadMonth(calY,calM);renderCal();
 }
 function openEditSlot(slotId){
   const k=calY+'-'+calM;
-  let slot=null;
-  Object.values(SC[k]||{}).forEach(slots=>slots.forEach(s=>{if(s.id===slotId)slot=s;}));
+  let slot=null,sds='';
+  Object.entries(SC[k]||{}).forEach(([date,slots])=>slots.forEach(s=>{if(s.id===slotId){slot=s;sds=date;}}));
   if(!slot){toast('枠が見つかりません','err');return;}
-  openM('<div class="mtit">シフト枠を編集</div>'
-    +'<div class="fcol">'
-    +'<input type="text" id="el-name" value="'+slot.slot_name+'" placeholder="枠名"/>'
-    +'<select id="el-type"><option value="part"'+(slot.staff_type==='part'?' selected':'')+'>アルバイト枠</option><option value="full"'+(slot.staff_type==='full'?' selected':'')+'>正社員枠</option></select>'
-    +'<div style="display:flex;gap:8px;align-items:center;"><input type="time" id="el-s" value="'+slot.start_time.slice(0,5)+'"/><span>〜</span><input type="time" id="el-e" value="'+slot.end_time.slice(0,5)+'"/></div>'
-    +'<div style="display:flex;align-items:center;gap:8px;"><span style="font-size:13px;color:#555;white-space:nowrap;">定員：</span><input type="number" id="el-max" value="'+slot.max_staff+'" min="1" max="20"/></div>'
-    +'</div>'
-    +'<div class="mbtns"><button class="bsm bg" onclick="doEditSlot(\''+slotId+'\')">保存</button><button class="bsm bgr" onclick="closeM()">キャンセル</button></div>');
+  window._editSlotDs=sds;
+  openM('<div class="mtit">シフト枠を編集</div><div class="fcol">'
+    +'<div><span class="flabel">枠名</span><input type="text" id="el-name" value="'+slot.slot_name+'"/></div>'
+    +'<div><span class="flabel">対象</span><select id="el-type"><option value="part"'+(slot.staff_type==='part'?' selected':'')+'>アルバイト枠</option><option value="full"'+(slot.staff_type==='full'?' selected':'')+'>正社員枠</option></select></div>'
+    +'<div><span class="flabel">時間</span><div style="display:flex;gap:8px;align-items:center;"><input type="time" id="el-s" value="'+slot.start_time.slice(0,5)+'"/><span>〜</span><input type="time" id="el-e" value="'+slot.end_time.slice(0,5)+'"/></div></div>'
+    +'<div><span class="flabel">定員（人数）</span><input type="number" id="el-max" value="'+slot.max_staff+'" min="1" max="20"/></div>'
+    +'</div><div class="mbtns"><button class="bsm bg" onclick="doEditSlot(\''+slotId+'\')">保存</button><button class="bsm bgr" onclick="closeM()">キャンセル</button></div>');
 }
 async function doEditSlot(slotId){
   const name=document.getElementById('el-name').value.trim();
@@ -871,359 +730,354 @@ async function doEditSlot(slotId){
   if(!name){toast('枠名を入力してください','err');return;}
   const{error}=await sb.from('shift_slots').update({slot_name:name,staff_type:stype,start_time:start,end_time:end,max_staff:max}).eq('id',slotId);
   if(error){toast('更新に失敗しました','err');return;}
+  await logAction('シフト枠編集',window._editSlotDs,name+'（'+start+'〜'+end+'）');
   toast('更新しました');closeM();await loadMonth(calY,calM);renderCal();
 }
-async function openManageSlot(slotId,slotName,ds){
+async function openManageSlot(slotId,ds){
   const k=calY+'-'+calM,ents=EC[k]?.[slotId]||[];
-  // Find slot to determine type
-  let slotType='part';
-  Object.values(SC[k]||{}).forEach(slots=>slots.forEach(s=>{if(s.id===slotId)slotType=s.staff_type;}));
-  const eligibleStaff=staff.filter(s=>s.staff_type===slotType);
-  let mrows=ents.map(e=>'<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid #eee;"><span style="font-size:13px;font-weight:600;">'+(e.shift_staff?.name||'?')+'</span><button class="bsm br" onclick="adminRemEnt(\''+e.id+'\',\''+slotId+'\',\''+ds+'\')">外す</button></div>').join('');
-  const notIn=eligibleStaff.filter(s=>!ents.find(e=>e.staff_id===s.id));
+  let slotType='part',slotName='';
+  Object.values(SC[k]||{}).forEach(slots=>slots.forEach(s=>{if(s.id===slotId){slotType=s.staff_type;slotName=s.slot_name;}}));
+  const eligible=staff.filter(s=>s.staff_type===slotType);
+  const notIn=eligible.filter(s=>!ents.find(e=>e.staff_id===s.id));
+  window._msDs=ds;
+  let mrows=ents.map(e=>'<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid #eee;">'
+    +'<div style="display:flex;align-items:center;gap:6px;"><span class="av" style="background:'+(staffColorMap[e.staff_id]||'#2c3e50')+';font-size:10px;">'+(e.shift_staff?.name?.[0]||'?')+'</span><span style="font-size:13px;font-weight:600;">'+(e.shift_staff?.name||'?')+'</span></div>'
+    +'<button class="bsm br" onclick="adminRemEnt(\''+e.id+'\',\''+ds+'\')">外す</button></div>').join('');
   const addOpts=notIn.map(s=>'<option value="'+s.id+'">'+s.name+'</option>').join('');
-  openM('<div class="mtit">'+slotName+' の管理</div>'
+  openM('<div class="mtit">'+slotName+' の割当（'+ds.slice(5)+'）</div>'
     +(mrows||'<p class="empty">参加者なし</p>')
-    +(addOpts?'<div style="display:flex;gap:8px;margin-top:8px;"><select id="addsel" style="flex:1;">'+addOpts+'</select><button class="bsm bg" onclick="adminAddEnt(\''+slotId+'\',\''+ds+'\')">追加</button></div>':'')
+    +(addOpts?'<div style="display:flex;gap:8px;margin-top:10px;"><select id="addsel" style="flex:1;">'+addOpts+'</select><button class="bsm bg" onclick="adminAddEnt(\''+slotId+'\',\''+ds+'\')">追加</button></div>':'<p style="font-size:12px;color:#888;margin-top:8px;">追加可能なスタッフがいません</p>')
     +'<div class="mbtns"><button class="bsm bgr" onclick="closeM()">閉じる</button></div>');
 }
-async function adminRemEnt(entId,slotId,ds){
+async function adminRemEnt(entId,ds){
   await sb.from('slot_entries').delete().eq('id',entId);
+  await logAction('割当解除',ds,'スタッフを枠から外した');
   toast('外しました');closeM();await loadMonth(calY,calM);renderCal();
 }
 async function adminAddEnt(slotId,ds){
   const sid=document.getElementById('addsel').value;if(!sid)return;
   const{error}=await sb.from('slot_entries').insert({slot_id:slotId,staff_id:sid,status:'confirmed'});
   if(error){toast('追加に失敗しました','err');return;}
+  const sName=staff.find(s=>s.id===sid)?.name||'';
+  await logAction('割当追加',ds,sName+'を枠に追加');
   toast('追加しました');closeM();await loadMonth(calY,calM);renderCal();
 }
-function openEditAttById(){openEditAtt(window._attStaff?.id||'',window._attStaff?.name||'','');}
-function openEditAtt(staffId,staffName,ds){
-  openM('<div class="mtit">'+staffName+' の出勤修正 ('+ds.slice(5)+')</div>'
-    +'<div class="fcol"><label style="font-size:12px;color:#555;">出勤時刻</label><input type="time" id="eain"/>'
-    +'<label style="font-size:12px;color:#555;">退勤時刻</label><input type="time" id="eaout"/>'
-    +'<select id="east"><option value="normal">通常</option><option value="late">遅刻</option><option value="early_leave">早退</option><option value="absent">休暇・欠勤</option></select>'
-    +'<textarea id="eanote" placeholder="メモ"></textarea></div>'
-    +'<div class="mbtns"><button class="bsm bg" onclick="doEditAtt(\''+staffId+'\',\''+ds+'\')">保存</button><button class="bsm bgr" onclick="closeM()">キャンセル</button></div>');
-}
-async function doEditAtt(staffId){
-  const ds=document.getElementById('eads').value;
-  const inT=document.getElementById('eain').value,outT=document.getElementById('eaout').value;
-  const status=document.getElementById('east').value,note=document.getElementById('eanote').value;
-  if(!ds){toast('日付を選択してください','err');return;}
-  await sb.from('attendance').upsert({staff_id:staffId,date:ds,clock_in:inT?ds+'T'+inT+':00+09:00':null,clock_out:outT?ds+'T'+outT+':00+09:00':null,status,admin_note:note},{onConflict:'staff_id,date'});
-  toast('修正しました');closeM();await loadMonth(calY,calM);renderAtt();
-}
 
-// ── Clock in/out ───────────────────────────────────────────────────────────────
-async function clockIn(){
-  const today=fd(new Date());
-  const doIn=async(lat,lng)=>{
-    const{data:ex}=await sb.from('attendance').select('*').eq('staff_id',me.id).eq('date',today).single();
-    if(ex&&ex.clock_in){toast('既に出勤済みです','err');return;}
-    const{data,error}=await sb.from('attendance').upsert({staff_id:me.id,date:today,clock_in:new Date().toISOString(),clock_in_lat:lat,clock_in_lng:lng,status:'normal'},{onConflict:'staff_id,date'}).select().single();
-    if(error){toast('打刻に失敗しました','err');return;}
-    todayAtt=data;toast('出勤打刻しました 🟢');renderCal();
-  };
-  const useGPS=me.gpsReq&&GPS_GLOBAL;
-  if(!useGPS){await doIn(null,null);return;}
-  try{
-    const pos=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{timeout:8000}));
-    if(distM(pos.coords.latitude,pos.coords.longitude,SLAT,SLNG)>SR){toast('店舗から離れすぎています','err');return;}
-    await doIn(pos.coords.latitude,pos.coords.longitude);
-  }catch(e){if(e.code===1){toast('位置情報の許可が必要です','err');return;}await doIn(null,null);}
+// ── 取消出勤申請（アルバイト）──
+function openCancelReq(entryId,slotId,ds,slotName){
+  window._cr={entryId,slotId,ds,slotName};
+  openM('<div class="mtit">取消出勤申請</div>'
+    +'<div style="background:#fef9e7;border-radius:8px;padding:10px;margin-bottom:12px;font-size:12px;color:#7d6608;line-height:1.6;">⚠ シフトの取消には管理者の承認が必要です。承認されるまでシフトは有効です。</div>'
+    +'<div class="fcol">'
+    +'<div><span class="flabel">対象シフト</span><input type="text" value="'+ds.slice(5)+' '+slotName+'" readonly style="background:#f0f0f0;"/></div>'
+    +'<div><span class="flabel">理由</span><select id="cr-rtype"><option value="体調不良">体調不良</option><option value="私用">私用</option><option value="家庭の事情">家庭の事情</option><option value="その他">その他</option></select></div>'
+    +'<div><span class="flabel">詳細（任意）</span><textarea id="cr-reason" placeholder="補足があれば記入"></textarea></div>'
+    +'</div>'
+    +'<div class="mbtns"><button class="bsm br" onclick="doCancelReq()">申請する</button><button class="bsm bgr" onclick="closeM()">キャンセル</button></div>');
 }
-async function clockOut(){
-  if(!todayAtt){toast('出勤記録がありません','err');return;}
-  const now=new Date();
-  try{
-    const pos=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{timeout:8000}));
-    await sb.from('attendance').update({clock_out:now.toISOString(),clock_out_lat:pos.coords.latitude,clock_out_lng:pos.coords.longitude}).eq('id',todayAtt.id);
-  }catch{await sb.from('attendance').update({clock_out:now.toISOString()}).eq('id',todayAtt.id);}
-  todayAtt={...todayAtt,clock_out:now.toISOString()};toast('退勤打刻しました 🔴');renderCal();
+async function doCancelReq(){
+  const{entryId,slotId,ds}=window._cr;
+  const rtype=document.getElementById('cr-rtype').value;
+  const detail=document.getElementById('cr-reason').value;
+  const reason=rtype+(detail?'：'+detail:'');
+  const{error}=await sb.from('cancel_requests').insert({staff_id:me.id,slot_id:slotId,slot_entry_id:entryId,date:ds,reason,status:'pending'});
+  if(error){toast('申請に失敗しました','err');return;}
+  toast('取消申請を送信しました');closeM();refreshPendingCount();
 }
 
-// ── Attendance ─────────────────────────────────────────────────────────────────
-let attSelStaff=null; // selected staff for detail view
-
-async function renderAtt(){
-  const wrap=document.getElementById('watt');
-  wrap.innerHTML='<div class="loading"><span class="spin"></span>読み込み中…</div>';
-  await loadMonth(calY,calM);
-  // Load leaves for this month
-  const from=calY+'-'+String(calM+1).padStart(2,'0')+'-01';
-  const to=calY+'-'+String(calM+1).padStart(2,'0')+'-'+new Date(calY,calM+1,0).getDate();
-  const{data:leavesData}=await sb.from('leave_requests').select('*').gte('date',from).lte('date',to).eq('status','approved');
-  const am=AC[calY+'-'+calM]||{};
-  const mh=getMonthlyH(calY,calM,leavesData||[]);
-  const dispStaff=me.canManage?staff:staff.filter(s=>s.id===me.id);
-
-  let html='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">';
-  html+='<span style="font-weight:800;font-size:17px;color:#2c3e50;">'+calY+'年'+(calM+1)+'月</span>';
-  html+='<div style="display:flex;gap:5px;"><button class="arr" onclick="attChM(-1)">‹</button><button class="arr" onclick="attChM(1)">›</button></div></div>';
-
-  if(attSelStaff&&me.canManage){
-    // Detail view for selected staff
-    const s=staff.find(x=>x.id===attSelStaff);
-    if(s){
-      html+='<button class="bsm bgr" onclick="attSelStaff=null;renderAtt()" style="margin-bottom:12px;">← 一覧に戻る</button>';
-      const totalH=Math.round((mh[s.id]||0)*10)/10;
-      const roleLabel=s.role==='owner'?'オーナー':s.role==='manager'?'店長':s.staff_type==='full'?'正社員':'バイト';
-      const isPart=s.staff_type==='part';
-      const wage=s.wage||settings.wage_per_hour;
-      html+='<div class="card">';
-      html+='<div style="display:flex;align-items:center;gap:7px;margin-bottom:10px;">';
-      html+='<span class="av '+(isPart?'avp':'avf')+'">'+s.name[0]+'</span>';
-      html+='<strong style="font-size:15px;">'+s.name+'</strong><span style="font-size:11px;color:#888;">'+roleLabel+'</span>';
-      html+='<span style="margin-left:auto;font-size:14px;font-weight:700;color:#2c3e50;">合計 '+totalH+'h</span>';
-      html+='</div>';
-      if(me.salaryVisible&&isPart){
-        html+='<div style="font-size:13px;color:#555;margin-bottom:8px;">推定給与: ¥'+(totalH*wage).toLocaleString()+'</div>';
-      }
-      // Day-by-day records
-      const allDates=Object.entries(am).filter(([,dm])=>dm[s.id]).sort();
-      if(allDates.length===0){
-        html+='<p class="empty" style="padding:8px 0;">打刻記録なし</p>';
-      } else {
-        allDates.forEach(([date,dm])=>{
-          const a=dm[s.id],h=ch(a.clock_in,a.clock_out),w=cw(h,wage,a.clock_in,a.clock_out);
-          const sl=a.status==='late'?'<span style="color:#e67e22;font-size:10px;"> 遅刻</span>':a.status==='early_leave'?'<span style="color:#e67e22;font-size:10px;"> 早退</span>':a.status==='absent'?'<span style="color:#c0392b;font-size:10px;"> 休暇</span>':'';
-          html+='<div class="arow"><span>'+date.slice(5)+sl+'</span><span>'+ft(a.clock_in)+'〜'+ft(a.clock_out)+'</span><span style="font-weight:600;">'+h+'h</span>'+(me.salaryVisible?'<span style="color:#555;">¥'+w.toLocaleString()+'</span>':'')+'</div>';
-        });
-      }
-      html+='</div>';
-      if(me.role==='admin'||me.salaryVisible){
-      html+='<button class="btn" onclick="openEditAttById(window._attStaff.id,window._attStaff.name)" style="margin-bottom:12px;">出勤修正</button>';
-      }
-    }
-  } else {
-    // List view - click to see detail
-    dispStaff.forEach(s=>{
-      const totalH=Math.round((mh[s.id]||0)*10)/10;
-      const isPart=s.staff_type==='part';
-      const roleLabel=s.role==='owner'?'オーナー':s.role==='manager'?'店長':isPart?'バイト':'正社員';
-      html+='<div class="card" style="cursor:pointer;" onclick="attSelStaff=&quot;'+s.id+'&quot;;renderAtt()">';
-      html+='<div style="display:flex;align-items:center;gap:7px;">';
-      html+='<span class="av '+(isPart?'avp':'avf')+'">'+s.name[0]+'</span>';
-      html+='<div><strong style="font-size:14px;">'+s.name+'</strong><span style="font-size:11px;color:#888;margin-left:6px;">'+roleLabel+'</span></div>';
-      html+='<span style="margin-left:auto;font-size:13px;font-weight:700;color:#2c3e50;">'+totalH+'h</span>';
-      html+='<span style="color:#aaa;font-size:16px;margin-left:4px;">›</span>';
-      html+='</div></div>';
-    });
-  }
-
-  if(me.salaryVisible&&!attSelStaff){
-    html+='<div class="card"><div class="stitle">📄 PDF出力</div><div class="fcol"><div style="display:flex;gap:8px;align-items:center;"><span style="font-size:12px;white-space:nowrap;">期間：</span><input type="date" id="pdff"/><span>〜</span><input type="date" id="pdft"/></div><button class="btn" onclick="exportPDF()">PDFを出力</button></div></div>';
-  }
-  wrap.innerHTML=html;
-}
-async function attChM(d){calM+=d;if(calM>11){calM=0;calY++;}if(calM<0){calM=11;calY--;}await renderAtt();}
-async function exportPDF(staffId,staffName){
-  staffId=staffId||window._attStaffData?.id;
-  staffName=staffName||window._attStaffData?.name||'スタッフ';
-  const fr=document.getElementById('pdff')?.value||'',to=document.getElementById('pdft')?.value||'';
-  if(!fr||!to){toast('期間を指定してください','err');return;}
-  const{jsPDF}=window.jspdf;const doc=new jsPDF();
-  doc.setFontSize(14);doc.text('Cafe La Petite Haku - Attendance',14,18);
-  doc.setFontSize(10);doc.text(fr+' ~ '+to,14,27);let y=38;
-  const{data}=await sb.from('attendance').select('*,shift_staff(name,wage)').gte('date',fr).lte('date',to).order('date');
-  (data||[]).forEach(r=>{if(y>270){doc.addPage();y=18;}const h=ch(r.clock_in,r.clock_out);const w=cw(h,r.shift_staff?.wage||settings.wage_per_hour,r.clock_in,r.clock_out);doc.text(r.date+' '+( r.shift_staff?.name||'')+' '+ft(r.clock_in)+'-'+ft(r.clock_out)+' '+h+'h ¥'+w.toLocaleString(),14,y);y+=7;});
-  doc.save('haku-att-'+fr+'-'+to+'.pdf');toast('PDFを出力しました');
-}
-
-// ── Leave ──────────────────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════
+// 休暇申請（正社員）
+// ════════════════════════════════════════════════════════════
 async function renderLeave(){
   const wrap=document.getElementById('wleave');
   wrap.innerHTML='<div class="loading"><span class="spin"></span>読み込み中…</div>';
-  const{data}=await sb.from('leave_requests').select('*,shift_staff(name,staff_type)').order('created_at',{ascending:false});
-  const showH=window._leaveHist||false;
-  const allLv=(data||[]).filter(l=>{
-    const s=staff.find(x=>x.id===l.staff_id);
-    return(me.canManage&&s?.staff_type==='full')||(l.staff_id===me.id&&!me.isPart);
-  });
-  const leaves=showH?allLv:allLv.filter(l=>l.status==='pending');
-  let html='<div style="font-weight:800;font-size:17px;color:#2c3e50;margin-bottom:12px;">🌿 休暇申請（正社員）</div>';
-  html+='<div style="display:flex;justify-content:flex-end;margin-bottom:8px;">';
-  html+='<button class="bsm bgr" onclick="window._leaveHist='+(!showH)+';renderLeave()">'+( showH?'審査中のみ':'過去の記録も見る')+'</button></div>';
-  if(!me.isPart||me.canManage){
-    html+='<div class="card"><div class="stitle">＋ 休暇を申請する</div><div class="fcol">';
-    if(me.canManage&&me.id==='admin'){
-      const fStaff2=staff.filter(s=>s.staff_type==='full');
-      html+='<div><span class="flabel">対象スタッフ</span><select id="lv-staff"><option value="">選択…</option>'+fStaff2.map(s=>'<option value="'+s.id+'">'+s.name+'</option>').join('')+'</select></div>';
-    }
-    html+='<div><span class="flabel">日付</span><input type="date" id="lvdate"/></div>';
-    html+='<div><span class="flabel">休暇の種類</span><select id="lvtype">'+Object.entries(LT).map(([k,v])=>'<option value="'+k+'">'+v+'</option>').join('')+'</select></div>';
-    html+='<div><span class="flabel">理由（任意）</span><textarea id="lvreason" placeholder="例：年次有給消化、体調不良"></textarea></div>';
-    html+='<button class="btn" onclick="doLeave()">申請する</button></div></div>';
-  }
-  if(leaves.length===0)html+='<p class="empty">'+(showH?'記録がありません':'審査中の申請はありません')+'</p>';
+  const{data}=await sb.from('leave_requests').select('*').eq('staff_id',me.id).order('created_at',{ascending:false});
+  const showHist=window._leaveHist||false;
+  const all=data||[];
+  const leaves=showHist?all:all.filter(l=>l.status==='pending');
+  let html='<div style="font-weight:800;font-size:17px;color:#2c3e50;margin-bottom:12px;">🌿 休暇申請</div>';
+  // 申請フォーム
+  html+='<div class="card"><div class="stitle">＋ 休暇を申請する</div><div class="fcol">';
+  html+='<div><span class="flabel">日付</span><input type="date" id="lvdate"/></div>';
+  html+='<div><span class="flabel">休暇の種類</span><select id="lvtype">'+Object.entries(LT).map(([k,v])=>'<option value="'+k+'">'+v+'</option>').join('')+'</select></div>';
+  html+='<div><span class="flabel">取得単位</span><select id="lvdur" onchange="toggleLvCustom(this.value)">'+Object.entries(DUR).map(([k,v])=>'<option value="'+k+'">'+v+'</option>').join('')+'</select></div>';
+  html+='<div id="lv-custom" style="display:none;"><span class="flabel">時間帯</span><div style="display:flex;gap:8px;align-items:center;"><input type="time" id="lv-s" value="09:00"/><span>〜</span><input type="time" id="lv-e" value="13:00"/></div></div>';
+  html+='<div><span class="flabel">理由（任意）</span><textarea id="lvreason" placeholder="例：年次有給消化、通院"></textarea></div>';
+  html+='<button class="btn" onclick="doLeave()">申請する</button></div></div>';
+  // 履歴トグル
+  html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">';
+  html+='<span style="font-size:13px;font-weight:700;color:#2c3e50;">'+(showHist?'すべての申請':'審査中の申請')+'</span>';
+  html+='<button class="bsm bgr" onclick="window._leaveHist='+(!showHist)+';renderLeave()">'+(showHist?'審査中のみ':'過去の記録も見る')+'</button></div>';
+  if(leaves.length===0)html+='<p class="empty">'+(showHist?'記録がありません':'審査中の申請はありません')+'</p>';
   else leaves.forEach(l=>{
-    const sc2=l.status==='pending'?'bp':l.status==='approved'?'ba':'brej';
+    window._lvId=l.id;
+    const sc=l.status==='pending'?'bp':l.status==='approved'?'ba':'brej';
     const sl=l.status==='pending'?'審査中':l.status==='approved'?'承認済':'却下';
-    const s=staff.find(x=>x.id===l.staff_id);
-    const sc=staffColorMap[l.staff_id]||'#2c3e50';
-    html+='<div class="card" style="padding:12px;">';
-    html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">';
-    html+='<span class="av" style="background:'+sc+';color:#fff;">'+(s?.name?.[0]||'?')+'</span>';
-    html+='<div><div style="font-weight:700;color:#2c3e50;">'+l.date+'</div>';
-    html+='<div style="font-size:12px;color:#555;">'+(LT[l.leave_type]||l.leave_type)+'</div>';
-    if(me.canManage)html+='<div style="font-size:11px;color:#888;">'+(l.shift_staff?.name||'')+'</div>';
-    html+='</div><span class="badge '+sc2+'" style="margin-left:auto;">'+sl+'</span></div>';
-    if(l.reason)html+='<div style="font-size:12px;color:#666;margin-bottom:8px;">'+l.reason+'</div>';
-    if(me.canManage&&l.status==='pending'){
-    if(me.canManage&&l.status==='pending'){
-      html+='<div style="display:flex;gap:7px;"><button class="bsm bg" onclick="appLeave(window._lvId)">承認</button><button class="bsm br" onclick="rejLeave(window._lvId)">却下</button></div>';
-    }
-    }
+    const durStr=l.duration_type==='custom'&&l.start_time?(l.start_time.slice(0,5)+'〜'+(l.end_time||'').slice(0,5)):(DUR[l.duration_type]||'全日');
+    html+='<div class="reqcard leave-r">';
+    html+='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">';
+    html+='<div><div style="font-weight:700;color:#2c3e50;font-size:14px;">'+l.date+'</div>';
+    html+='<div style="font-size:12px;color:#555;">'+(LT[l.leave_type]||l.leave_type)+'　/　'+durStr+'</div></div>';
+    html+='<span class="badge '+sc+'">'+sl+'</span></div>';
+    if(l.reason)html+='<div style="font-size:12px;color:#666;">'+l.reason+'</div>';
     html+='</div>';
   });
   wrap.innerHTML=html;
 }
-async function doLeave(){
-  const date=document.getElementById('lvdate').value,type=document.getElementById('lvtype').value,reason=document.getElementById('lvreason').value;
-  if(!date){toast('日付を選択してください','err');return;}
-  await sb.from('leave_requests').insert({staff_id:me.id,date,leave_type:type,reason,status:'pending'});
-  toast('申請しました');renderLeave();
+function toggleLvCustom(v){
+  document.getElementById('lv-custom').style.display=v==='custom'?'block':'none';
 }
-async function appLeave(id){await sb.from('leave_requests').update({status:'approved',approved_by:'admin',approved_at:new Date().toISOString()}).eq('id',id);toast('承認しました');renderLeave();}
-async function rejLeave(id){await sb.from('leave_requests').update({status:'rejected'}).eq('id',id);toast('却下しました');renderLeave();}
+async function doLeave(){
+  const date=document.getElementById('lvdate').value;
+  const type=document.getElementById('lvtype').value;
+  const dur=document.getElementById('lvdur').value;
+  const reason=document.getElementById('lvreason').value;
+  if(!date){toast('日付を選択してください','err');return;}
+  let startT=null,endT=null;
+  if(dur==='custom'){startT=document.getElementById('lv-s').value;endT=document.getElementById('lv-e').value;}
+  else if(dur==='half_am'){startT='09:00';endT='13:00';}
+  else if(dur==='half_pm'){startT='13:00';endT='17:00';}
+  const{error}=await sb.from('leave_requests').insert({staff_id:me.id,date,leave_type:type,duration_type:dur,start_time:startT,end_time:endT,reason,status:'pending'});
+  if(error){toast('申請に失敗しました','err');return;}
+  toast('休暇を申請しました');document.getElementById('lvreason').value='';renderLeave();refreshPendingCount();
+}
 
-// ── Swap ───────────────────────────────────────────────────────────────────────
-function renderSwap(){renderCancel();}
+// ════════════════════════════════════════════════════════════
+// 申請確認（管理者・店長）
+// ════════════════════════════════════════════════════════════
+let reqTab='pending';
+async function renderRequests(){
+  const wrap=document.getElementById('wrequests');
+  wrap.innerHTML='<div class="loading"><span class="spin"></span>読み込み中…</div>';
+  const[lr,cr]=await Promise.all([
+    sb.from('leave_requests').select('*,shift_staff(name,staff_type)').order('created_at',{ascending:false}),
+    sb.from('cancel_requests').select('*,shift_staff(name),shift_slots(slot_name,date,start_time,end_time)').order('created_at',{ascending:false})
+  ]);
+  const allLeaves=lr.data||[],allCancels=cr.data||[];
+  const isPending=reqTab==='pending';
+  const leaves=isPending?allLeaves.filter(l=>l.status==='pending'):allLeaves;
+  const cancels=isPending?allCancels.filter(c=>c.status==='pending'):allCancels;
 
+  let html='<div style="font-weight:800;font-size:17px;color:#2c3e50;margin-bottom:12px;">📋 申請確認</div>';
+  html+='<div class="seg">';
+  html+='<button class="segb'+(isPending?' on':'')+'" onclick="reqTab=\'pending\';renderRequests()">審査中'+( (allLeaves.filter(l=>l.status==='pending').length+allCancels.filter(c=>c.status==='pending').length)>0?'（'+(allLeaves.filter(l=>l.status==='pending').length+allCancels.filter(c=>c.status==='pending').length)+'）':'')+'</button>';
+  html+='<button class="segb'+(!isPending?' on':'')+'" onclick="reqTab=\'all\';renderRequests()">すべて</button></div>';
 
+  const items=[];
+  cancels.forEach(c=>items.push({type:'cancel',data:c,time:c.created_at}));
+  leaves.forEach(l=>items.push({type:'leave',data:l,time:l.created_at}));
+  items.sort((a,b)=>new Date(b.time)-new Date(a.time));
 
+  if(items.length===0){html+='<p class="empty">'+(isPending?'審査中の申請はありません':'申請記録がありません')+'</p>';wrap.innerHTML=html;return;}
 
+  items.forEach(it=>{
+    if(it.type==='cancel'){
+      const c=it.data;
+      window._cId=c.id;
+      const sc=c.status==='pending'?'bp':c.status==='approved'?'ba':'brej';
+      const sl=c.status==='pending'?'審査中':c.status==='approved'?'承認済':'却下';
+      const stColor=staffColorMap[c.staff_id]||'#2c3e50';
+      const slot=c.shift_slots;
+      html+='<div class="reqcard cancel-r">';
+      html+='<div style="display:flex;align-items:center;gap:7px;margin-bottom:7px;">';
+      html+='<span class="av" style="background:'+stColor+';">'+(c.shift_staff?.name?.[0]||'?')+'</span>';
+      html+='<div><div style="font-weight:700;font-size:13px;">'+(c.shift_staff?.name||'?')+' <span style="font-size:10px;color:#e67e22;font-weight:600;">取消申請</span></div>';
+      html+='<div style="font-size:11px;color:#666;">'+(slot?.date||c.date)+' '+(slot?.slot_name||'')+' '+(slot?.start_time?.slice(0,5)||'')+'〜'+(slot?.end_time?.slice(0,5)||'')+'</div></div>';
+      html+='<span class="badge '+sc+'" style="margin-left:auto;">'+sl+'</span></div>';
+      if(c.reason)html+='<div style="font-size:12px;color:#666;margin-bottom:8px;">理由：'+c.reason+'</div>';
+      if(c.status==='pending'){
+        html+='<div style="display:flex;gap:7px;"><button class="bsm bg" onclick="appCancel(\''+c.id+'\',\''+(c.slot_entry_id||'')+'\',\''+(c.date||'')+'\')">承認（シフトから外す）</button><button class="bsm br" onclick="rejCancel(\''+c.id+'\')">却下</button></div>';
+      }
+      html+='</div>';
+    } else {
+      const l=it.data;
+      const sc=l.status==='pending'?'bp':l.status==='approved'?'ba':'brej';
+      const sl=l.status==='pending'?'審査中':l.status==='approved'?'承認済':'却下';
+      const stColor=staffColorMap[l.staff_id]||'#2c3e50';
+      const durStr=l.duration_type==='custom'&&l.start_time?(l.start_time.slice(0,5)+'〜'+(l.end_time||'').slice(0,5)):(DUR[l.duration_type]||'全日');
+      html+='<div class="reqcard leave-r">';
+      html+='<div style="display:flex;align-items:center;gap:7px;margin-bottom:7px;">';
+      html+='<span class="av" style="background:'+stColor+';">'+(l.shift_staff?.name?.[0]||'?')+'</span>';
+      html+='<div><div style="font-weight:700;font-size:13px;">'+(l.shift_staff?.name||'?')+' <span style="font-size:10px;color:#27ae60;font-weight:600;">休暇申請</span></div>';
+      html+='<div style="font-size:11px;color:#666;">'+l.date+'　'+(LT[l.leave_type]||l.leave_type)+'　'+durStr+'</div></div>';
+      html+='<span class="badge '+sc+'" style="margin-left:auto;">'+sl+'</span></div>';
+      if(l.reason)html+='<div style="font-size:12px;color:#666;margin-bottom:8px;">理由：'+l.reason+'</div>';
+      if(l.status==='pending'){
+        html+='<div style="display:flex;gap:7px;"><button class="bsm bg" onclick="appLeave(\''+l.id+'\')">承認</button><button class="bsm br" onclick="rejLeave(\''+l.id+'\')">却下</button></div>';
+      }
+      html+='</div>';
+    }
+  });
+  wrap.innerHTML=html;
+}
+async function appCancel(cancelId,entryId,ds){
+  if(entryId&&entryId!=='null'&&entryId!==''){await sb.from('slot_entries').delete().eq('id',entryId);}
+  await sb.from('cancel_requests').update({status:'approved',approved_by:me.name,approved_at:new Date().toISOString()}).eq('id',cancelId);
+  await logAction('取消申請承認',ds,'シフトから外した');
+  toast('承認しました');renderRequests();refreshPendingCount();await loadMonth(calY,calM);
+}
+async function rejCancel(id){
+  await sb.from('cancel_requests').update({status:'rejected',approved_by:me.name}).eq('id',id);
+  toast('却下しました');renderRequests();refreshPendingCount();
+}
+async function appLeave(id){
+  await sb.from('leave_requests').update({status:'approved',approved_by:me.name,approved_at:new Date().toISOString()}).eq('id',id);
+  await logAction('休暇申請承認',null,'休暇を承認');
+  toast('承認しました');renderRequests();refreshPendingCount();
+}
+async function rejLeave(id){
+  await sb.from('leave_requests').update({status:'rejected',approved_by:me.name}).eq('id',id);
+  toast('却下しました');renderRequests();refreshPendingCount();
+}
+
+// ════════════════════════════════════════════════════════════
+// PDF出力（シフト表）
+// ════════════════════════════════════════════════════════════
+async function exportMonthPDF(){
+  const{jsPDF}=window.jspdf;const doc=new jsPDF();
+  doc.setFont('helvetica');
+  doc.setFontSize(15);doc.text('Cafe La Petite Haku',14,16);
+  doc.setFontSize(12);doc.text('Shift '+calY+'/'+(calM+1),14,25);
+  const k=calY+'-'+calM,sm=SC[k]||{},em=EC[k]||{};
+  const dim=new Date(calY,calM+1,0).getDate();
+  let y=35;
+  doc.setFontSize(8);
+  for(let day=1;day<=dim;day++){
+    const ds=calY+'-'+String(calM+1).padStart(2,'0')+'-'+String(day).padStart(2,'0');
+    const daySlots=(sm[ds]||[]).slice().sort((a,b)=>a.start_time.localeCompare(b.start_time));
+    if(daySlots.length===0)continue;
+    if(y>278){doc.addPage();y=18;}
+    const dow=DJP_MON[(new Date(calY,calM,day).getDay()+6)%7];
+    doc.setFontSize(10);doc.setTextColor(44,62,80);
+    doc.text((calM+1)+'/'+day+' ('+['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][(new Date(calY,calM,day).getDay()+6)%7]+')',14,y);y+=5;
+    doc.setFontSize(8);doc.setTextColor(80,80,80);
+    daySlots.forEach(slot=>{
+      if(y>282){doc.addPage();y=18;}
+      const ents=em[slot.id]||[];
+      const names=ents.map(e=>e.shift_staff?.name||'?').join(', ')||'(empty)';
+      doc.text('  '+slot.slot_name+' '+slot.start_time.slice(0,5)+'-'+slot.end_time.slice(0,5)+' : '+names,16,y);y+=5;
+    });
+    y+=2;
+  }
+  doc.save('haku-shift-'+calY+'-'+String(calM+1).padStart(2,'0')+'.pdf');
+  toast('PDFを出力しました');
+}
+
+// ════════════════════════════════════════════════════════════
+// 管理
+// ════════════════════════════════════════════════════════════
+let adminTab='staff';
 async function renderAdmin(){
   const wrap=document.getElementById('wadmin');
   await loadMonth(calY,calM);
-  const mh=getMonthlyH(calY,calM,[]);
-  const isOwner=me.role==='admin'||me.srole==='owner';
+  const isOwner=me.srole==='owner'||me.id==='admin';
   let html='';
-
+  html+='<div class="seg">';
+  html+='<button class="segb'+(adminTab==='staff'?' on':'')+'" onclick="adminTab=\'staff\';renderAdmin()">スタッフ</button>';
   if(isOwner){
-    // Global settings
-    html+='<div class="card"><div class="stitle">⚙ グローバル設定</div>';
-    html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;"><span style="font-size:13px;color:#555;">デフォルト時給（円）</span><input type="number" style="width:110px;" id="swage" value="'+settings.wage_per_hour+'"/></div>';
-    html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;"><span style="font-size:13px;color:#555;">月最大時間</span><input type="number" style="width:110px;" id="smax" value="'+settings.max_hours_per_month+'"/></div>';
-    html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;"><span style="font-size:13px;color:#555;">雇用保険警告（週h）</span><input type="number" style="width:110px;" id="sins" value="'+settings.insurance_threshold_weekly+'"/></div>';
-    html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;"><span style="font-size:13px;color:#555;">GPS打刻（全体）</span><button class="bsm '+(GPS_GLOBAL?'br':'bg')+'" onclick="toggleGPS()">'+(GPS_GLOBAL?'OFF':'ON')+'にする</button></div>';
-    html+='<p style="font-size:11px;color:#888;">※法定：週20h以上で雇用保険加入義務</p>';
-    html+='<button class="btn" style="margin-top:10px;" onclick="saveSettings()">設定を保存</button></div>';
-    // PW change
-    html+='<div class="card"><div class="stitle">🔑 管理者パスワード変更</div><div class="fcol"><input type="password" id="pwcur" placeholder="現在のパスワード"/><input type="password" id="pwnew" placeholder="新しいパスワード"/><input type="password" id="pwcnf" placeholder="確認"/><button class="btn" onclick="changeAdminPW()">変更する</button></div></div>';
-    // Add staff
-    html+='<div class="card"><div class="stitle">＋ スタッフ追加</div><div class="fcol">';
-    html+='<input type="text" id="aname" placeholder="名前"/>';
-    html+='<select id="atype" onchange="toggleAdminFields(this.value)"><option value="part">アルバイト</option><option value="full">正社員</option><option value="manager">店長</option><option value="owner">オーナー</option></select>';
-    html+='<div id="adm-part-f" style="display:flex;flex-direction:column;gap:8px;"><input type="number" id="awage" placeholder="時給（円）"/><input type="number" id="awkh" placeholder="週最大時間"/></div>';
-    html+='<div id="adm-full-f" style="display:none;flex-direction:column;gap:8px;"><input type="number" id="asal" placeholder="月給（円）"/><input type="number" id="amax" placeholder="月最大時間"/></div>';
-    html+='<button class="btn" onclick="adminAddStaff()">追加する</button></div></div>';
+    html+='<button class="segb'+(adminTab==='settings'?' on':'')+'" onclick="adminTab=\'settings\';renderAdmin()">設定</button>';
+    html+='<button class="segb'+(adminTab==='log'?' on':'')+'" onclick="adminTab=\'log\';renderAdmin()">変更履歴</button>';
+  }
+  html+='</div>';
+
+  if(adminTab==='staff'){
+    if(isOwner){
+      html+='<div class="card"><div class="stitle">＋ スタッフ追加</div><div class="fcol">';
+      html+='<div><span class="flabel">お名前</span><input type="text" id="aname" placeholder="例：田中"/></div>';
+      html+='<div><span class="flabel">雇用区分</span><select id="atype" onchange="toggleAdmFields(this.value)"><option value="part">アルバイト</option><option value="full">正社員</option><option value="manager">店長</option><option value="owner">オーナー</option></select></div>';
+      html+='<div id="adm-part" style="display:flex;flex-direction:column;gap:8px;"><div><span class="flabel">週の最大シフト時間（雇用保険の目安：20h）</span><input type="number" id="awkh" placeholder="20"/></div></div>';
+      html+='<div id="adm-full" style="display:none;flex-direction:column;gap:8px;"><div><span class="flabel">月の所定シフト時間</span><input type="number" id="amax" placeholder="160"/></div></div>';
+      html+='<button class="btn" onclick="adminAddStaff()">追加する</button></div></div>';
+    }
+    html+='<div class="card"><div class="stitle">👥 スタッフ一覧</div>';
+    if(staff.length===0)html+='<p class="empty">スタッフがいません</p>';
+    staff.forEach(s=>{
+      const isPart=s.staff_type==='part';
+      const sc=staffColorMap[s.id]||'#2c3e50';
+      const maxWk=s.max_hours_per_week||20;
+      const maxMon=s.max_hours||0;
+      let info=isPart?'週最大 '+maxWk+'h':(maxMon?'月 '+maxMon+'h所定':'月給制');
+      if(isOwner)info+='　/　PW: '+(s.password||'0000');
+      html+='<div style="background:#f8f6f2;border-radius:10px;padding:10px 12px;margin-bottom:10px;">';
+      html+='<div style="display:flex;align-items:center;gap:6px;font-weight:600;font-size:13px;margin-bottom:4px;">';
+      html+='<span class="av" style="background:'+sc+';">'+s.name[0]+'</span>'+s.name;
+      html+='<span style="font-size:10px;color:#888;">'+roleLabel(s)+'</span></div>';
+      html+='<div style="font-size:11px;color:#777;margin-bottom:6px;">'+info+'</div>';
+      html+='<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;">';
+      html+='<span class="perm-badge '+(s.can_manage_shift||s.role==='manager'||s.role==='owner'?'perm-on':'perm-off')+'">排班・申請管理 '+(s.can_manage_shift||s.role==='manager'||s.role==='owner'?'✅':'❌')+'</span>';
+      html+='</div>';
+      if(isOwner){
+        html+='<div style="display:flex;gap:6px;flex-wrap:wrap;">';
+        html+='<button class="bsm bd" onclick="openEditStaff(\''+s.id+'\')">編集</button>';
+        html+='<button class="bsm bgold" onclick="openSetPW(\''+s.id+'\')">PW設定</button>';
+        if(s.role!=='owner')html+='<button class="bsm '+(s.can_manage_shift?'br':'bg')+'" onclick="togglePerm(\''+s.id+'\','+(s.can_manage_shift?'false':'true')+')">管理権限 '+(s.can_manage_shift?'OFF':'ON')+'</button>';
+        html+='<button class="bsm br" onclick="delStaff(\''+s.id+'\',\''+s.name+'\')">削除</button>';
+        html+='</div>';
+      }
+      html+='</div>';
+    });
+    html+='</div>';
   }
 
-  // Staff list
-  html+='<div class="card"><div class="stitle">👥 スタッフ一覧</div>';
-  if(staff.length===0)html+='<p class="empty">スタッフがいません</p>';
-  staff.forEach(s=>{
-    const h=Math.round((mh[s.id]||0)*10)/10;
-    const isPart=s.staff_type==='part';
-    const wkH=isPart?getWeeklyH(s.id,calY,calM):0;
-    const roleLabel=s.role==='owner'?'オーナー':s.role==='manager'?'店長':isPart?'バイト':'正社員';
-    const avClass=isPart?'avp':'avf';
-    let info='';
-    if(me.salaryVisible){
-      if(isPart)info='時給¥'+s.wage+'　週最大'+(s.max_hours_per_week||20)+'h';
-      info='月'+maxMon+'h所定勤務';
-      if(isOwner)info+='　PW:'+(s.password||'0000');
-    } else {
-      info='月'+maxMon+'h所定勤務';
-    }
-    const timeStr=isPart?'今週'+wkH+'h / 今月'+h+'h':'今月'+h+'h';
-    html+='<div style="background:#f8f6f2;border-radius:10px;padding:10px 12px;margin-bottom:8px;">';
-    html+='<div style="display:flex;align-items:center;gap:6px;font-weight:600;font-size:13px;margin-bottom:3px;"><span class="av '+avClass+'">'+s.name[0]+'</span>'+s.name+'<span style="font-size:10px;color:#888;">'+roleLabel+'</span></div>';
-    html+='<div style="font-size:11px;color:#777;margin-bottom:2px;">'+info+'</div>';
-    html+='<div style="font-size:11px;color:#555;margin-bottom:6px;">'+timeStr+(me.salaryVisible&&isPart?' ¥'+(h*s.wage).toLocaleString():'')+'</div>';
-    // Permission badges
-    html+='<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px;">';
-    html+='<span class="perm-badge '+(s.can_manage_shift?'perm-on':'perm-off')+'">排班管理 '+(s.can_manage_shift?'✅':'❌')+'</span>';
-    html+='<span class="perm-badge '+(s.gps_required!==false?'perm-on':'perm-off')+'">GPS打刻 '+(s.gps_required!==false?'✅':'❌')+'</span>';
+  if(adminTab==='settings'&&isOwner){
+    html+='<div class="card"><div class="stitle">⚙ 全体設定</div>';
+    html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;">';
+    html+='<div><span style="font-size:13px;font-weight:600;">雇用保険の警告ライン（週h）</span><p class="hint">アルバイトがこの時間に近づくと警告表示（法定20h）</p></div>';
+    html+='<input type="number" style="width:90px;" id="sins" value="'+(settings.insurance_threshold_weekly||20)+'"/></div>';
+    html+='<button class="btn" onclick="saveSettings()">設定を保存</button></div>';
+    html+='<div class="card"><div class="stitle">🔑 管理者パスワード変更</div><div class="fcol">';
+    html+='<div><span class="flabel">現在のパスワード</span><input type="password" id="pwcur"/></div>';
+    html+='<div><span class="flabel">新しいパスワード</span><input type="password" id="pwnew"/></div>';
+    html+='<div><span class="flabel">確認</span><input type="password" id="pwcnf"/></div>';
+    html+='<button class="btn" onclick="changeAdminPW()">変更する</button></div></div>';
+  }
+
+  if(adminTab==='log'&&isOwner){
+    html+='<div class="card"><div class="stitle">📝 シフト変更履歴</div>';
+    html+='<p class="hint" style="margin-bottom:10px;">誰がいつシフトを変更したかの記録です（直近100件）。</p>';
+    const{data}=await sb.from('audit_log').select('*').order('created_at',{ascending:false}).limit(100);
+    if(!data||data.length===0)html+='<p class="empty">記録がありません</p>';
+    else data.forEach(l=>{
+      const t=new Date(l.created_at);
+      const ts=(t.getMonth()+1)+'/'+t.getDate()+' '+String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0');
+      html+='<div class="logrow"><strong>'+ts+'</strong>　'+l.actor_name+'（'+(l.actor_role||'')+'）<br>'+l.action+(l.target_date?'（'+l.target_date.slice(5)+'）':'')+'：'+(l.detail||'')+'</div>';
+    });
     html+='</div>';
-    html+='<div style="display:flex;gap:6px;flex-wrap:wrap;">';
-    if(isOwner){
-      html+='<button class="bsm bd" onclick="openEditStaff(\''+s.id+'\')">編集</button>';
-      html+='<button class="bsm bgold" onclick="openSetPW(\''+s.id+'\',\''+s.name+'\')">PW</button>';
-      html+='<button class="bsm '+(s.can_manage_shift?'br':'bg')+'" onclick="togglePerm(\''+s.id+'\',\'shift\','+(s.can_manage_shift?'false':'true')+')">排班'+(s.can_manage_shift?'OFF':'ON')+'</button>';
-      html+='<button class="bsm '+(s.gps_required!==false?'br':'bg')+'" onclick="togglePerm(\''+s.id+'\',\'gps\','+(s.gps_required!==false?'false':'true')+')">GPS'+(s.gps_required!==false?'OFF':'ON')+'</button>';
-      html+='<button class="bsm br" onclick="delStaff(\''+s.id+'\',\''+s.name+'\')">削除</button>';
-    }
-    html+='</div></div>';
-  });
-  html+='</div>';
+  }
   wrap.innerHTML=html;
 }
-
-function toggleAdminFields(v){
+function toggleAdmFields(v){
   const ip=v==='part';
-  document.getElementById('adm-part-f').style.display=ip?'flex':'none';
-  document.getElementById('adm-full-f').style.display=ip?'none':'flex';
-}
-async function toggleGPS(){
-  GPS_GLOBAL=!GPS_GLOBAL;
-  await sb.from('shift_settings').update({gps_required:GPS_GLOBAL}).eq('id',1);
-  toast('GPS打刻を'+(GPS_GLOBAL?'ON':'OFF')+'にしました');renderAdmin();
-}
-async function togglePerm(staffId,type,val){
-  val=val==='true'||val===true;
-  const update=type==='shift'?{can_manage_shift:val}:{gps_required:val};
-  const{error}=await sb.from('shift_staff').update(update).eq('id',staffId);
-  if(error){toast('更新に失敗しました','err');return;}
-  staff=staff.map(s=>s.id===staffId?{...s,...update}:s);
-  toast('権限を更新しました');renderAdmin();
-}
-async function saveSettings(){
-  const wage=parseInt(document.getElementById('swage').value)||1100;
-  const max=parseInt(document.getElementById('smax').value)||80;
-  const ins=parseInt(document.getElementById('sins').value)||20;
-  await sb.from('shift_settings').upsert({id:1,wage_per_hour:wage,max_hours_per_month:max,insurance_threshold_weekly:ins,admin_password:APW,gps_required:GPS_GLOBAL});
-  settings={...settings,wage_per_hour:wage,max_hours_per_month:max,insurance_threshold_weekly:ins};
-  toast('保存しました');
-}
-async function changeAdminPW(){
-  const cur=document.getElementById('pwcur').value,nw=document.getElementById('pwnew').value,cnf=document.getElementById('pwcnf').value;
-  if(cur!==APW){toast('現在のパスワードが違います','err');return;}
-  if(!nw||nw!==cnf){toast('パスワードが一致しません','err');return;}
-  await sb.from('shift_settings').update({admin_password:nw}).eq('id',1);
-  APW=nw;['pwcur','pwnew','pwcnf'].forEach(id=>document.getElementById(id).value='');toast('変更しました');
+  document.getElementById('adm-part').style.display=ip?'flex':'none';
+  document.getElementById('adm-full').style.display=ip?'none':'flex';
 }
 async function adminAddStaff(){
   const name=document.getElementById('aname').value.trim(),stype=document.getElementById('atype').value;
   if(!name){toast('名前を入力してください','err');return;}
   if(staff.find(s=>s.name===name)){toast('同じ名前が既にあります','err');return;}
   const isPart=stype==='part';
-  const wage=isPart?parseInt(document.getElementById('awage').value)||settings.wage_per_hour:0;
-  const maxWeek=isPart?parseInt(document.getElementById('awkh').value)||20:0;
-  const salary=!isPart?parseInt(document.getElementById('asal').value)||0:0;
-  const maxH=!isPart?parseInt(document.getElementById('amax').value)||settings.max_hours_per_month:0;
+  const maxWeek=isPart?(parseInt(document.getElementById('awkh').value)||20):0;
+  const maxH=!isPart?(parseInt(document.getElementById('amax').value)||0):0;
   const roleV=stype==='owner'?'owner':stype==='manager'?'manager':stype==='full'?'full':'part';
   const stypeV=(stype==='manager'||stype==='owner')?'full':stype;
-  const{data,error}=await sb.from('shift_staff').insert({name,staff_type:stypeV,role:roleV,wage,max_hours:maxH,max_hours_per_week:maxWeek,monthly_salary:salary}).select().single();
+  const{data,error}=await sb.from('shift_staff').insert({name,staff_type:stypeV,role:roleV,wage:0,max_hours:maxH,max_hours_per_week:maxWeek,monthly_salary:0}).select().single();
   if(error){toast('追加に失敗しました','err');return;}
-  staff.push(data);toast(name+' を追加しました');renderAdmin();
+  staff.push(data);buildStaffColorMap();toast(name+' を追加しました');renderAdmin();
 }
 function openEditStaff(id){
   const s=staff.find(x=>x.id===id);if(!s)return;
   const isPart=s.staff_type==='part';
   openM('<div class="mtit">'+s.name+' の編集</div><div class="fcol">'
-    +'<input type="text" id="esn" value="'+s.name+'"/>'
-    +'<select id="est" onchange="toggleEditF(this.value)"><option value="part"'+(s.role==='part'?' selected':'')+'>アルバイト</option><option value="full"'+(s.role==='full'?' selected':'')+'>正社員</option><option value="manager"'+(s.role==='manager'?' selected':'')+'>店長</option><option value="owner"'+(s.role==='owner'?' selected':'')+'>オーナー</option></select>'
-    +'<div id="es-part" style="'+(isPart?'':'display:none;')+'display:flex;flex-direction:column;gap:8px;"><input type="number" id="esw" value="'+s.wage+'" placeholder="時給"/><input type="number" id="eswk" value="'+(s.max_hours_per_week||20)+'" placeholder="週最大時間"/></div>'
-    +'<div id="es-full" style="'+(!isPart?'':'display:none;')+'display:flex;flex-direction:column;gap:8px;"><input type="number" id="esal" value="'+(s.monthly_salary||0)+'" placeholder="月給（円）"/><input type="number" id="esm" value="'+s.max_hours+'" placeholder="月最大時間"/></div>'
+    +'<div><span class="flabel">お名前</span><input type="text" id="esn" value="'+s.name+'"/></div>'
+    +'<div><span class="flabel">雇用区分</span><select id="est" onchange="toggleEditF(this.value)"><option value="part"'+(s.role==='part'?' selected':'')+'>アルバイト</option><option value="full"'+(s.role==='full'?' selected':'')+'>正社員</option><option value="manager"'+(s.role==='manager'?' selected':'')+'>店長</option><option value="owner"'+(s.role==='owner'?' selected':'')+'>オーナー</option></select></div>'
+    +'<div id="es-part" style="display:'+(isPart?'block':'none')+';"><span class="flabel">週の最大シフト時間</span><input type="number" id="eswk" value="'+(s.max_hours_per_week||20)+'"/></div>'
+    +'<div id="es-full" style="display:'+(!isPart?'block':'none')+';"><span class="flabel">月の所定シフト時間</span><input type="number" id="esm" value="'+(s.max_hours||0)+'"/></div>'
     +'</div><div class="mbtns"><button class="bsm bg" onclick="doEditStaff(\''+id+'\')">保存</button><button class="bsm bgr" onclick="closeM()">キャンセル</button></div>');
 }
 function toggleEditF(v){
   const ip=v==='part';
-  document.getElementById('es-part').style.display=ip?'flex':'none';
-  document.getElementById('es-full').style.display=ip?'none':'flex';
+  document.getElementById('es-part').style.display=ip?'block':'none';
+  document.getElementById('es-full').style.display=ip?'none':'block';
 }
 async function doEditStaff(id){
   const name=document.getElementById('esn').value.trim(),stype=document.getElementById('est').value;
@@ -1231,27 +1085,35 @@ async function doEditStaff(id){
   const roleV=stype==='owner'?'owner':stype==='manager'?'manager':stype==='full'?'full':'part';
   const stypeV=(stype==='manager'||stype==='owner')?'full':stype;
   const isPart=stype==='part';
-  const wage=isPart?parseInt(document.getElementById('esw').value)||0:0;
-  const maxWeek=isPart?parseInt(document.getElementById('eswk').value)||20:0;
-  const salary=!isPart?parseInt(document.getElementById('esal').value)||0:0;
-  const maxH=!isPart?parseInt(document.getElementById('esm').value)||settings.max_hours_per_month:0;
-  const{error}=await sb.from('shift_staff').update({name,staff_type:stypeV,role:roleV,wage,max_hours:maxH,max_hours_per_week:maxWeek,monthly_salary:salary}).eq('id',id);
+  const maxWeek=isPart?(parseInt(document.getElementById('eswk').value)||20):0;
+  const maxH=!isPart?(parseInt(document.getElementById('esm').value)||0):0;
+  const{error}=await sb.from('shift_staff').update({name,staff_type:stypeV,role:roleV,max_hours:maxH,max_hours_per_week:maxWeek}).eq('id',id);
   if(error){toast('更新に失敗しました','err');return;}
-  staff=staff.map(s=>s.id===id?{...s,name,staff_type:stypeV,role:roleV,wage,max_hours:maxH,max_hours_per_week:maxWeek,monthly_salary:salary}:s);
+  staff=staff.map(s=>s.id===id?{...s,name,staff_type:stypeV,role:roleV,max_hours:maxH,max_hours_per_week:maxWeek}:s);
   buildStaffColorMap();closeM();toast('更新しました');renderAdmin();
+}
+async function togglePerm(id,val){
+  val=val==='true'||val===true;
+  const{error}=await sb.from('shift_staff').update({can_manage_shift:val}).eq('id',id);
+  if(error){toast('更新に失敗しました','err');return;}
+  staff=staff.map(s=>s.id===id?{...s,can_manage_shift:val}:s);
+  const sName=staff.find(s=>s.id===id)?.name||'';
+  await logAction('権限変更',null,sName+'の管理権限を'+(val?'ON':'OFF'));
+  toast('権限を更新しました');renderAdmin();
 }
 async function delStaff(id,name){
   if(!confirm(name+' を削除しますか？この操作は取り消せません。'))return;
   await sb.from('shift_staff').delete().eq('id',id);
-  staff=staff.filter(s=>s.id!==id);buildStaffColorMap();toast(name+' を削除しました');renderAdmin();
+  staff=staff.filter(s=>s.id!==id);buildStaffColorMap();
+  toast(name+' を削除しました');renderAdmin();
 }
-function openSetPW(id,name){
-  window._setPWid=id;
-  openM('<div class="mtit">'+name+' のパスワード設定</div>'
-    +'<div class="fcol">'
+function openSetPW(id){
+  const s=staff.find(x=>x.id===id);
+  window._pwId=id;
+  openM('<div class="mtit">'+(s?.name||'')+' のパスワード設定</div><div class="fcol">'
     +'<div><span class="flabel">新しいパスワード</span><input type="password" id="spn"/></div>'
     +'<div><span class="flabel">確認</span><input type="password" id="spc"/></div>'
-    +'</div><div class="mbtns"><button class="bsm bg" onclick="doSetPW(window._setPWid)">設定</button><button class="bsm bgr" onclick="closeM()">キャンセル</button></div>');
+    +'</div><div class="mbtns"><button class="bsm bg" onclick="doSetPW(window._pwId)">設定</button><button class="bsm bgr" onclick="closeM()">キャンセル</button></div>');
 }
 async function doSetPW(id){
   const nw=document.getElementById('spn').value,cnf=document.getElementById('spc').value;
@@ -1260,8 +1122,7 @@ async function doSetPW(id){
   staff=staff.map(s=>s.id===id?{...s,password:nw}:s);closeM();toast('設定しました');renderAdmin();
 }
 function openSelfPW(){
-  openM('<div class="mtit">パスワード変更</div>'
-    +'<div class="fcol">'
+  openM('<div class="mtit">パスワード変更</div><div class="fcol">'
     +'<div><span class="flabel">現在のパスワード</span><input type="password" id="mpc"/></div>'
     +'<div><span class="flabel">新しいパスワード</span><input type="password" id="mpn"/></div>'
     +'<div><span class="flabel">確認</span><input type="password" id="mpcf"/></div>'
@@ -1270,157 +1131,31 @@ function openSelfPW(){
 async function doSelfPW(){
   const cur=document.getElementById('mpc').value,nw=document.getElementById('mpn').value,cnf=document.getElementById('mpcf').value;
   const myS=staff.find(s=>s.id===me.id);
-  if(cur!==(myS?.password||'0000')){toast('現在のPWが違います','err');return;}
-  if(!nw||nw!==cnf){toast('PWが一致しません','err');return;}
+  if(cur!==(myS?.password||'0000')){toast('現在のパスワードが違います','err');return;}
+  if(!nw||nw!==cnf){toast('パスワードが一致しません','err');return;}
   await sb.from('shift_staff').update({password:nw}).eq('id',me.id);
   staff=staff.map(s=>s.id===me.id?{...s,password:nw}:s);closeM();toast('変更しました');
 }
-
-// ── 取消出勤申請 ──────────────────────────────────────────────────────────────
-function openCancelRequest(entryId,slotId,ds,slotName){
-  window._cancelData={entryId,slotId,ds,slotName};
-  openM('<div class="mtit">取消出勤申請</div>'
-    +'<div style="background:#fef9e7;border-radius:8px;padding:10px;margin-bottom:12px;font-size:12px;color:#7d6608;">⚠ 管理者の承認後にシフトから外れます。承認まで有効です。</div>'
-    +'<div class="fcol">'
-    +'<div><span class="flabel">対象シフト</span><input type="text" value="'+ds.slice(5)+' '+slotName+'" readonly style="background:#f0f0f0;"/></div>'
-    +'<div><span class="flabel">理由（任意）</span><textarea id="cr-reason" placeholder="例：体調不良、予定が入ってしまいました"></textarea></div>'
-    +'</div><div class="mbtns"><button class="bsm br" onclick="doCancel()">申請する</button><button class="bsm bgr" onclick="closeM()">キャンセル</button></div>');
+async function saveSettings(){
+  const ins=parseInt(document.getElementById('sins').value)||20;
+  await sb.from('shift_settings').upsert({id:1,insurance_threshold_weekly:ins,admin_password:APW});
+  settings={...settings,insurance_threshold_weekly:ins};
+  toast('保存しました');
 }
-async function doCancel(){
-  const{entryId,slotId,ds}=window._cancelData;
-  const reason=document.getElementById('cr-reason').value;
-  const{error}=await sb.from('cancel_requests').insert({staff_id:me.id,slot_id:slotId,slot_entry_id:entryId,date:ds,reason,status:'pending'});
-  if(error){toast('申請に失敗しました','err');return;}
-  toast('取消申請を送りました。管理者の承認をお待ちください。');closeM();
+async function changeAdminPW(){
+  const cur=document.getElementById('pwcur').value,nw=document.getElementById('pwnew').value,cnf=document.getElementById('pwcnf').value;
+  if(cur!==APW){toast('現在のパスワードが違います','err');return;}
+  if(!nw||nw!==cnf){toast('パスワードが一致しません','err');return;}
+  await sb.from('shift_settings').upsert({id:1,admin_password:nw,insurance_threshold_weekly:settings.insurance_threshold_weekly||20});
+  APW=nw;['pwcur','pwnew','pwcnf'].forEach(id=>document.getElementById(id).value='');
+  toast('変更しました');
 }
 
-// ── 出勤修正モーダル ───────────────────────────────────────────────────────────
-function openTodayAtt(staffId,staffName,ds){
-  window._attEditData={staffId,staffName,ds};
-  const att=(AC[calY+'-'+calM]?.[ds]||{})[staffId];
-  const inVal=att?.clock_in?ft(att.clock_in):'';
-  const outVal=att?.clock_out?ft(att.clock_out):'';
-  const statVal=att?.status||'normal';
-  openM('<div class="mtit">'+staffName+' の出勤修正</div>'
-    +'<div style="background:#f8f6f2;border-radius:8px;padding:10px;margin-bottom:12px;font-size:12px;">'
-    +'<div>対象日: <strong>'+ds+'</strong></div>'
-    +(att?'<div style="margin-top:4px;color:#555;">現在の打刻: '+ft(att.clock_in)+'〜'+ft(att.clock_out)+'</div>':'<div style="margin-top:4px;color:#888;">打刻記録なし</div>')
-    +'</div>'
-    +'<div class="fcol">'
-    +'<div><span class="flabel">出勤時刻</span><input type="time" id="att-in" value="'+inVal+'"/></div>'
-    +'<div><span class="flabel">退勤時刻（空白=出勤中に戻す）</span><input type="time" id="att-out" value="'+outVal+'"/></div>'
-    +'<div><span class="flabel">ステータス</span><select id="att-st"><option value="normal"'+(statVal==='normal'?' selected':'')+'>通常</option><option value="late"'+(statVal==='late'?' selected':'')+'>遅刻</option><option value="early_leave"'+(statVal==='early_leave'?' selected':'')+'>早退</option><option value="absent"'+(statVal==='absent'?' selected':'')+'>休暇・欠勤</option></select></div>'
-    +'<div><span class="flabel">メモ</span><textarea id="att-note" placeholder="備考">'+(att?.admin_note||'')+'</textarea></div>'
-    +'</div>'
-    +'<p class="hint" style="margin-top:8px;">退勤時刻を空白にすると「出勤中」に戻ります（誤退勤の修正に使用）</p>'
-    +'<div class="mbtns"><button class="bsm bg" onclick="doTodayAtt()">保存</button><button class="bsm bgr" onclick="closeM()">キャンセル</button></div>');
-}
-async function doTodayAtt(){
-  const{staffId,staffName,ds}=window._attEditData;
-  const inT=document.getElementById('att-in').value;
-  const outT=document.getElementById('att-out').value;
-  const status=document.getElementById('att-st').value;
-  const note=document.getElementById('att-note').value;
-  if(!inT){toast('出勤時刻を入力してください','err');return;}
-  const clockIn=ds+'T'+inT+':00+09:00';
-  const clockOut=outT?ds+'T'+outT+':00+09:00':null;
-  const{error}=await sb.from('attendance').upsert({staff_id:staffId,date:ds,clock_in:clockIn,clock_out:clockOut,status,admin_note:note},{onConflict:'staff_id,date'});
-  if(error){toast('保存に失敗しました','err');return;}
-  toast(outT?'修正しました':'出勤中状態に戻しました');
-  closeM();await loadMonth(calY,calM);renderCal();
-}
-
-// ── 取消申請ページ ─────────────────────────────────────────────────────────────
-async function renderCancel(){
-  const wrap=document.getElementById('wcancel');
-  wrap.innerHTML='<div class="loading"><span class="spin"></span>読み込み中…</div>';
-  await loadMonth(calY,calM);
-  const{data}=await sb.from('cancel_requests').select('*,shift_staff(name),shift_slots(slot_name,date,start_time,end_time)').order('created_at',{ascending:false});
-  const showHistory=window._cancelShowHistory||false;
-  const allCancels=(data||[]).filter(c=>me.canManage||c.staff_id===me.id);
-  const cancels=showHistory?allCancels:allCancels.filter(c=>c.status==='pending');
-  let html='<div style="font-weight:800;font-size:17px;color:#2c3e50;margin-bottom:12px;">↩️ 取消出勤申請</div>';
-  html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">';
-  html+='<span style="font-size:13px;color:#888;">審査中のみ表示</span>';
-  html+='<button class="bsm bgr" onclick="window._cancelShowHistory=true;renderCancel()">過去の記録も見る</button></div>';
-  html+='<div class="card" style="background:#fef9e7;border:1px solid #f0c040;padding:12px;margin-bottom:12px;">';
-  html+='<div style="font-size:12px;color:#7d6608;line-height:1.7;">💡 シフトを取消したい場合は、カレンダーの該当シフトから「取消申請」ボタンで申請してください。</div></div>';
-  if(cancels.length===0)html+='<p class="empty">申請がありません</p>';
-  else cancels.forEach(c=>{window._ca={id:c.id,eid:c.slot_entry_id};
-    const sc2=c.status==='pending'?'bp':c.status==='approved'?'ba':'brej';
-    const sl=c.status==='pending'?'審査中':c.status==='approved'?'承認済':'却下';
-    const s=staff.find(x=>x.id===c.staff_id);
-    const sc=staffColorMap[c.staff_id]||'#2c3e50';
-    const slot=c.shift_slots;
-    html+='<div class="card" style="padding:12px;">';
-    html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">';
-    html+='<span class="av" style="background:'+sc+';color:#fff;">'+(s?.name?.[0]||'?')+'</span>';
-    html+='<div><div style="font-weight:700;color:#2c3e50;">'+(slot?.date||c.date)+' '+(slot?.slot_name||'')+'</div>';
-    html+='<div style="font-size:11px;color:#666;">'+(slot?.start_time?.slice(0,5)||'')+'〜'+(slot?.end_time?.slice(0,5)||'')+'</div>';
-    if(me.canManage)html+='<div style="font-size:11px;color:#888;">'+(c.shift_staff?.name||'')+'</div>';
-    html+='</div><span class="badge '+sc2+'" style="margin-left:auto;">'+sl+'</span></div>';
-    if(c.reason)html+='<div style="font-size:12px;color:#666;margin-bottom:8px;">理由: '+c.reason+'</div>';
-    if(me.canManage&&c.status==='pending'){
-      html+='<div style="display:flex;gap:7px;">';
-      html+='<button class="bsm bg" onclick="appCancel(window._ca.id,window._ca.eid)">承認（シフトから外す）</button>';
-      html+='<button class="bsm br" onclick="rejCancel(window._ca.id)">却下</button></div>';
-    }
-    html+='</div>';
-  });
-  wrap.innerHTML=html;
-}
-async function appCancel(cancelId,entryId){
-  if(entryId&&entryId!=='null'){await sb.from('slot_entries').delete().eq('id',entryId);}
-  await sb.from('cancel_requests').update({status:'approved',approved_by:'admin',approved_at:new Date().toISOString()}).eq('id',cancelId);
-  toast('承認しました。シフトから外しました。');await loadMonth(calY,calM);renderCancel();
-}
-async function rejCancel(id){
-  await sb.from('cancel_requests').update({status:'rejected'}).eq('id',id);
-  toast('却下しました');renderCancel();
-}
-
-// ── 全員PDF ──────────────────────────────────────────────────────────────────
-async function exportAllPDF(){
-  const fr=document.getElementById('pdff-all')?.value;
-  const to=document.getElementById('pdft-all')?.value;
-  if(!fr||!to){toast('期間を指定してください','err');return;}
-  const{jsPDF}=window.jspdf;const doc=new jsPDF();
-  doc.setFont('helvetica');
-  doc.setFontSize(14);doc.text('Cafe La Petite Haku - 出勤記録',14,18);
-  doc.setFontSize(10);doc.text('期間: '+fr+' 〜 '+to,14,28);
-  if(!staffId){toast('スタッフを選択してください','err');return;}
-  const{data}=await sb.from('attendance').select('*,shift_staff(name,wage,staff_type,monthly_salary)').eq('staff_id',staffId).gte('date',fr).lte('date',to).order('date');
-  let y=40;
-  const byStaff={};
-  (data||[]).forEach(r=>{
-    const sid=r.staff_id;
-    if(!byStaff[sid])byStaff[sid]={name:r.shift_staff?.name||'?',wage:r.shift_staff?.wage||0,isPart:r.shift_staff?.staff_type==='part',rows:[],totalH:0,totalW:0,late:0,early:0,absent:0};
-    const h=ch(r.clock_in,r.clock_out);
-    const w=byStaff[sid].isPart?cw(h,byStaff[sid].wage,r.clock_in,r.clock_out):0;
-    byStaff[sid].rows.push({...r,h,w});byStaff[sid].totalH+=h;byStaff[sid].totalW+=w;
-    if(r.status==='late')byStaff[sid].late++;
-    if(r.status==='early_leave')byStaff[sid].early++;
-    if(r.status==='absent')byStaff[sid].absent++;
-  });
-  Object.values(byStaff).forEach(sd=>{
-    if(y>250){doc.addPage();y=20;}
-    doc.setFontSize(12);doc.text(sd.name+(sd.isPart?' (バイト)':' (正社員)'),14,y);y+=6;
-    doc.setFontSize(9);
-    doc.text('合計: '+Math.round(sd.totalH*10)/10+'h'+(sd.isPart?' ¥'+sd.totalW.toLocaleString():''),14,y);y+=5;
-    if(!sd.isPart)doc.text('遅刻: '+sd.late+'回　早退: '+sd.early+'回　欠勤・休暇: '+sd.absent+'回',14,y);y+=5;
-    sd.rows.forEach(r=>{
-      if(y>275){doc.addPage();y=20;}
-      const stStr=r.status==='late'?'[遅刻]':r.status==='early_leave'?'[早退]':r.status==='absent'?'[休暇]':'';
-      doc.text(r.date.slice(5)+' '+ft(r.clock_in)+'〜'+ft(r.clock_out)+' '+r.h+'h'+(sd.isPart?' ¥'+r.w.toLocaleString():'')+' '+stStr,18,y);y+=5;
-    });
-    y+=4;doc.line(14,y,200,y);y+=8;
-  });
-  doc.save('haku-all-'+fr+'-'+to+'.pdf');toast('全員分PDFを出力しました');
-}
-
-// ── 初期化 ────────────────────────────────────────────────────────────────────
+// ── 初期化 ──
 document.getElementById('admpw').addEventListener('keydown',e=>{if(e.key==='Enter')doAdminLogin();});
 loadAll();
 </script>
+</body>
+</html>
 </body>
 </html>

@@ -180,6 +180,7 @@ textarea{resize:vertical;min-height:60px;}
           <option value="part">アルバイト</option>
           <option value="full">正社員</option>
           <option value="manager">店長</option>
+          <option value="owner">オーナー</option>
         </select>
         <div id="part-fields">
           <input type="number" id="reg-wage" placeholder="時給（円）"/>
@@ -300,17 +301,18 @@ async function loadMonth(y,m){
 function getMH(y,m){
   const am=AC[`${y}-${m}`]||{},sm=SC[`${y}-${m}`]||{},em=EC[`${y}-${m}`]||{},res={};
   staff.forEach(s=>res[s.id]=0);
-  // Actual attendance
-  Object.values(am).forEach(dm2=>Object.entries(dm2).forEach(([sid,a])=>{if(a.clock_in&&a.clock_out)res[sid]=(res[sid]||0)+ch(a.clock_in,a.clock_out);}));
-  // For part-time: also count scheduled slots they joined (if no attendance record)
+  // Actual attendance hours
+  Object.values(am).forEach(dm2=>Object.entries(dm2).forEach(([sid,a])=>{
+    if(a.clock_in&&a.clock_out)res[sid]=(res[sid]||0)+ch(a.clock_in,a.clock_out);
+  }));
+  // Scheduled slot hours (for days without attendance)
   Object.entries(sm).forEach(([date,slots])=>{
     slots.forEach(slot=>{
       const ents=em[slot.id]||[];
       ents.forEach(e=>{
         const hasAtt=(am[date]||{})[e.staff_id];
         if(!hasAtt){
-          const h=chft(slot.start_time,slot.end_time);
-          res[e.staff_id]=(res[e.staff_id]||0)+h;
+          res[e.staff_id]=(res[e.staff_id]||0)+chft(slot.start_time,slot.end_time);
         }
       });
     });
@@ -318,22 +320,37 @@ function getMH(y,m){
   return res;
 }
 // Get weekly hours for a staff member
-function getWeeklyH(staffId,y,m){
+function getWeeklyH(staffId,y,m,weekOffset){
+  // weekOffset: 0=今週, 1=来週, -1=先週 etc. default=wOff
+  const off=(weekOffset!==undefined?weekOffset:wOff);
   const sm=SC[`${y}-${m}`]||{},em=EC[`${y}-${m}`]||{},am=AC[`${y}-${m}`]||{};
-  // Get current week range
   const today=new Date();
-  const weekStart=new Date(today);weekStart.setDate(today.getDate()-today.getDay());
-  const weekEnd=new Date(weekStart);weekEnd.setDate(weekStart.getDate()+6);
+  const weekStart=new Date(today);
+  weekStart.setDate(today.getDate()-today.getDay()+off*7);
+  weekStart.setHours(0,0,0,0);
+  const weekEnd=new Date(weekStart);
+  weekEnd.setDate(weekStart.getDate()+6);
+  weekEnd.setHours(23,59,59,999);
   let total=0;
-  Object.entries(sm).forEach(([date,slots])=>{
-    const d=new Date(date);
-    if(d<weekStart||d>weekEnd)return;
-    slots.forEach(slot=>{
-      const ents=em[slot.id]||[];
-      if(!ents.find(e=>e.staff_id===staffId))return;
-      const hasAtt=(am[date]||{})[staffId];
-      if(hasAtt&&hasAtt.clock_in&&hasAtt.clock_out) total+=ch(hasAtt.clock_in,hasAtt.clock_out);
-      else total+=chft(slot.start_time,slot.end_time);
+  // Also check adjacent months if week spans month boundary
+  const keys=[`${y}-${m}`];
+  if(weekStart.getMonth()!==weekEnd.getMonth()){
+    const otherM=weekEnd.getMonth();
+    const otherY=weekEnd.getFullYear();
+    keys.push(`${otherY}-${otherM}`);
+  }
+  keys.forEach(k=>{
+    const sm2=SC[k]||{},em2=EC[k]||{},am2=AC[k]||{};
+    Object.entries(sm2).forEach(([date,slots])=>{
+      const d=new Date(date);
+      if(d<weekStart||d>weekEnd)return;
+      slots.forEach(slot=>{
+        const ents=em2[slot.id]||[];
+        if(!ents.find(e=>e.staff_id===staffId))return;
+        const hasAtt=(am2[date]||{})[staffId];
+        if(hasAtt&&hasAtt.clock_in&&hasAtt.clock_out) total+=ch(hasAtt.clock_in,hasAtt.clock_out);
+        else total+=chft(slot.start_time,slot.end_time);
+      });
     });
   });
   return Math.round(total*10)/10;
@@ -347,7 +364,7 @@ function renderSlogin(){
   html+='<select id="ssel" style="font-size:14px;padding:11px;">';
   html+='<option value="">スタッフを選択…</option>';
   staff.forEach(s=>{
-    const lbl=s.staff_type==='full'?' 【正社員】':'';
+    const lbl=s.role==='owner'?' 【オーナー】':s.role==='manager'?' 【店長】':s.staff_type==='full'?' 【正社員】':'';
     html+='<option value="'+s.id+'">'+s.name+lbl+'</option>';
   });
   html+='</select>';
@@ -364,10 +381,16 @@ function doStaffLogin(){
   if(!id){toast('スタッフを選択してください','err');return;}
   const s=staff.find(x=>x.id===id);
   if(!s||pw!==(s.password||'0000')){toast('パスワードが違います','err');return;}
-  const isM=s.staff_type==='full'||s.role==='manager';
-  me={id:s.id,name:s.name,role:isM?'manager':'staff',stype:s.staff_type||'part',srole:s.role||'part'};
-  document.getElementById('huser').textContent=s.name+(s.staff_type==='full'?' 【正社員】':'');
-  document.getElementById('nb-admin').style.display=isM?'block':'none';
+  const isManager=s.role==='manager';
+  const isOwner2=s.role==='owner';
+  const isAdmin2=s.staff_type==='full'||isManager||isOwner2;
+  let myRole='staff';
+  if(isOwner2)myRole='admin';
+  else if(isManager)myRole='manager';
+  me={id:s.id,name:s.name,role:myRole,stype:s.staff_type||'part',srole:s.role||'part'};
+  const roleDisp=isOwner2?' 【オーナー】':isManager?' 【店長】':s.staff_type==='full'?' 【正社員】':'';
+  document.getElementById('huser').textContent=s.name+roleDisp;
+  document.getElementById('nb-admin').style.display=isAdmin2?'block':'none';
   showP('cal');renderCal();
 }
 function doAdminLogin(){
@@ -402,8 +425,8 @@ async function doRegister(){
   const maxH=!isPart?(parseInt(document.getElementById('reg-max').value)||settings.max_hours_per_month):0;
   if(!name){toast('名前を入力してください','err');return;}
   if(staff.find(s=>s.name===name)){toast('同じ名前が既にあります','err');return;}
-  const roleV=stype==='manager'?'manager':stype==='full'?'full':'part';
-  const stypeV=stype==='manager'?'full':stype;
+  const roleV=stype==='owner'?'owner':stype==='manager'?'manager':stype==='full'?'full':'part';
+  const stypeV=(stype==='manager'||stype==='owner')?'full':stype;
   const{data,error}=await sb.from('shift_staff').insert({name,staff_type:stypeV,role:roleV,wage,max_hours:maxH,max_hours_per_week:maxWeek,monthly_salary:salary}).select().single();
   if(error){toast('登録に失敗しました','err');return;}
   staff.push(data);renderSlogin();
@@ -434,14 +457,15 @@ async function renderCal(){
     const isPart=myS?.staff_type==='part';
     const myH=Math.round((mh[me.id]||0)*10)/10;
     const wage=myS?.wage||settings.wage_per_hour;
-    const wkH=isPart?getWeeklyH(me.id,calY,calM):0;
+    const wkH=isPart?getWeeklyH(me.id,calY,calM,wOff):0;
     const maxWk=myS?.max_hours_per_week||20;
     const maxMon=myS?.max_hours||settings.max_hours_per_month;
     const pct=isPart?Math.min(wkH/maxWk*100,100):0;
     const fc=pct>90?'#c0392b':pct>70?'#e67e22':'#2c5f2e';
     html+=`<div class="card">`;
     if(isPart){
-      html+='<div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:12px;color:#666;">今週の勤務時間</span><span style="font-size:13px;font-weight:600;color:#2c3e50;">'+wkH+'h / '+maxWk+'h</span></div>';
+      const wkLabel=wOff===0?'今週':wOff===1?'来週':wOff===-1?'先週':(wOff>0?wOff+'週後':Math.abs(wOff)+'週前');
+    html+='<div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:12px;color:#666;">'+wkLabel+'の勤務時間</span><span style="font-size:13px;font-weight:600;color:#2c3e50;">'+wkH+'h / '+maxWk+'h</span></div>';
       html+='<div class="prog"><div class="progf" style="width:'+pct+'%;background:'+fc+';"></div></div>';
       html+='<div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:12px;color:#666;">今月の合計</span><span style="font-size:13px;font-weight:600;color:#2c3e50;">'+myH+'h</span></div>';
       html+='<div style="display:flex;justify-content:space-between;"><span style="font-size:12px;color:#666;">推定給与</span><span style="font-size:13px;font-weight:600;color:#2c3e50;">¥'+(myH*wage).toLocaleString()+'</span></div>';
@@ -509,12 +533,12 @@ async function renderCal(){
 
   // Admin/manager summary
   if(me.role==='admin'||me.role==='manager'){
-    const isOwner=me.role==='admin';
+    const isOwner=me.role==='admin'||me.srole==='owner';
     html+=`<div class="card"><div class="stitle">今月のスタッフ時間</div>`;
     staff.forEach(s=>{
       const h=Math.round((mh[s.id]||0)*10)/10;
       const isPart=s.staff_type==='part';
-      const wkH=isPart?getWeeklyH(s.id,calY,calM):0;
+      const wkH=isPart?getWeeklyH(s.id,calY,calM,wOff):0;
       const maxWk=s.max_hours_per_week||20;
       const maxMon=s.max_hours||settings.max_hours_per_month;
       const pct=isPart?Math.min(wkH/maxWk*100,100):Math.min(h/maxMon*100,100);
@@ -924,7 +948,7 @@ async function renderAtt(){
   wrap.innerHTML='<div class="loading"><span class="spin"></span>読み込み中…</div>';
   await loadMonth(calY,calM);
   const am=AC[`${calY}-${calM}`]||{};
-  const isOwner=me.role==='admin';
+  const isOwner=me.role==='admin'||me.srole==='owner';
   const dispStaff=isOwner||me.role==='manager'?staff:staff.filter(s=>s.id===me.id);
   let html=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
     <span style="font-weight:800;font-size:17px;color:#2c3e50;">${calY}年${calM+1}月 出勤記録</span>
@@ -1062,7 +1086,7 @@ async function renderAdmin(){
   const wrap=document.getElementById('wadmin');
   await loadMonth(calY,calM);
   const mh=getMH(calY,calM);
-  const isOwner=me.role==='admin';
+  const isOwner=me.role==='admin'||me.srole==='owner';
   let html='';
 
   if(isOwner){
@@ -1077,12 +1101,12 @@ async function renderAdmin(){
     html+='</div>';
     html+='<button class="btn" onclick="saveSettings()">設定を保存</button></div>';
 
-    html+='<div class="card"><div class="stitle">🔑 管理者パスワード変更</div>';
+    if(me.role==='admin'){html+='<div class="card"><div class="stitle">🔑 管理者パスワード変更</div>';
     html+='<div class="fcol">';
     html+='<input type="password" id="pwcur" placeholder="現在のパスワード"/>';
     html+='<input type="password" id="pwnew" placeholder="新しいパスワード"/>';
     html+='<input type="password" id="pwcnf" placeholder="確認"/>';
-    html+='<button class="btn" onclick="changeAdminPW()">変更する</button></div></div>';
+    html+='<button class="btn" onclick="changeAdminPW()">変更する</button></div></div>';}
 
     html+='<div class="card"><div class="stitle">＋ スタッフ追加</div>';
     html+='<div class="fcol">';
@@ -1108,12 +1132,12 @@ async function renderAdmin(){
     staff.forEach(s=>{
       const h=Math.round((mh[s.id]||0)*10)/10;
       const isPart=s.staff_type==='part';
-      const wkH=isPart?getWeeklyH(s.id,calY,calM):0;
+      const wkH=isPart?getWeeklyH(s.id,calY,calM,wOff):0;
       const maxWk=s.max_hours_per_week||20;
       const maxMon=s.max_hours||settings.max_hours_per_month;
       const pct=isPart?Math.min(wkH/maxWk*100,100):Math.min(h/maxMon*100,100);
       const fc=pct>90?'#c0392b':'#2c5f2e';
-      const roleLabel=isPart?'バイト':'正社員';
+      const roleLabel=s.role==='owner'?'オーナー':s.role==='manager'?'店長':isPart?'バイト':'正社員';
       const avClass=isPart?'avp':'avf';
       let info1='',info2='';
       if(isOwner){
@@ -1174,8 +1198,8 @@ async function adminAddStaff(){
   const name=document.getElementById('aname').value.trim(),stype=document.getElementById('atype').value;
   if(!name){toast('名前を入力してください','err');return;}
   if(staff.find(s=>s.name===name)){toast('同じ名前が既にあります','err');return;}
-  const roleV=stype==='manager'?'manager':stype==='full'?'full':'part';
-  const stypeV=stype==='manager'?'full':stype;
+  const roleV=stype==='owner'?'owner':stype==='manager'?'manager':stype==='full'?'full':'part';
+  const stypeV=(stype==='manager'||stype==='owner')?'full':stype;
   const isPart=stype==='part';
   const wage=isPart?parseInt(document.getElementById('awage').value)||settings.wage_per_hour:0;
   const maxWeek=isPart?parseInt(document.getElementById('awkh').value)||20:0;
@@ -1215,8 +1239,8 @@ function toggleEditFields(val){
 async function doEditStaff(id){
   const name=document.getElementById('esn').value.trim(),stype=document.getElementById('est').value;
   if(!name){toast('名前を入力してください','err');return;}
-  const roleV=stype==='manager'?'manager':stype==='full'?'full':'part';
-  const stypeV=stype==='manager'?'full':stype;
+  const roleV=stype==='owner'?'owner':stype==='manager'?'manager':stype==='full'?'full':'part';
+  const stypeV=(stype==='manager'||stype==='owner')?'full':stype;
   const isPart=stype==='part';
   const wage=isPart?parseInt(document.getElementById('esw').value)||0:0;
   const maxWeek=isPart?parseInt(document.getElementById('eswk').value)||20:0;

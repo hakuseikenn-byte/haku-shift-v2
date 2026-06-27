@@ -278,7 +278,7 @@ async function loadMonth(y,m){
   const k=y+'-'+m;
   const[sr,er,ar]=await Promise.all([
     sb.from('shift_slots').select('*').gte('date',from).lte('date',to).order('start_time'),
-    sb.from('slot_entries').select('*,shift_staff(id,name,staff_type)').gte('created_at',from+'T00:00:00').lte('created_at',to+'T23:59:59'),
+    sb.from('slot_entries').select('*,shift_staff(id,name,staff_type)'),
     sb.from('attendance').select('*').gte('date',from).lte('date',to)
   ]);
   // SC: {date: [slots]}
@@ -290,7 +290,7 @@ async function loadMonth(y,m){
   // AC: {date: {staff_id: attendance}}
   const am={};(ar.data||[]).forEach(a=>{if(!am[a.date])am[a.date]={};am[a.date][a.staff_id]=a;});
   AC[k]=am;
-  if(me&&me.role==='staff'){todayAtt=(AC[k][fd(new Date())]||{})[me.id]||null;}
+  if(me&&me.id!=='admin'){todayAtt=(AC[k][fd(new Date())]||{})[me.id]||null;}
 }
 function getMonthlyH(y,m){
   const k=y+'-'+m,am=AC[k]||{},sm=SC[k]||{},em=EC[k]||{},res={};

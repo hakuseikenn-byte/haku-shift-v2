@@ -266,8 +266,23 @@ function cw(h,wage,i,o){if(!i||!o||h<=0)return h*wage;let t=0,c=new Date(i);cons
 function dm(la1,lo1,la2,lo2){const R=6371000,dLa=(la2-la1)*Math.PI/180,dLo=(lo2-lo1)*Math.PI/180;const a=Math.sin(dLa/2)**2+Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(dLo/2)**2;return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));}
 
 // DATA
-async function loadAll(){await Promise.all([loadStaff(),loadSettings()]);}
-async function loadStaff(){const{data}=await sb.from('shift_staff').select('*').order('created_at');staff=data||[];renderSlogin();}
+async function loadAll(){
+  try{
+    await Promise.all([loadStaff(),loadSettings()]);
+  }catch(e){
+    document.getElementById('slogin').innerHTML='<p style="color:red;font-size:12px;">エラー: '+e.message+'</p>';
+    console.error('loadAll error:',e);
+  }
+}
+async function loadStaff(){
+  try{
+    const{data,error}=await sb.from('shift_staff').select('*').order('created_at');
+    if(error)throw new Error('shift_staff: '+error.message);
+    staff=data||[];renderSlogin();
+  }catch(e){
+    document.getElementById('slogin').innerHTML='<p style="color:red;font-size:11px;">スタッフ読込エラー: '+e.message+'</p>';
+  }
+}
 async function loadSettings(){const{data}=await sb.from('shift_settings').select('*').eq('id',1).single();if(data){settings=data;if(data.admin_password)APW=data.admin_password;}}
 async function loadMonth(y,m){
   const fr=`${y}-${String(m+1).padStart(2,'0')}-01`,to=`${y}-${String(m+1).padStart(2,'0')}-${new Date(y,m+1,0).getDate()}`;

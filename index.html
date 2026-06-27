@@ -217,7 +217,7 @@ textarea{resize:vertical;min-height:60px;}
 const SBU='https://hqddrswyqmammuwwrvna.supabase.co';
 const SBK='sb_publishable_766-Q62xxyGNiARJhTg13A_lb7YxuEQ';
 const sb=supabase.createClient(SBU,SBK);
-const SLAT=34.719172,SLNG=135.477891,SR=200;
+const SLAT=34.6994118,SLNG=135.510767,SR=200;
 const DJP=['日','月','火','水','木','金','土'];
 const LT={paid:'有給休暇',sick:'病欠',mourning:'忌引き',unpaid:'無給休暇'};
 
@@ -283,10 +283,45 @@ async function loadMonth(y,m){
   if(me&&me.role!=='admin'&&me.role!=='manager')todayAtt=(AC[k][fd(new Date())]||{})[me.id]||null;
 }
 function getMH(y,m){
-  const am=AC[`${y}-${m}`]||{},res={};
+  const am=AC[`${y}-${m}`]||{},sm=SC[`${y}-${m}`]||{},em=EC[`${y}-${m}`]||{},res={};
   staff.forEach(s=>res[s.id]=0);
+  // Actual attendance
   Object.values(am).forEach(dm2=>Object.entries(dm2).forEach(([sid,a])=>{if(a.clock_in&&a.clock_out)res[sid]=(res[sid]||0)+ch(a.clock_in,a.clock_out);}));
+  // For part-time: also count scheduled slots they joined (if no attendance record)
+  Object.entries(sm).forEach(([date,slots])=>{
+    slots.forEach(slot=>{
+      const ents=em[slot.id]||[];
+      ents.forEach(e=>{
+        const hasAtt=(am[date]||{})[e.staff_id];
+        if(!hasAtt){
+          const h=chft(slot.start_time,slot.end_time);
+          res[e.staff_id]=(res[e.staff_id]||0)+h;
+        }
+      });
+    });
+  });
   return res;
+}
+// Get weekly hours for a staff member
+function getWeeklyH(staffId,y,m){
+  const sm=SC[`${y}-${m}`]||{},em=EC[`${y}-${m}`]||{},am=AC[`${y}-${m}`]||{};
+  // Get current week range
+  const today=new Date();
+  const weekStart=new Date(today);weekStart.setDate(today.getDate()-today.getDay());
+  const weekEnd=new Date(weekStart);weekEnd.setDate(weekStart.getDate()+6);
+  let total=0;
+  Object.entries(sm).forEach(([date,slots])=>{
+    const d=new Date(date);
+    if(d<weekStart||d>weekEnd)return;
+    slots.forEach(slot=>{
+      const ents=em[slot.id]||[];
+      if(!ents.find(e=>e.staff_id===staffId))return;
+      const hasAtt=(am[date]||{})[staffId];
+      if(hasAtt&&hasAtt.clock_in&&hasAtt.clock_out) total+=ch(hasAtt.clock_in,hasAtt.clock_out);
+      else total+=chft(slot.start_time,slot.end_time);
+    });
+  });
+  return Math.round(total*10)/10;
 }
 
 // AUTH
@@ -374,16 +409,27 @@ async function renderCal(){
       html+=`<div class="clkbar"><div style="font-size:12px;color:#555;"><strong>${ft(a.clock_in)}〜${ft(a.clock_out)}</strong> 退勤済</div><span style="font-size:11px;color:#aaa;">お疲れ様！</span></div>`;
     }
     const myS=staff.find(s=>s.id===me.id);
-    const myH=Math.round((mh[me.id]||0)*10)/10,max=myS?.max_hours||settings.max_hours_per_month,wage=myS?.wage||settings.wage_per_hour;
-    const pct=Math.min(myH/max*100,100),fc=pct>90?'#c0392b':pct>70?'#e67e22':'#2c5f2e';
-    const wkH=myH/(new Date(calY,calM+1,0).getDate()/7);
-    html+=`<div class="card">
-      <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:12px;color:#666;">今月の勤務時間</span><span style="font-size:13px;font-weight:600;color:#2c3e50;">${myH}h / ${max}h</span></div>
-      <div class="prog"><div class="progf" style="width:${pct}%;background:${fc};"></div></div>
-      <div style="display:flex;justify-content:space-between;"><span style="font-size:12px;color:#666;">推定給与</span><span style="font-size:13px;font-weight:600;color:#2c3e50;">¥${(myH*wage).toLocaleString()}</span></div>
-      ${wkH>=settings.insurance_threshold_weekly*0.85?`<div class="warn">⚠ 週${wkH.toFixed(1)}h — 雇用保険加入基準に近づいています</div>`:''}
-      <div style="text-align:right;margin-top:6px;"><button onclick="openSelfPW()" style="background:none;border:none;color:#aaa;font-size:10px;cursor:pointer;text-decoration:underline;">🔑 PW変更</button></div>
-    </div>`;
+    const isPart=myS?.staff_type==='part';
+    const myH=Math.round((mh[me.id]||0)*10)/10;
+    const wage=myS?.wage||settings.wage_per_hour;
+    const wkH=isPart?getWeeklyH(me.id,calY,calM):0;
+    const maxWk=myS?.max_hours_per_week||20;
+    const maxMon=myS?.max_hours||settings.max_hours_per_month;
+    const pct=isPart?Math.min(wkH/maxWk*100,100):0;
+    const fc=pct>90?'#c0392b':pct>70?'#e67e22':'#2c5f2e';
+    html+=`<div class="card">`;
+    if(isPart){
+      html+='<div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:12px;color:#666;">今週の勤務時間</span><span style="font-size:13px;font-weight:600;color:#2c3e50;">'+wkH+'h / '+maxWk+'h</span></div>';
+      html+='<div class="prog"><div class="progf" style="width:'+pct+'%;background:'+fc+';"></div></div>';
+      html+='<div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:12px;color:#666;">今月の合計</span><span style="font-size:13px;font-weight:600;color:#2c3e50;">'+myH+'h</span></div>';
+      html+='<div style="display:flex;justify-content:space-between;"><span style="font-size:12px;color:#666;">推定給与</span><span style="font-size:13px;font-weight:600;color:#2c3e50;">¥'+(myH*wage).toLocaleString()+'</span></div>';
+      if(wkH>=settings.insurance_threshold_weekly*0.85)html+='<div class="warn">⚠ 今週'+wkH+'h — 雇用保険加入基準（週'+settings.insurance_threshold_weekly+'h）に近づいています</div>';
+    } else {
+      const sal=myS?.monthly_salary||0;
+      html+='<div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:12px;color:#666;">今月の勤務時間</span><span style="font-size:13px;font-weight:600;color:#2c3e50;">'+myH+'h / '+maxMon+'h</span></div>';
+      html+='<div style="display:flex;justify-content:space-between;"><span style="font-size:12px;color:#666;">月給</span><span style="font-size:13px;font-weight:600;color:#2c3e50;">¥'+sal.toLocaleString()+'</span></div>';
+    }
+    html+='<div style="text-align:right;margin-top:6px;"><button onclick="openSelfPW()" style="background:none;border:none;color:#aaa;font-size:10px;cursor:pointer;text-decoration:underline;">🔑 PW変更</button></div></div>';
   }
 
   // View tabs
@@ -444,17 +490,29 @@ async function renderCal(){
     const isOwner=me.role==='admin';
     html+=`<div class="card"><div class="stitle">今月のスタッフ時間</div>`;
     staff.forEach(s=>{
-      const h=Math.round((mh[s.id]||0)*10)/10,max=s.max_hours||settings.max_hours_per_month;
-      const pct=Math.min(h/max*100,100);
-      html+=`<div style="margin-bottom:8px;">
-        <div style="display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;margin-bottom:2px;">
-          <span class="av ${s.staff_type==='full'?'avf':'avp'}">${s.name[0]}</span>
-          ${s.name}<span style="font-size:10px;color:#888;">${s.role==='manager'?'店長':s.staff_type==='full'?'正社員':'バイト'}</span>
-          <span style="margin-left:auto;font-size:11px;color:#555;">${h}h${isOwner?` / ¥${(h*(s.wage||settings.wage_per_hour)).toLocaleString()}`:''}
-          </span>
-        </div>
-        <div class="prog"><div class="progf" style="width:${pct}%;background:${pct>90?'#c0392b':'#2c5f2e'};"></div></div>
-      </div>`;
+      const h=Math.round((mh[s.id]||0)*10)/10;
+      const isPart=s.staff_type==='part';
+      const wkH=isPart?getWeeklyH(s.id,calY,calM):0;
+      const maxWk=s.max_hours_per_week||20;
+      const maxMon=s.max_hours||settings.max_hours_per_month;
+      const pct=isPart?Math.min(wkH/maxWk*100,100):Math.min(h/maxMon*100,100);
+      const fc=pct>90?'#c0392b':'#2c5f2e';
+      const roleLabel=s.role==='manager'?'店長':s.staff_type==='full'?'正社員':'バイト';
+      const avClass=s.staff_type==='full'?'avf':'avp';
+      let timeStr=isPart?('今週'+wkH+'h / 今月'+h+'h'):('今月'+h+'h');
+      let salStr='';
+      if(isOwner&&isPart) salStr=' ¥'+(h*(s.wage||settings.wage_per_hour)).toLocaleString();
+      else if(isOwner&&!isPart) salStr=' 月給¥'+(s.monthly_salary||0).toLocaleString();
+      html+='<div style="margin-bottom:8px;">';
+      html+='<div style="display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;margin-bottom:2px;">';
+      html+='<span class="av '+avClass+'">'+s.name[0]+'</span>';
+      html+=s.name+'<span style="font-size:10px;color:#888;margin-left:2px;">'+roleLabel+'</span>';
+      html+='<span style="margin-left:auto;font-size:11px;color:#555;">'+timeStr+salStr+'</span>';
+      html+='</div>';
+      if(isPart){
+        html+='<div class="prog"><div class="progf" style="width:'+pct+'%;background:'+fc+';"></div></div>';
+      }
+      html+='</div>';
     });
     html+=`</div>`;
   }
@@ -941,26 +999,34 @@ async function renderAdmin(){
   html+=`<div class="card"><div class="stitle">👥 スタッフ一覧</div>
     ${staff.length===0?'<p class="empty">スタッフがいません</p>':staff.map(s=>{
       const h=Math.round((mh[s.id]||0)*10)/10;
-      return`<div style="background:#f8f6f2;border-radius:10px;padding:10px 12px;margin-bottom:8px;">
-        <div style="display:flex;align-items:center;gap:6px;font-weight:600;font-size:13px;margin-bottom:3px;">
-          <span class="av ${s.staff_type==='full'?'avf':'avp'}">${s.name[0]}</span>
-          ${s.name}<span style="font-size:10px;color:#888;">${s.role==='manager'?'店長':s.staff_type==='full'?'正社員':'バイト'}</span>
-        </div>
-        ${isOwner?(s.staff_type==='part'?
-          `<div style="font-size:11px;color:#777;margin-bottom:2px;">時給¥${s.wage}　週最大${s.max_hours_per_week||20}h　PW:${s.password||'0000'}</div>
-          <div style="font-size:11px;color:#555;margin-bottom:7px;">今月:${h}h　¥${(h*s.wage).toLocaleString()}</div>`
-          :`<div style="font-size:11px;color:#777;margin-bottom:2px;">月給¥${(s.monthly_salary||0).toLocaleString()}　月最大${s.max_hours}h　PW:${s.password||'0000'}</div>
-          <div style="font-size:11px;color:#555;margin-bottom:7px;">今月:${h}h</div>`)
-        :`<div style="font-size:11px;color:#777;margin-bottom:7px;">${s.staff_type==='part'?`週最大${s.max_hours_per_week||20}h`:'月給制'} 今月:${h}h</div>`}
-        <div style="display:flex;gap:6px;flex-wrap:wrap;">
-          ${isOwner?`<button class="bsm bd" onclick="openEditStaff('${s.id}')">編集</button>
-          <button class="bsm bgold" onclick="openSetPW('${s.id}','${s.name}')">PW設定</button>
-          <button class="bsm br" onclick="delStaff('${s.id}','${s.name}')">削除</button>`
-          :`<span style="font-size:11px;color:#aaa;">（編集はオーナーのみ）</span>`}
-        </div>
-      </div>`;
-    }).join('')}
-  </div>`;
+      const isPart=s.staff_type==='part';
+      const roleLabel=s.role==='manager'?'店長':isPart?'バイト':'正社員';
+      const avClass=isPart?'avp':'avf';
+      let info1='',info2='';
+      if(isOwner){
+        if(isPart){
+          info1='時給¥'+s.wage+'　週最大'+(s.max_hours_per_week||20)+'h　PW:'+(s.password||'0000');
+          info2='今月:'+h+'h　¥'+(h*s.wage).toLocaleString();
+        } else {
+          info1='月給¥'+(s.monthly_salary||0).toLocaleString()+'　月最大'+(s.max_hours||0)+'h　PW:'+(s.password||'0000');
+          info2='今月:'+h+'h';
+        }
+      } else {
+        info1=isPart?('週最大'+(s.max_hours_per_week||20)+'h'):'月給制';
+        info2='今月:'+h+'h';
+      }
+      const btns=isOwner
+        ?'<button class="bsm bd" onclick="openEditStaff(''+s.id+'')">編集</button> <button class="bsm bgold" onclick="openSetPW(''+s.id+'',''+s.name+'')">PW設定</button> <button class="bsm br" onclick="delStaff(''+s.id+'',''+s.name+'')">削除</button>'
+        :'<span style="font-size:11px;color:#aaa;">（編集はオーナーのみ）</span>';
+      return '<div style="background:#f8f6f2;border-radius:10px;padding:10px 12px;margin-bottom:8px;">'
+        +'<div style="display:flex;align-items:center;gap:6px;font-weight:600;font-size:13px;margin-bottom:3px;">'
+        +'<span class="av '+avClass+'">'+s.name[0]+'</span>'+s.name
+        +'<span style="font-size:10px;color:#888;">'+roleLabel+'</span></div>'
+        +'<div style="font-size:11px;color:#777;margin-bottom:2px;">'+info1+'</div>'
+        +'<div style="font-size:11px;color:#555;margin-bottom:7px;">'+info2+'</div>'
+        +'<div style="display:flex;gap:6px;flex-wrap:wrap;">'+btns+'</div>'
+        +'</div>';
+    }).join('')}  </div>`;
   wrap.innerHTML=html;
 }
 async function saveSettings(){

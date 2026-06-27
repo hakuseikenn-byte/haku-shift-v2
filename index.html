@@ -283,7 +283,7 @@ async function loadStaff(){
     document.getElementById('slogin').innerHTML='<p style="color:red;font-size:11px;">スタッフ読込エラー: '+e.message+'</p>';
   }
 }
-async function loadSettings(){const{data}=await sb.from('shift_settings').select('*').eq('id',1).single();if(data){settings=data;if(data.admin_password)APW=data.admin_password;}}
+async function loadSettings(){const{data}=await sb.from('shift_settings').select('*').eq('id',1).single();if(data){settings=data;if(data.admin_password)APW=data.admin_password;GPS_REQUIRED=data.gps_required||false;}}
 async function loadMonth(y,m){
   const fr=`${y}-${String(m+1).padStart(2,'0')}-01`,to=`${y}-${String(m+1).padStart(2,'0')}-${new Date(y,m+1,0).getDate()}`;
   const k=`${y}-${m}`;
@@ -347,7 +347,7 @@ function renderSlogin(){
   html+='<select id="ssel" style="font-size:14px;padding:11px;">';
   html+='<option value="">スタッフを選択…</option>';
   staff.forEach(s=>{
-    const lbl=s.role==='manager'?' 【店長】':s.staff_type==='full'?' 【正社員】':'';
+    const lbl=s.staff_type==='full'?' 【正社員】':'';
     html+='<option value="'+s.id+'">'+s.name+lbl+'</option>';
   });
   html+='</select>';
@@ -364,9 +364,9 @@ function doStaffLogin(){
   if(!id){toast('スタッフを選択してください','err');return;}
   const s=staff.find(x=>x.id===id);
   if(!s||pw!==(s.password||'0000')){toast('パスワードが違います','err');return;}
-  const isM=s.role==='manager';
+  const isM=s.staff_type==='full'||s.role==='manager';
   me={id:s.id,name:s.name,role:isM?'manager':'staff',stype:s.staff_type||'part',srole:s.role||'part'};
-  document.getElementById('huser').textContent=s.name+(s.role==='manager'?' 【店長】':s.staff_type==='full'?' 【正社員】':'');
+  document.getElementById('huser').textContent=s.name+(s.staff_type==='full'?' 【正社員】':'');
   document.getElementById('nb-admin').style.display=isM?'block':'none';
   showP('cal');renderCal();
 }
@@ -822,6 +822,9 @@ async function clockIn(){
     if(error){toast('打刻に失敗しました','err');return;}
     todayAtt=data;toast('出勤打刻しました 🟢');renderCal();
   };
+  if(!GPS_REQUIRED){
+    await doIn(null,null);return;
+  }
   try{
     const pos=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{timeout:8000}));
     if(dm(pos.coords.latitude,pos.coords.longitude,SLAT,SLNG)>SR){toast('店舗から離れすぎています','err');return;}
@@ -991,7 +994,11 @@ async function renderAdmin(){
     html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;"><span style="font-size:13px;color:#555;">月最大時間</span><input type="number" style="width:110px;" id="smax" value="'+settings.max_hours_per_month+'"/></div>';
     html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;"><span style="font-size:13px;color:#555;">雇用保険警告（週h）</span><input type="number" style="width:110px;" id="sins" value="'+settings.insurance_threshold_weekly+'"/></div>';
     html+='<p style="font-size:11px;color:#888;">※法定：週20h以上で雇用保険加入義務</p>';
-    html+='<button class="btn" style="margin-top:10px;" onclick="saveSettings()">設定を保存</button></div>';
+    html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;margin-bottom:10px;">';
+    html+='<span style="font-size:13px;color:#555;">GPS打刻 '+(GPS_REQUIRED?'🟢 ON':'⚫ OFF')+'</span>';
+    html+='<button class="btn-sm '+(GPS_REQUIRED?'br':'bg')+'" onclick="toggleGPS()">'+(GPS_REQUIRED?'OFFにする':'ONにする')+'</button>';
+    html+='</div>';
+    html+='<button class="btn" onclick="saveSettings()">設定を保存</button></div>';
 
     html+='<div class="card"><div class="stitle">🔑 管理者パスワード変更</div>';
     html+='<div class="fcol">';
@@ -1029,7 +1036,7 @@ async function renderAdmin(){
       const maxMon=s.max_hours||settings.max_hours_per_month;
       const pct=isPart?Math.min(wkH/maxWk*100,100):Math.min(h/maxMon*100,100);
       const fc=pct>90?'#c0392b':'#2c5f2e';
-      const roleLabel=s.role==='manager'?'店長':isPart?'バイト':'正社員';
+      const roleLabel=isPart?'バイト':'正社員';
       const avClass=isPart?'avp':'avf';
       let info1='',info2='';
       if(isOwner){
@@ -1068,6 +1075,12 @@ async function renderAdmin(){
   wrap.innerHTML=html;
 }
 
+async function toggleGPS(){
+  GPS_REQUIRED=!GPS_REQUIRED;
+  await sb.from('shift_settings').update({gps_required:GPS_REQUIRED}).eq('id',1);
+  toast('GPS打刻を'+(GPS_REQUIRED?'ON':'OFF')+'にしました');
+  renderAdmin();
+}
 async function saveSettings(){
   const wage=parseInt(document.getElementById('swage').value)||1100,max=parseInt(document.getElementById('smax').value)||80,ins=parseInt(document.getElementById('sins').value)||20;
   await sb.from('shift_settings').upsert({id:1,wage_per_hour:wage,max_hours_per_month:max,insurance_threshold_weekly:ins,admin_password:APW});

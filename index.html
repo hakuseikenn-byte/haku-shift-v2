@@ -126,7 +126,6 @@ textarea{resize:vertical;min-height:60px;}
     <button class="hbtn on" id="nb-cal" onclick="nav('cal')">📅</button>
     <button class="hbtn" id="nb-att" onclick="nav('att')">🕐</button>
     <button class="hbtn" id="nb-leave" onclick="nav('leave')">🌿</button>
-    <button class="hbtn" id="nb-swap" onclick="nav('swap')">🔄</button>
     <button class="hbtn" id="nb-admin" style="display:none;" onclick="nav('admin')">⚙</button>
     <button class="hout" onclick="logout()">退出</button>
   </div>
@@ -179,7 +178,6 @@ textarea{resize:vertical;min-height:60px;}
 <div id="p-cal" class="page"><div class="wrap" id="wcal"></div></div>
 <div id="p-att" class="page"><div class="wrap" id="watt"></div></div>
 <div id="p-leave" class="page"><div class="wrap" id="wleave"></div></div>
-<div id="p-swap" class="page"><div class="wrap" id="wswap"></div></div>
 <div id="p-admin" class="page"><div class="wrap" id="wadmin"></div></div>
 
 <div id="mbg" class="mbg" onclick="if(event.target===this)closeM()">
@@ -194,6 +192,9 @@ const SLAT=34.6994118,SLNG=135.510767,SR=200;
 const DJP=['日','月','火','水','木','金','土'];
 const LT={paid:'有給休暇',sick:'病欠',mourning:'忌引き',unpaid:'無給休暇'};
 
+const STAFF_COLORS=['#2c5f2e','#2471a3','#7d3c98','#c0392b','#c87941','#1a5276',
+  '#117a65','#784212','#6e2f8f','#0e6655','#7b241c','#1f618d','#145a32',
+  '#6c3483','#1a252f','#0b5345','#512e5f','#4a235a','#1b4332','#154360'];
 let APW='haku2026',GPS_GLOBAL=false;
 let me=null;
 let staff=[],settings={wage_per_hour:1100,max_hours_per_month:80,insurance_threshold_weekly:20};
@@ -259,6 +260,10 @@ function distM(la1,lo1,la2,lo2){
 }
 
 // ── Data ───────────────────────────────────────────────────────────────────────
+function buildStaffColorMap(){
+  staffColorMap={};
+  staff.forEach((s,i)=>staffColorMap[s.id]=STAFF_COLORS[i%STAFF_COLORS.length]);
+}
 async function loadAll(){
   await Promise.all([loadStaff(),loadSettings()]);
 }
@@ -598,75 +603,108 @@ function buildDayPanel(day,sm,em,am,mh){
 
 // ── Week view ──────────────────────────────────────────────────────────────────
 function buildWeek(sm,em,am){
-  const today=new Date(),sw=new Date(today);
-  sw.setDate(today.getDate()-today.getDay()+wOff*7);
+  const today=new Date();
+  const _dow=today.getDay();
+  const sw=new Date(today);sw.setDate(today.getDate()-((_dow+6)%7)+wOff*7);
   const days=Array.from({length:7},(_,i)=>{const d=new Date(sw);d.setDate(d.getDate()+i);return d;});
   const ts=fd(today);
-  const START_H=6,END_H=23;
-
-  // Get all unique staff who have slots this week
-  const weekStaff=[];
-  const dispStaff=me.canManage?staff:staff.filter(s=>s.id===me.id);
+  const WKDAYS=['月','火','水','木','金','土','日'];
+  const START_H=6,END_H=23,HOUR_H=38;
 
   let html='<div class="mnav">';
   html+='<button class="arr" onclick="chW(-1)">‹</button>';
-  html+='<span class="mtitle" style="font-size:13px;">'+fd(days[0]).slice(5)+' 〜 '+fd(days[6]).slice(5)+'</span>';
+  const ws=fd(days[0]),we=fd(days[6]);
+  html+='<span style="font-size:13px;font-weight:700;color:#2c3e50;">'+ws.slice(5)+' 〜 '+we.slice(5)+'</span>';
   html+='<div style="display:flex;gap:4px;"><button class="tbtn2" onclick="wOff=0;renderCal()">今週</button><button class="arr" onclick="chW(1)">›</button></div></div>';
 
-  html+='<div class="wk-wrap"><table class="wk-table"><thead><tr>';
-  html+='<th style="width:32px;">時間</th>';
+  // Build using absolute positioning for continuous blocks
+  const COL_W=Math.floor(100/8); // percentage per column
+  html+='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">';
+  html+='<div style="min-width:320px;">';
+
+  // Header row
+  html+='<div style="display:flex;">';
+  html+='<div style="width:36px;flex-shrink:0;"></div>';
   days.forEach((d,i)=>{
     const isT=fd(d)===ts;
-    const dc=i===0?'#f8d7da':i===6?'#cce5ff':'#fff';
-    html+='<th style="'+(isT?'background:#d4af7a;color:#2c3e50;':'')+'">';
-    html+='<div style="font-size:9px;color:'+(isT?'#2c3e50':dc)+';">'+DJP[i]+'</div><div>'+d.getDate()+'</div></th>';
+    const dow2=d.getDay();
+    const dayColor=dow2===0?'#fde8e8':dow2===6?'#e8f0fe':'#fff';
+    html+='<div style="flex:1;text-align:center;padding:4px 2px;font-size:10px;font-weight:700;'
+      +'background:'+(isT?'#d4af7a':dayColor)+';color:'+(isT?'#2c3e50':dow2===0?'#c0392b':dow2===6?'#2471a3':'#333')
+      +';border:1px solid #e0e0e0;">';
+    html+='<div>'+WKDAYS[i]+'</div><div style="font-size:12px;">'+d.getDate()+'</div></div>';
   });
-  html+='</tr></thead><tbody>';
+  html+='</div>';
 
+  // Time grid + events
+  html+='<div style="display:flex;">';
+  // Time axis
+  html+='<div style="width:36px;flex-shrink:0;position:relative;">';
   for(let h=START_H;h<=END_H;h++){
-    html+='<tr><td class="wk-time">'+String(h).padStart(2,'0')+'</td>';
-    days.forEach(d=>{
-      const ds=fd(d);
-      const daySlots=(sm[ds]||[]).filter(slot=>{
-        const sh=parseInt(slot.start_time)||0,eh=parseInt(slot.end_time)||0;
-        return h>=sh&&h<eh;
-      });
+    html+='<div style="height:'+HOUR_H+'px;border-top:1px solid #eee;font-size:8px;color:#aaa;padding-top:1px;text-align:center;">'+String(h).padStart(2,'0')+'</div>';
+  }
+  html+='</div>';
 
-      // Collect people in this cell
-      const people=[];
-      daySlots.forEach(slot=>{
-        const ents=em[slot.id]||[];
-        const isFull=ents.length>=slot.max_staff;
-        if(ents.length===0&&me.canManage){
-          // Empty slot - show slot name
-          people.push({name:slot.slot_name[0],bg:slot.staff_type==='full'?'#cce5ff':'#d4edda',tc:slot.staff_type==='full'?'#004085':'#155724',slotId:slot.id,ds});
-        } else {
-          const shownEnts=me.canManage?ents:ents.filter(e=>e.staff_id===me.id);
-          shownEnts.forEach(e=>{
-            const isMine=e.staff_id===me.id;
-            people.push({
-              name:e.shift_staff?.name?.[0]||'?',
-              bg:isMine?'#d4af7a':isFull?'#e74c3c':slot.staff_type==='full'?'#cce5ff':'#d4edda',
-              tc:isMine?'#2c3e50':isFull?'#fff':slot.staff_type==='full'?'#004085':'#155724',
-              slotId:slot.id,ds
-            });
-          });
-        }
-      });
+  // Day columns
+  days.forEach(d=>{
+    const ds=fd(d),daySlots=sm[ds]||[];
+    const isT=ds===ts;
+    html+='<div style="flex:1;position:relative;border-left:1px solid #eee;background:'+(isT?'#fffef5':'#fff')+';min-height:'+(HOUR_H*(END_H-START_H+1))+'px;">';
 
-      if(people.length===0){
-        html+='<td><div class="wk-cell" onclick="wkDayClick(\''+ds+'\')"></div></td>';
+    // Hour lines
+    for(let h=0;h<=END_H-START_H;h++){
+      html+='<div style="position:absolute;top:'+(h*HOUR_H)+'px;left:0;right:0;border-top:1px solid #f0f0f0;"></div>';
+    }
+
+    // Slot blocks - continuous
+    // Group by staff to avoid overlap
+    const slotsByStaff={};
+    daySlots.forEach(slot=>{
+      const ents=(am[slot.id]||[]);
+      const dispEnts=me.canManage?ents:ents.filter(e=>e.staff_id===me.id);
+      if(dispEnts.length===0&&me.canManage){
+        // Empty slot
+        const key='slot_'+slot.id;
+        if(!slotsByStaff[key])slotsByStaff[key]=[];
+        slotsByStaff[key].push({slot,staffId:null,name:slot.slot_name[0],color:'#f0f0f0',tc:'#888'});
       } else {
-        html+='<td><div class="wk-cell">';
-        people.forEach(p=>{
-          html+='<div class="wk-person" style="background:'+p.bg+';color:'+p.tc+';" onclick="wkSlotClick(\''+p.slotId+'\',\''+p.ds+'\')">'+p.name+'</div>';
+        dispEnts.forEach(e=>{
+          const key=e.staff_id;
+          if(!slotsByStaff[key])slotsByStaff[key]=[];
+          const color=staffColorMap[e.staff_id]||'#2c3e50';
+          slotsByStaff[key].push({slot,staffId:e.staff_id,name:e.shift_staff?.name?.[0]||'?',color,tc:'#fff',entId:e.id});
         });
-        html+='</div></td>';
       }
     });
-    html+='</tr>';
-  }
-  html+='</tbody></table></div>';
+
+    // Calculate column positions to avoid overlap
+    const keys=Object.keys(slotsByStaff);
+    const numCols=Math.max(1,keys.length);
+    const colW=Math.floor(100/numCols);
+
+    keys.forEach((key,colIdx)=>{
+      const items=slotsByStaff[key];
+      items.forEach(({slot,name,color,tc})=>{
+        const[sh,sm2]=slot.start_time.split(':').map(Number);
+        const[eh,em2]=slot.end_time.split(':').map(Number);
+        const topPx=((sh+sm2/60)-START_H)*HOUR_H;
+        const heightPx=((eh+em2/60)-(sh+sm2/60))*HOUR_H;
+        if(topPx<0||topPx>=(END_H-START_H+1)*HOUR_H)return;
+        const left=colIdx*colW;
+        html+='<div data-sid="'+slot.id+'" data-ds="'+ds+'" onclick="event.stopPropagation();wkSlotClick(this)" style="'
+          +'position:absolute;top:'+topPx+'px;left:'+left+'%;width:'+colW+'%;height:'+Math.max(heightPx-2,14)+'px;'
+          +'background:'+color+';color:'+tc+';border-radius:3px;border-left:3px solid rgba(0,0,0,.2);'
+          +'padding:1px 3px;font-size:9px;font-weight:700;overflow:hidden;cursor:pointer;z-index:1;">'
+          +'<div>'+slot.slot_name+'</div>'
+          +'<div style="opacity:.8;font-size:8px;">'+name+'</div>'
+          +'</div>';
+      });
+    });
+
+    html+='<div style="position:absolute;inset:0;" data-ds="'+ds+'" onclick="wkDayClick(this)"></div>';
+    html+='</div>';
+  });
+  html+='</div></div></div>';
   return html;
 }
 
@@ -707,6 +745,47 @@ function wkSlotClick(slotId,ds){
     +'</div>');
 }
 
+function wkDayClick(el){
+  const ds=el.dataset.ds;if(!ds)return;
+  const d=new Date(ds);calY=d.getFullYear();calM=d.getMonth();selDay=d.getDate();
+  calView='month';renderCal();
+  setTimeout(()=>{const dp=document.querySelector('.dp');if(dp)dp.scrollIntoView({behavior:'smooth',block:'start'});},300);
+}
+function wkSlotClick(el){
+  const slotId=el.dataset.sid,ds=el.dataset.ds;if(!slotId||!ds)return;
+  const k=calY+'-'+calM,em=EC[k]||{};
+  let slot=null;
+  Object.values(SC[k]||{}).forEach(slots=>slots.forEach(s=>{if(s.id===slotId)slot=s;}));
+  if(!slot){wkDayClick(el);return;}
+  const ents=em[slotId]||[];
+  const isFull=ents.length>=slot.max_staff;
+  const myE=ents.find(e=>e.staff_id===me?.id);
+  const mems=ents.map(e=>{
+    const sc=staffColorMap[e.staff_id]||'#2c3e50';
+    return '<span class="mtag" style="border-color:'+sc+';color:'+sc+';">'+(e.shift_staff?.name||'?')+'</span>';
+  }).join('');
+  const typeLabel2=slot.staff_type==='full'?'🟦 正社員枠':'🟩 アルバイト枠';
+  window._wk={sid:slotId,sn:slot.slot_name,ds,eid:myE?.id||''};
+  let acts='';
+  if(me.canManage){
+    acts='<button class="bsm bd" onclick="closeM();openManageSlot(window._wk.sid,window._wk.sn,window._wk.ds)">管理</button> ';
+    acts+='<button class="bsm bg" onclick="closeM();openEditSlot(window._wk.sid)">編集</button>';
+  } else {
+    const canJoin=(slot.staff_type==='part'&&me.isPart)||(slot.staff_type==='full'&&!me.isPart);
+    if(canJoin){
+      if(myE) acts='<button class="bsm br" onclick="closeM();openCancelRequest(window._wk.eid,window._wk.sid,window._wk.ds,window._wk.sn)">取消申請</button>';
+      else if(!isFull) acts='<button class="joinbtn" onclick="closeM();joinSlot(window._wk.sid,window._wk.ds)">参加する</button>';
+      else acts='<span style="font-size:12px;color:#888;">満員</span>';
+    }
+  }
+  openM('<div class="mtit">'+ds.slice(5)+' '+slot.slot_name+'</div>'
+    +'<div style="font-size:13px;color:#555;margin-bottom:6px;">'+typeLabel2+'　'+slot.start_time.slice(0,5)+'〜'+slot.end_time.slice(0,5)+'</div>'
+    +'<div style="font-size:12px;color:#888;margin-bottom:10px;">定員'+slot.max_staff+'人　残り'+Math.max(0,slot.max_staff-ents.length)+'人</div>'
+    +'<div class="smems" style="margin-bottom:12px;">'+(mems||'<span style="color:#bbb;font-size:12px;">まだ誰もいません</span>')+'</div>'
+    +'<div class="sacts">'+acts+'</div>'
+    +'<div class="mbtns"><button class="bsm bgr" onclick="closeM()">閉じる</button>'
+    +(me.canManage?'<button class="bsm bg" onclick="closeM();openAddSlot(window._wk.ds)">＋ 枠追加</button>':'')+'</div>');
+}
 function selD(d){selDay=selDay===d?null:d;renderCal();}
 async function chM(d){calM+=d;if(calM>11){calM=0;calY++;}if(calM<0){calM=11;calY--;}selDay=null;await renderCal();}
 function chW(d){wOff+=d;renderCal();}
@@ -938,8 +1017,10 @@ async function renderAtt(){
   wrap.innerHTML=html;
 }
 async function attChM(d){calM+=d;if(calM>11){calM=0;calY++;}if(calM<0){calM=11;calY--;}await renderAtt();}
-async function exportPDF(){
-  const fr=document.getElementById('pdff').value,to=document.getElementById('pdft').value;
+async function exportPDF(staffId,staffName){
+  staffId=staffId||window._attStaffData?.id;
+  staffName=staffName||window._attStaffData?.name||'スタッフ';
+  const fr=document.getElementById('pdff')?.value||'',to=document.getElementById('pdft')?.value||'';
   if(!fr||!to){toast('期間を指定してください','err');return;}
   const{jsPDF}=window.jspdf;const doc=new jsPDF();
   doc.setFontSize(14);doc.text('Cafe La Petite Haku - Attendance',14,18);
@@ -953,15 +1034,47 @@ async function exportPDF(){
 async function renderLeave(){
   const wrap=document.getElementById('wleave');
   wrap.innerHTML='<div class="loading"><span class="spin"></span>読み込み中…</div>';
-  const{data}=await sb.from('leave_requests').select('*,shift_staff(name)').order('created_at',{ascending:false});
-  const leaves=(data||[]).filter(l=>me.canManage||l.staff_id===me.id);
-  let html='<div style="font-weight:800;font-size:17px;color:#2c3e50;margin-bottom:12px;">🌿 休暇申請</div>';
-  html+='<div class="card"><div class="stitle">＋ 申請する</div><div class="fcol"><input type="date" id="lvdate"/><select id="lvtype">'+Object.entries(LT).map(([k,v])=>'<option value="'+k+'">'+v+'</option>').join('')+'</select><textarea id="lvreason" placeholder="理由（任意）"></textarea><button class="btn" onclick="doLeave()">申請する</button></div></div>';
-  if(leaves.length===0)html+='<p class="empty">申請がありません</p>';
+  const{data}=await sb.from('leave_requests').select('*,shift_staff(name,staff_type)').order('created_at',{ascending:false});
+  const showH=window._leaveHist||false;
+  const allLv=(data||[]).filter(l=>{
+    const s=staff.find(x=>x.id===l.staff_id);
+    return(me.canManage&&s?.staff_type==='full')||(l.staff_id===me.id&&!me.isPart);
+  });
+  const leaves=showH?allLv:allLv.filter(l=>l.status==='pending');
+  let html='<div style="font-weight:800;font-size:17px;color:#2c3e50;margin-bottom:12px;">🌿 休暇申請（正社員）</div>';
+  html+='<div style="display:flex;justify-content:flex-end;margin-bottom:8px;">';
+  html+='<button class="bsm bgr" onclick="window._leaveHist='+(!showH)+';renderLeave()">'+( showH?'審査中のみ':'過去の記録も見る')+'</button></div>';
+  if(!me.isPart||me.canManage){
+    html+='<div class="card"><div class="stitle">＋ 休暇を申請する</div><div class="fcol">';
+    if(me.canManage&&me.id==='admin'){
+      const fStaff2=staff.filter(s=>s.staff_type==='full');
+      html+='<div><span class="flabel">対象スタッフ</span><select id="lv-staff"><option value="">選択…</option>'+fStaff2.map(s=>'<option value="'+s.id+'">'+s.name+'</option>').join('')+'</select></div>';
+    }
+    html+='<div><span class="flabel">日付</span><input type="date" id="lvdate"/></div>';
+    html+='<div><span class="flabel">休暇の種類</span><select id="lvtype">'+Object.entries(LT).map(([k,v])=>'<option value="'+k+'">'+v+'</option>').join('')+'</select></div>';
+    html+='<div><span class="flabel">理由（任意）</span><textarea id="lvreason" placeholder="例：年次有給消化、体調不良"></textarea></div>';
+    html+='<button class="btn" onclick="doLeave()">申請する</button></div></div>';
+  }
+  if(leaves.length===0)html+='<p class="empty">'+(showH?'記録がありません':'審査中の申請はありません')+'</p>';
   else leaves.forEach(l=>{
-    const sc=l.status==='pending'?'bp':l.status==='approved'?'ba':'brej';
+    const sc2=l.status==='pending'?'bp':l.status==='approved'?'ba':'brej';
     const sl=l.status==='pending'?'審査中':l.status==='approved'?'承認済':'却下';
-    html+='<div class="card" style="padding:12px;"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;"><div><div style="font-weight:700;color:#2c3e50;">'+l.date+'</div><div style="font-size:12px;color:#555;">'+(LT[l.leave_type]||l.leave_type)+'</div>'+(me.canManage?'<div style="font-size:11px;color:#888;">'+(l.shift_staff?.name||'')+'</div>':'')+'</div><span class="badge '+sc+'">'+sl+'</span></div>'+(l.reason?'<div style="font-size:12px;color:#666;margin-bottom:8px;">'+l.reason+'</div>':'')+(me.canManage&&l.status==='pending'?'<div style="display:flex;gap:7px;"><button class="bsm bg" onclick="appLeave(\''+l.id+'\')">承認</button><button class="bsm br" onclick="rejLeave(\''+l.id+'\')">却下</button></div>':'')+'</div>';
+    const s=staff.find(x=>x.id===l.staff_id);
+    const sc=staffColorMap[l.staff_id]||'#2c3e50';
+    html+='<div class="card" style="padding:12px;">';
+    html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">';
+    html+='<span class="av" style="background:'+sc+';color:#fff;">'+(s?.name?.[0]||'?')+'</span>';
+    html+='<div><div style="font-weight:700;color:#2c3e50;">'+l.date+'</div>';
+    html+='<div style="font-size:12px;color:#555;">'+(LT[l.leave_type]||l.leave_type)+'</div>';
+    if(me.canManage)html+='<div style="font-size:11px;color:#888;">'+(l.shift_staff?.name||'')+'</div>';
+    html+='</div><span class="badge '+sc2+'" style="margin-left:auto;">'+sl+'</span></div>';
+    if(l.reason)html+='<div style="font-size:12px;color:#666;margin-bottom:8px;">'+l.reason+'</div>';
+    if(me.canManage&&l.status==='pending'){
+    if(me.canManage&&l.status==='pending'){
+      html+='<div style="display:flex;gap:7px;"><button class="bsm bg" onclick="appLeave(window._lvId)">承認</button><button class="bsm br" onclick="rejLeave(window._lvId)">却下</button></div>';
+    }
+    }
+    html+='</div>';
   });
   wrap.innerHTML=html;
 }
@@ -975,44 +1088,11 @@ async function appLeave(id){await sb.from('leave_requests').update({status:'appr
 async function rejLeave(id){await sb.from('leave_requests').update({status:'rejected'}).eq('id',id);toast('却下しました');renderLeave();}
 
 // ── Swap ───────────────────────────────────────────────────────────────────────
-async function renderSwap(){
-  const wrap=document.getElementById('wswap');
-  wrap.innerHTML='<div class="loading"><span class="spin"></span>読み込み中…</div>';
-  await loadMonth(calY,calM); // Ensure month data is loaded
-  const{data}=await sb.from('shift_swap_requests').select('*,shift_staff(name),shift_slots!from_slot_id(date,slot_name,start_time,end_time)').order('created_at',{ascending:false});
-  const swaps=(data||[]).filter(s=>me.canManage||s.staff_id===me.id);
-  const k=calY+'-'+calM,sm=SC[k]||{},em=EC[k]||{};
-  const mySlots=[];
-  // Find slots this staff is in (works for both part and full time)
-  Object.entries(sm).forEach(([date,slots])=>slots.forEach(slot=>{
-    if((em[slot.id]||[]).find(e=>e.staff_id===me?.id))mySlots.push({...slot,date});
-  }));
-  const sopts=mySlots.map(s=>'<option value="'+s.id+'">'+s.date+' '+s.slot_name+' '+s.start_time.slice(0,5)+'〜'+s.end_time.slice(0,5)+'</option>').join('');
-  let html='<div style="font-weight:800;font-size:17px;color:#2c3e50;margin-bottom:12px;">🔄 換班申請</div>';
-  html+='<div class="card"><div class="stitle">＋ 申請する</div><div class="fcol">'+(sopts?'<select id="swfrom"><option value="">外したいシフトを選択…</option>'+sopts+'</select>':'<p style="font-size:12px;color:#888;">参加中のシフトがありません</p>')+'<textarea id="swreason" placeholder="理由・希望（任意）"></textarea>'+(sopts?'<button class="btn" onclick="doSwap()">申請する</button>':'')+'</div></div>';
-  if(swaps.length===0)html+='<p class="empty">申請がありません</p>';
-  else swaps.forEach(s=>{
-    const sc=s.status==='pending'?'bp':s.status==='approved'?'ba':'brej';
-    const sl=s.status==='pending'?'審査中':s.status==='approved'?'承認済':'却下';
-    const slot=s.shift_slots;
-    html+='<div class="card" style="padding:12px;"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;"><div><div style="font-weight:700;font-size:13px;color:#2c3e50;">'+(slot?.date||'')+' '+(slot?.slot_name||'')+'</div><div style="font-size:11px;color:#666;">'+(slot?.start_time?.slice(0,5)||'')+'〜'+(slot?.end_time?.slice(0,5)||'')+'</div>'+(me.canManage?'<div style="font-size:11px;color:#888;">'+(s.shift_staff?.name||'')+'</div>':'')+'</div><span class="badge '+sc+'">'+sl+'</span></div>'+(s.reason?'<div style="font-size:12px;color:#666;margin-bottom:8px;">'+s.reason+'</div>':'')+(me.canManage&&s.status==='pending'?'<div style="display:flex;gap:7px;"><button class="bsm bg" onclick="appSwap(\''+s.id+'\',\''+s.from_slot_id+'\',\''+s.staff_id+'\')">承認</button><button class="bsm br" onclick="rejSwap(\''+s.id+'\')">却下</button></div>':'')+'</div>';
-  });
-  wrap.innerHTML=html;
-}
-async function doSwap(){
-  const from=document.getElementById('swfrom').value,reason=document.getElementById('swreason').value;
-  if(!from){toast('シフトを選択してください','err');return;}
-  await sb.from('shift_swap_requests').insert({staff_id:me.id,from_slot_id:from,reason,status:'pending'});
-  toast('申請しました');renderSwap();
-}
-async function appSwap(id,slotId,staffId){
-  await sb.from('slot_entries').delete().eq('slot_id',slotId).eq('staff_id',staffId);
-  await sb.from('shift_swap_requests').update({status:'approved',approved_by:'admin',approved_at:new Date().toISOString()}).eq('id',id);
-  toast('承認しました');renderSwap();
-}
-async function rejSwap(id){await sb.from('shift_swap_requests').update({status:'rejected'}).eq('id',id);toast('却下しました');renderSwap();}
+function renderSwap(){renderCancel();}
 
-// ── Admin ──────────────────────────────────────────────────────────────────────
+
+
+
 async function renderAdmin(){
   const wrap=document.getElementById('wadmin');
   await loadMonth(calY,calM);
@@ -1255,8 +1335,13 @@ async function renderCancel(){
   wrap.innerHTML='<div class="loading"><span class="spin"></span>読み込み中…</div>';
   await loadMonth(calY,calM);
   const{data}=await sb.from('cancel_requests').select('*,shift_staff(name),shift_slots(slot_name,date,start_time,end_time)').order('created_at',{ascending:false});
-  const cancels=(data||[]).filter(c=>me.canManage||c.staff_id===me.id);
+  const showHistory=window._cancelShowHistory||false;
+  const allCancels=(data||[]).filter(c=>me.canManage||c.staff_id===me.id);
+  const cancels=showHistory?allCancels:allCancels.filter(c=>c.status==='pending');
   let html='<div style="font-weight:800;font-size:17px;color:#2c3e50;margin-bottom:12px;">↩️ 取消出勤申請</div>';
+  html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">';
+  html+='<span style="font-size:13px;color:#888;">審査中のみ表示</span>';
+  html+='<button class="bsm bgr" onclick="window._cancelShowHistory=true;renderCancel()">過去の記録も見る</button></div>';
   html+='<div class="card" style="background:#fef9e7;border:1px solid #f0c040;padding:12px;margin-bottom:12px;">';
   html+='<div style="font-size:12px;color:#7d6608;line-height:1.7;">💡 シフトを取消したい場合は、カレンダーの該当シフトから「取消申請」ボタンで申請してください。</div></div>';
   if(cancels.length===0)html+='<p class="empty">申請がありません</p>';
@@ -1302,7 +1387,8 @@ async function exportAllPDF(){
   doc.setFont('helvetica');
   doc.setFontSize(14);doc.text('Cafe La Petite Haku - 出勤記録',14,18);
   doc.setFontSize(10);doc.text('期間: '+fr+' 〜 '+to,14,28);
-  const{data}=await sb.from('attendance').select('*,shift_staff(name,wage,staff_type,monthly_salary)').gte('date',fr).lte('date',to).order('date');
+  if(!staffId){toast('スタッフを選択してください','err');return;}
+  const{data}=await sb.from('attendance').select('*,shift_staff(name,wage,staff_type,monthly_salary)').eq('staff_id',staffId).gte('date',fr).lte('date',to).order('date');
   let y=40;
   const byStaff={};
   (data||[]).forEach(r=>{

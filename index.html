@@ -173,7 +173,7 @@ textarea{resize:vertical;min-height:60px;}
     <div id="lt-reg" class="tab-pane">
       <div class="form-col">
         <input type="text" id="reg-name" placeholder="お名前"/>
-        <select id="reg-type"><option value="part">アルバイト</option><option value="full">正社員・店長</option></select>
+        <select id="reg-type"><option value="part">アルバイト</option><option value="full">正社員</option><option value="manager">店長</option></select>
         <input type="number" id="reg-wage" placeholder="時給（円）"/>
         <input type="number" id="reg-max" placeholder="月最大時間（空白=デフォルト）"/>
         <button class="btn" onclick="registerStaff()">登録する</button>
@@ -311,9 +311,11 @@ function staffLogin(){
   if(!id){toast('スタッフを選択してください','err');return;}
   const s=staff.find(x=>x.id===id);
   if(!s||(pw!==(s.password||'0000'))){toast('パスワードが違います','err');return;}
-  me={id:s.id,name:s.name,role:'staff',staffType:s.staff_type||'part'};
-  document.getElementById('h-user').textContent=s.name+(s.staff_type==='full'?' 【正社員】':'');
-  document.getElementById('nb-admin').style.display='none';
+  const isManager=s.role==='manager';
+  me={id:s.id,name:s.name,role:isManager?'manager':'staff',staffType:s.staff_type||'part',staffRole:s.role||'part'};
+  const roleLabel=s.role==='manager'?' 【店長】':s.staff_type==='full'?' 【正社員】':'';
+  document.getElementById('h-user').textContent=s.name+roleLabel;
+  document.getElementById('nb-admin').style.display=isManager?'block':'none';
   showPage('cal');renderCal();
 }
 function adminLogin(){
@@ -331,7 +333,9 @@ async function registerStaff(){
   const maxH=parseInt(document.getElementById('reg-max').value)||settings.max_hours_per_month;
   if(!name){toast('名前を入力してください','err');return;}
   if(staff.find(s=>s.name===name)){toast('同じ名前が既にあります','err');return;}
-  const{data,error}=await sb.from('shift_staff').insert({name,staff_type:stype,wage,max_hours:maxH}).select().single();
+  const roleVal=stype==='manager'?'manager':stype==='full'?'full':'part';
+  const stypeVal=stype==='manager'?'full':stype;
+  const{data,error}=await sb.from('shift_staff').insert({name,staff_type:stypeVal,role:roleVal,wage,max_hours:maxH}).select().single();
   if(error){toast('登録に失敗しました','err');return;}
   staff.push(data);renderStaffLoginArea();
   document.getElementById('reg-name').value='';toast(`${name} を登録しました`);ltab('staff');
@@ -383,7 +387,7 @@ async function renderCal(){
   const dim=new Date(calY,calM+1,0).getDate(),fdow=new Date(calY,calM,1).getDay(),todayStr=fmtDate(new Date());
   html+=`<div class="mnav">
     <button class="arr" onclick="chM(-1)">‹</button>
-    <span class="mtitle">${calY}年${calM+1}月</span>
+    <span class="mtitle" onclick="openJumpModal()" style="cursor:pointer;border-bottom:1px dashed #aaa;">${calY}年${calM+1}月</span>
     <div style="display:flex;gap:4px;"><button class="today-btn" onclick="goToday()">今日</button><button class="arr" onclick="chM(1)">›</button></div>
   </div>`;
 
@@ -435,7 +439,7 @@ async function renderCal(){
         const myEntry=ents.find(e=>e.staff_id===me?.id);
         const members=ents.map(e=>`<span class="member-tag${e.staff_id===me?.id?' me-tag':''}">${e.shift_staff?.name||'?'}</span>`).join('');
         let acts='';
-        if(me.role==='admin'){
+        if(me.role==='admin'||me.role==='manager'){
           acts+=`<button class="btn-sm d" onclick="openManageSlotModal('${slot.id}','${slot.slot_name}')">管理</button>`;
           acts+=` <button class="btn-sm r" onclick="deleteSlot('${slot.id}','${ds}')">削除</button>`;
         } else if(me.staffType==='part'){
@@ -460,7 +464,7 @@ async function renderCal(){
         const myEntry=ents.find(e=>e.staff_id===me?.id);
         const members=ents.map(e=>`<span class="member-tag${e.staff_id===me?.id?' me-tag':''}">${e.shift_staff?.name||'?'}</span>`).join('');
         let acts='';
-        if(me.role==='admin'){
+        if(me.role==='admin'||me.role==='manager'){
           acts+=`<button class="btn-sm d" onclick="openManageSlotModal('${slot.id}','${slot.slot_name}')">管理</button>`;
           acts+=` <button class="btn-sm r" onclick="deleteSlot('${slot.id}','${ds}')">削除</button>`;
         } else if(me.staffType==='full'){
@@ -478,7 +482,7 @@ async function renderCal(){
     }
 
     // Full-time status (admin only)
-    if(me.role==='admin'){
+    if(me.role==='admin'||me.role==='manager'){
       const fullStaff=staff.filter(s=>s.staff_type==='full');
       if(fullStaff.length>0){
         html+=`<div style="font-size:12px;font-weight:700;color:#555;margin-bottom:8px;margin-top:10px;">正社員 出勤状況</div>`;
@@ -498,16 +502,17 @@ async function renderCal(){
   }
 
   // Admin monthly summary
-  if(me.role==='admin'){
+  if(me.role==='admin'||me.role==='manager'){
     html+=`<div class="card"><div class="sec-title">今月のスタッフ時間</div>`;
     staff.forEach(s=>{
       const h=Math.round((mh[s.id]||0)*10)/10,max=s.max_hours||settings.max_hours_per_month;
       const pct=Math.min(h/max*100,100);
+      const salaryInfo=me.role==='admin'?`¥${(h*(s.wage||settings.wage_per_hour)).toLocaleString()}`:'';
       html+=`<div style="margin-bottom:8px;">
         <div style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;margin-bottom:2px;">
           <span class="av ${s.staff_type==='full'?'av-full':'av-part'}" style="width:22px;height:22px;font-size:10px;">${s.name[0]}</span>
           ${s.name}<span style="font-size:10px;color:#888;">${s.staff_type==='full'?'正社員':'バイト'}</span>
-          <span style="margin-left:auto;font-size:11px;color:#555;">${h}h/¥${(h*(s.wage||settings.wage_per_hour)).toLocaleString()}</span>
+          <span style="margin-left:auto;font-size:11px;color:#555;">${h}h${salaryInfo?' / '+salaryInfo:''}</span>
         </div>
         <div class="prog-bg"><div class="prog-fill" style="width:${pct}%;background:${pct>90?'#c0392b':'#2c5f2e'};"></div></div>
       </div>`;
@@ -696,7 +701,7 @@ async function renderAtt(){
       </div>${rows||'<p class="empty" style="padding:6px 0;">記録なし</p>'}
     </div>`;
   });
-  if(me.role==='admin'){
+  if(me.role==='admin'||me.role==='manager'){
     html+=`<div class="card"><div class="sec-title">📄 PDF出力</div>
       <div class="form-col">
         <div style="display:flex;gap:8px;align-items:center;"><span style="font-size:12px;white-space:nowrap;">期間：</span><input type="date" id="pdf-from"/><span>〜</span><input type="date" id="pdf-to"/></div>
@@ -818,7 +823,9 @@ async function renderAdmin(){
   const wrap=document.getElementById('admin-wrap');
   await loadMonthData(calY,calM);
   const mh=getMonthlyHours(calY,calM);
-  let html=`
+  const isOwner=me.role==='admin';
+  let html=``;
+  if(isOwner) html+=`
   <div class="card"><div class="sec-title">⚙ グローバル設定</div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;"><span style="font-size:13px;color:#555;">デフォルト時給（円）</span><input type="number" style="width:110px;" id="s-wage" value="${settings.wage_per_hour}"/></div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;"><span style="font-size:13px;color:#555;">月最大時間</span><input type="number" style="width:110px;" id="s-max" value="${settings.max_hours_per_month}"/></div>
@@ -838,11 +845,13 @@ async function renderAdmin(){
   <div class="card"><div class="sec-title">＋ スタッフ追加</div>
     <div class="form-col">
       <input type="text" id="a-name" placeholder="名前"/>
-      <select id="a-type"><option value="part">アルバイト</option><option value="full">正社員・店長</option></select>
+      <select id="a-type"><option value="part">アルバイト</option><option value="full">正社員</option><option value="manager">店長</option></select>
       <input type="number" id="a-wage" placeholder="時給（円）"/>
       <input type="number" id="a-max" placeholder="月最大時間"/>
       <button class="btn" onclick="adminAddStaff()">追加する</button>
-    </div></div>
+    </div></div>\`;
+  // Manager sees staff list but no salary
+  html+=\`
 
   <div class="card"><div class="sec-title">👥 スタッフ一覧</div>
     ${staff.length===0?'<p class="empty">スタッフがいません</p>':staff.map(s=>{
@@ -852,12 +861,12 @@ async function renderAdmin(){
           <span class="av ${s.staff_type==='full'?'av-full':'av-part'}" style="width:24px;height:24px;font-size:10px;">${s.name[0]}</span>
           ${s.name}<span style="font-size:10px;color:#888;">${s.staff_type==='full'?'正社員':'バイト'}</span>
         </div>
-        <div style="font-size:11px;color:#777;margin-bottom:3px;">時給¥${s.wage}　最大${s.max_hours}h　PW:${s.password||'0000'}</div>
-        <div style="font-size:11px;color:#555;margin-bottom:7px;">今月:${h}h　¥${(h*s.wage).toLocaleString()}</div>
+        ${isOwner?`<div style="font-size:11px;color:#777;margin-bottom:3px;">時給¥${s.wage}　最大${s.max_hours}h　PW:${s.password||'0000'}</div>
+        <div style="font-size:11px;color:#555;margin-bottom:7px;">今月:${h}h　¥${(h*s.wage).toLocaleString()}</div>`:`<div style="font-size:11px;color:#777;margin-bottom:7px;">最大${s.max_hours}h　今月:${h}h</div>`}
         <div style="display:flex;gap:6px;flex-wrap:wrap;">
-          <button class="btn-sm d" onclick="openEditStaff('${s.id}')">編集</button>
+          ${isOwner?`<button class="btn-sm d" onclick="openEditStaff('${s.id}')">編集</button>
           <button class="btn-sm gold" onclick="openSetPwModal('${s.id}','${s.name}')">PW設定</button>
-          <button class="btn-sm r" onclick="delStaff('${s.id}','${s.name}')">削除</button>
+          <button class="btn-sm r" onclick="delStaff('${s.id}','${s.name}')">削除</button>`:`<span style="font-size:11px;color:#aaa;">（編集はオーナーのみ）</span>`}
         </div>
       </div>`;
     }).join('')}
@@ -881,7 +890,9 @@ async function adminAddStaff(){
   const name=document.getElementById('a-name').value.trim(),stype=document.getElementById('a-type').value,wage=parseInt(document.getElementById('a-wage').value)||settings.wage_per_hour,maxH=parseInt(document.getElementById('a-max').value)||settings.max_hours_per_month;
   if(!name){toast('名前を入力してください','err');return;}
   if(staff.find(s=>s.name===name)){toast('同じ名前が既にあります','err');return;}
-  const{data,error}=await sb.from('shift_staff').insert({name,staff_type:stype,wage,max_hours:maxH}).select().single();
+  const roleVal=stype==='manager'?'manager':stype==='full'?'full':'part';
+  const stypeVal=stype==='manager'?'full':stype;
+  const{data,error}=await sb.from('shift_staff').insert({name,staff_type:stypeVal,role:roleVal,wage,max_hours:maxH}).select().single();
   if(error){toast('追加に失敗しました','err');return;}
   staff.push(data);toast(`${name} を追加しました`);renderAdmin();
 }
@@ -931,6 +942,24 @@ async function saveSelfPw(){
   if(!nw||nw!==cnf){toast('PWが一致しません','err');return;}
   await sb.from('shift_staff').update({password:nw}).eq('id',me.id);
   staff=staff.map(s=>s.id===me.id?{...s,password:nw}:s);closeModal();toast('変更しました');
+}
+
+// ── Jump to date ─────────────────────────────────────────────────────────────
+function openJumpModal(){
+  const today=fmtDate(new Date());
+  openModal(`<div class="modal-title">📅 日付に移動</div>
+    <div class="form-col">
+      <input type="date" id="jump-date" value="${today}"/>
+      <button class="btn" onclick="jumpToDate()">移動する</button>
+    </div>
+    <div class="modal-btns"><button class="btn-sm gr" onclick="closeModal()">キャンセル</button></div>`);
+}
+function jumpToDate(){
+  const val=document.getElementById('jump-date').value;
+  if(!val)return;
+  const d=new Date(val);
+  calY=d.getFullYear();calM=d.getMonth();selDay=d.getDate();
+  closeModal();renderCal();
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────

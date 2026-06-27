@@ -695,6 +695,53 @@ async function chM(d){calM+=d;if(calM>11){calM=0;calY++;}if(calM<0){calM=11;calY
 function chW(d){wOff+=d;renderCal();}
 function swView(v){calView=v;selDay=null;renderCal();}
 function goToday(){const n=new Date();calY=n.getFullYear();calM=n.getMonth();selDay=n.getDate();wOff=0;renderCal();}
+function weekDayClick(ds){
+  const d=new Date(ds);
+  calY=d.getFullYear();calM=d.getMonth();selDay=d.getDate();
+  calView='month';
+  renderCal();
+  setTimeout(()=>{const dp=document.querySelector('.dp');if(dp)dp.scrollIntoView({behavior:'smooth',block:'start'});},300);
+}
+function weekSlotClick(slotId,ds){
+  const k=calY+'-'+calM;
+  const em=EC[k]||{};
+  let slot=null;
+  Object.values(SC[k]||{}).forEach(slots=>slots.forEach(s=>{if(s.id===slotId)slot=s;}));
+  if(!slot)return;
+  const ents=em[slotId]||[];
+  const isFull=ents.length>=slot.max_staff;
+  const myE=ents.find(e=>e.staff_id===me?.id);
+  const isAdmin=me.role==='admin'||me.role==='manager';
+  const mems=ents.map(e=>{
+    const cls=e.staff_id===me?.id?' me':'';
+    return '<span class="mtag'+cls+'">'+(e.shift_staff?.name||'?')+'</span>';
+  }).join('');
+  const typeLabel=slot.staff_type==='full'?'🟦 正社員枠':'🟩 アルバイト枠';
+  
+  // Store IDs for button actions
+  window._wSlot={slotId,ds,myEId:myE?.id,sname:slot.slot_name};
+  
+  let acts='';
+  if(isAdmin){
+    acts='<button class="bsm bd" onclick="closeM();openManageSlot(window._wSlot.slotId,window._wSlot.sname,window._wSlot.ds)">管理</button>';
+    acts+=' <button class="bsm br" onclick="closeM();delSlot(window._wSlot.slotId,window._wSlot.ds)">削除</button>';
+  } else {
+    const canJoin=(slot.staff_type==='part'&&me.stype==='part')||(slot.staff_type==='full'&&me.stype==='full');
+    if(canJoin){
+      if(myE) acts='<button class="lvbtn" onclick="closeM();leaveSlot(window._wSlot.myEId,window._wSlot.slotId,window._wSlot.ds)">キャンセル</button>';
+      else if(!isFull) acts='<button class="joinbtn" onclick="closeM();joinSlot(window._wSlot.slotId,window._wSlot.ds)">参加する</button>';
+      else acts='<span style="font-size:12px;color:#888;">満員</span>';
+    }
+  }
+  const addBtn=isAdmin?'<button class="bsm bg" onclick="closeM();openAddSlot(window._wSlot.ds)">＋ 枠追加</button>':'';
+  openM('<div class="mtit">'+ds.slice(5)+' '+slot.slot_name+'</div>'
+    +'<div style="font-size:13px;color:#555;margin-bottom:6px;">'+typeLabel+'　'+slot.start_time.slice(0,5)+'〜'+slot.end_time.slice(0,5)+'</div>'
+    +'<div style="font-size:12px;color:#888;margin-bottom:10px;">定員'+slot.max_staff+'人　残り'+Math.max(0,slot.max_staff-ents.length)+'人</div>'
+    +'<div class="smems" style="margin-bottom:12px;">'+(mems||'<span style="color:#bbb;font-size:12px;">まだ誰もいません</span>')+'</div>'
+    +'<div class="sacts">'+acts+'</div>'
+    +'<div class="mbtns"><button class="bsm bgr" onclick="closeM()">閉じる</button>'+addBtn+'</div>');
+}
+
 function openJump(){
   openM(`<div class="mtit">📅 日付に移動</div>
     <div class="fcol">

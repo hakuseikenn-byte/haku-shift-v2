@@ -655,75 +655,95 @@ function buildWeek(sm,em,am){
   sw.setDate(today.getDate()-today.getDay()+wOff*7);
   const days=Array.from({length:7},(_,i)=>{const d=new Date(sw);d.setDate(d.getDate()+i);return d;});
   const ts=fd(today);
-  // Build using divs with absolute positioning for continuous blocks
-  const ws=fd(days[0]),we=fd(days[6]);
-  const HOUR_H=36; // px per hour
-  const START_H=6,END_H=23,TOTAL_H=END_H-START_H;
-  let html=`<div>
-    <div class="mnav">
-      <button class="arr" onclick="chW(-1)">‹</button>
-      <span class="mtitle" style="font-size:13px;">${ws}〜${we.slice(5)}</span>
-      <div style="display:flex;gap:4px;"><button class="tbtn2" onclick="wOff=0;renderCal()">今週</button><button class="arr" onclick="chW(1)">›</button></div>
-    </div>
-    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
-      <div style="min-width:340px;">
-        <div style="display:flex;">
-          <div style="width:36px;flex-shrink:0;"></div>`;
-  // Day headers
+  const START_H=6,END_H=23,HOUR_H=40;
+  const dispStaff=me.role==='admin'||me.role==='manager'?staff:staff.filter(s=>s.id===me.id);
+
+  // Build header
+  let html='<div>';
+  html+='<div class="mnav">';
+  html+='<button class="arr" onclick="chW(-1)">‹</button>';
+  html+='<span class="mtitle" style="font-size:14px;">'+fd(days[0]).slice(5)+' 〜 '+fd(days[6]).slice(5)+'</span>';
+  html+='<div style="display:flex;gap:4px;"><button class="tbtn2" onclick="wOff=0;renderCal()">今週</button><button class="arr" onclick="chW(1)">›</button></div>';
+  html+='</div>';
+
+  // Table layout
+  html+='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">';
+  html+='<table style="border-collapse:collapse;min-width:360px;width:100%;">';
+
+  // Header row
+  html+='<thead><tr>';
+  html+='<th style="width:36px;background:#2c3e50;color:#fff;font-size:10px;padding:4px 2px;border:1px solid #3d5166;">時間</th>';
   days.forEach((d,i)=>{
     const ds=fd(d),isT=ds===ts;
-    html+=`<div style="flex:1;text-align:center;padding:4px 2px;font-size:10px;font-weight:700;background:${isT?'#d4af7a':'#2c3e50'};color:${isT?'#2c3e50':'#fff'};">
-      <div>${DJP[i]}</div><div>${d.getDate()}</div>
-    </div>`;
+    const dow=i;
+    const color=dow===0?'#f8d7da':dow===6?'#cce5ff':'#fff';
+    html+='<th style="background:'+(isT?'#d4af7a':'#2c3e50')+';color:'+(isT?'#2c3e50':'#fff')+';font-size:10px;padding:4px 2px;border:1px solid #3d5166;text-align:center;">';
+    html+='<div style="color:'+(isT?'#2c3e50':color)+';">'+DJP[i]+'</div>';
+    html+='<div>'+d.getDate()+'</div></th>';
   });
-  html+=`</div>
-        <div style="display:flex;">
-          <div style="width:36px;flex-shrink:0;position:relative;">`;
-  // Time labels
+  html+='</tr></thead>';
+
+  // Body - one row per hour
+  html+='<tbody>';
   for(let h=START_H;h<=END_H;h++){
-    html+=`<div style="position:absolute;top:${(h-START_H)*HOUR_H}px;left:0;right:0;font-size:9px;color:#888;text-align:center;border-top:1px solid #eee;padding-top:2px;">${String(h).padStart(2,'0')}</div>`;
-  }
-  html+=`<div style="height:${TOTAL_H*HOUR_H}px;"></div></div>`;
-  // Day columns
-  days.forEach(d=>{
-    const ds=fd(d),daySlots=sm[ds]||[];
-    html+=`<div style="flex:1;position:relative;border-left:1px solid #eee;cursor:pointer;" onclick="weekDayClick('${ds}')">`;
-    // Hour lines
-    for(let h=START_H;h<=END_H;h++){
-      html+=`<div style="position:absolute;top:${(h-START_H)*HOUR_H}px;left:0;right:0;border-top:1px solid #f0f0f0;height:${HOUR_H}px;"></div>`;
-    }
-    // Slot blocks
-    daySlots.forEach(slot=>{
-      const[ssh,ssm]=slot.start_time.split(':').map(Number);
-      const[seh,sem]=slot.end_time.split(':').map(Number);
-      const startMin=(ssh+ssm/60-START_H)*HOUR_H;
-      const heightMin=((seh+sem/60)-(ssh+ssm/60))*HOUR_H;
-      if(startMin<0||startMin>=TOTAL_H*HOUR_H)return;
-      const ents=em[slot.id]||[];
-      const isMine=ents.some(e=>e.staff_id===me?.id);
-      const dispE=me.role==='admin'||me.role==='manager'?ents:ents.filter(e=>e.staff_id===me?.id);
-      if(me.role==='staff'&&dispE.length===0)return;
-      const isFilled=ents.length>=slot.max_staff;
-      const bg=isMine?'#d4af7a':isFilled?'#e74c3c':slot.staff_type==='full'?'#cce5ff':'#d4edda';
-      const tc=isMine?'#2c3e50':isFilled?'#fff':slot.staff_type==='full'?'#004085':'#155724';
-      const border=isMine?'#c09050':slot.staff_type==='full'?'#90b8e0':'#90c8a0';
-      const names=dispE.map(e=>e.shift_staff?.name?.[0]||'?').join('');
-      html+=`<div style="position:absolute;top:${startMin}px;left:1px;right:1px;height:${Math.max(heightMin-2,14)}px;background:${bg};color:${tc};border-radius:4px;border-left:3px solid ${border};padding:2px 3px;overflow:hidden;font-size:9px;font-weight:700;z-index:1;cursor:pointer;" onclick="event.stopPropagation();weekSlotClick('${slot.id}','${ds}')">
-        <div style="line-height:1.2;">${slot.slot_name}</div>
-        ${names?`<div style="font-size:8px;opacity:.8;">${names}</div>`:''}
-      </div>`;
+    html+='<tr>';
+    // Time cell
+    html+='<td style="background:#f8f6f2;font-size:9px;color:#888;text-align:center;padding:2px;border:1px solid #eee;vertical-align:top;width:36px;">'+String(h).padStart(2,'0')+'</td>';
+
+    days.forEach(d=>{
+      const ds=fd(d);
+      const daySlots=(sm[ds]||[]).filter(slot=>{
+        const sh=parseInt(slot.start_time)||0,eh=parseInt(slot.end_time)||0;
+        return h>=sh&&h<eh;
+      });
+
+      // Filter by user type
+      const mySlots=daySlots.filter(slot=>{
+        if(me.role==='admin'||me.role==='manager')return true;
+        return (slot.staff_type==='part'&&me.stype==='part')||(slot.staff_type==='full'&&me.stype==='full');
+      });
+
+      if(mySlots.length===0){
+        html+='<td data-ds="'+ds+'" style="border:1px solid #eee;padding:1px;min-width:40px;cursor:pointer;" onclick="wdc(this)"></td>';
+        return;
+      }
+
+      // Each slot gets its own column within the cell using flex
+      html+='<td data-ds="'+ds+'" style="border:1px solid #eee;padding:1px;min-width:40px;" onclick="wdc(this)"><div style="display:flex;gap:1px;height:100%;min-height:18px;">';
+
+      mySlots.forEach(slot=>{
+        const ents=(am[slot.id]||[]);
+        const isFull=ents.length>=slot.max_staff;
+        const isMine=ents.some(e=>e.staff_id===me?.id);
+        const bg=isMine?'#d4af7a':isFull?'#e74c3c':slot.staff_type==='full'?'#cce5ff':'#d4edda';
+        const tc=isMine?'#2c3e50':isFull?'#fff':slot.staff_type==='full'?'#004085':'#155724';
+
+        // Show each participant separately
+        const shownEnts=me.role==='admin'||me.role==='manager'?ents:ents.filter(e=>e.staff_id===me.id);
+        if(shownEnts.length===0){
+          // Empty slot
+          html+='<div data-sid="'+slot.id+'" data-ds="'+ds+'" style="flex:1;background:'+bg+';color:'+tc+';font-size:8px;border-radius:2px;padding:1px;text-align:center;cursor:pointer;min-width:12px;" onclick="event.stopPropagation();wsc(this)">' ;
+          html+=slot.slot_name[0]+'</div>';
+        } else {
+          shownEnts.forEach(e=>{
+            const ebg=e.staff_id===me?.id?'#d4af7a':isFull?'#e74c3c':slot.staff_type==='full'?'#cce5ff':'#d4edda';
+            const etc=e.staff_id===me?.id?'#2c3e50':isFull?'#fff':slot.staff_type==='full'?'#004085':'#155724';
+            html+='<div data-sid="'+slot.id+'" data-ds="'+ds+'" style="flex:1;background:'+ebg+';color:'+etc+';font-size:8px;border-radius:2px;padding:1px;text-align:center;cursor:pointer;min-width:12px;overflow:hidden;" onclick="event.stopPropagation();wsc(this)">';
+            html+=(e.shift_staff?.name?.[0]||'?')+'</div>';
+          });
+        }
+      });
+
+      html+='</div></td>';
     });
-    html+=`<div style="height:${TOTAL_H*HOUR_H}px;"></div></div>`;
-  });
-  html+=`</div></div></div></div>`;
+    html+='</tr>';
+  }
+  html+='</tbody></table></div></div>';
   return html;
 }
 
-function selD(d){selDay=selDay===d?null:d;renderCal();}
-async function chM(d){calM+=d;if(calM>11){calM=0;calY++;}if(calM<0){calM=11;calY--;}selDay=null;await renderCal();}
-function chW(d){wOff+=d;renderCal();}
-function swView(v){calView=v;selDay=null;renderCal();}
-function goToday(){const n=new Date();calY=n.getFullYear();calM=n.getMonth();selDay=n.getDate();wOff=0;renderCal();}
+function wdc(el){weekDayClick(el.dataset.ds);}
+function wsc(el){weekSlotClick(el.dataset.sid,el.dataset.ds);}
 function weekDayClick(ds){
   const d=new Date(ds);
   calY=d.getFullYear();calM=d.getMonth();selDay=d.getDate();

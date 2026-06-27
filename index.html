@@ -383,14 +383,16 @@ function doStaffLogin(){
   if(!s||pw!==(s.password||'0000')){toast('パスワードが違います','err');return;}
   const isManager=s.role==='manager';
   const isOwner2=s.role==='owner';
-  const isAdmin2=s.staff_type==='full'||isManager||isOwner2;
+  const canManage=s.can_manage_shift||isManager||isOwner2;
   let myRole='staff';
   if(isOwner2)myRole='admin';
   else if(isManager)myRole='manager';
-  me={id:s.id,name:s.name,role:myRole,stype:s.staff_type||'part',srole:s.role||'part'};
+  else if(canManage)myRole='manager';
+  me={id:s.id,name:s.name,role:myRole,stype:s.staff_type||'part',srole:s.role||'part',
+      canManage:canManage,gpsRequired:s.gps_required!==false};
   const roleDisp=isOwner2?' 【オーナー】':isManager?' 【店長】':s.staff_type==='full'?' 【正社員】':'';
   document.getElementById('huser').textContent=s.name+roleDisp;
-  document.getElementById('nb-admin').style.display=isAdmin2?'block':'none';
+  document.getElementById('nb-admin').style.display=canManage?'block':'none';
   showP('cal');renderCal();
 }
 function doAdminLogin(){
@@ -923,7 +925,8 @@ async function clockIn(){
     if(error){toast('打刻に失敗しました','err');return;}
     todayAtt=data;toast('出勤打刻しました 🟢');renderCal();
   };
-  if(!GPS_REQUIRED){
+  const useGPS=me.gpsRequired!==false&&GPS_REQUIRED;
+  if(!useGPS){
     await doIn(null,null);return;
   }
   try{

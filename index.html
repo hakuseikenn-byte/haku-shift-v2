@@ -372,10 +372,25 @@ function renderStaffLoginList(){
   const el=document.getElementById('staff-list-login');
   if(!el)return;
   if(staffList.length===0){el.innerHTML='<p class="empty-hint">まだスタッフが登録されていません。<br>「新規登録」から追加してください。</p>';return;}
-  el.innerHTML=staffList.map(s=>`
-    <button class="staff-login-btn" onclick="loginAsStaff('${s.id}','${s.name}')">
-      <span class="avatar">${s.name[0]}</span><span>${s.name}</span>
-    </button>`).join('');
+  el.innerHTML=`
+    <div class="form-col">
+      <select id="staff-select" style="font-size:15px;padding:12px;">
+        <option value="">スタッフを選択…</option>
+        ${staffList.map(s=>`<option value="${s.id}">${s.name}</option>`).join('')}
+      </select>
+      <input type="password" id="staff-pw" placeholder="パスワード（初期：0000）" onkeydown="if(event.key==='Enter')staffLogin()"/>
+      <button class="btn-primary" onclick="staffLogin()">ログイン</button>
+    </div>`;
+}
+function staffLogin(){
+  const id=document.getElementById('staff-select').value;
+  const pw=document.getElementById('staff-pw').value;
+  if(!id){toast('スタッフを選択してください','err');return;}
+  const s=staffList.find(x=>x.id===id);
+  if(!s){toast('スタッフが見つかりません','err');return;}
+  const correctPw=s.password||'0000';
+  if(pw!==correctPw){toast('パスワードが違います','err');return;}
+  loginAsStaff(s.id,s.name);
 }
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
@@ -494,6 +509,9 @@ async function renderCal(){
         <span style="font-size:12px;color:#888;">退勤済み</span>
       </div>`;
     }
+    clockHtml+=`<div style="text-align:right;margin-bottom:6px;">
+      <button onclick="openSelfPasswordModal()" style="background:none;border:none;color:#888;font-size:12px;cursor:pointer;text-decoration:underline;">🔑 パスワード変更</button>
+    </div>`;
     // Hours summary
     const me=staffList.find(s=>s.id===currentUser.id);
     const myH=Math.round((monthlyHours[currentUser.id]||0)*10)/10;
@@ -1075,6 +1093,7 @@ async function renderAdmin(){
         <div class="staff-card-info">今月: ${h}h　¥${(h*s.wage).toLocaleString()}</div>
         <div class="staff-card-btns">
           <button class="btn-sm btn-dark" onclick="openEditStaffModal('${s.id}')">編集</button>
+          <button class="btn-sm btn-gold" onclick="openSetPasswordModal('${s.id}','${s.name}')">PW設定</button>
           <button class="btn-sm btn-red" onclick="deleteStaff('${s.id}','${s.name}')">削除</button>
         </div>
       </div>`;
@@ -1166,6 +1185,57 @@ async function deleteStaff(id,name){
   if(!confirm(`${name} を削除しますか？`))return;
   await sb.from('shift_staff').delete().eq('id',id);
   staffList=staffList.filter(s=>s.id!==id);toast(`${name} を削除しました`);renderAdmin();
+}
+
+// ── Password management ──────────────────────────────────────────────────────
+function openSetPasswordModal(staffId, staffName){
+  openModal(`<div class="modal-title">${staffName} のパスワード設定</div>
+    <div class="form-col">
+      <input type="password" id="sp-new" placeholder="新しいパスワード"/>
+      <input type="password" id="sp-cnf" placeholder="確認"/>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-sm btn-green" onclick="saveStaffPassword('${staffId}')">設定</button>
+      <button class="btn-sm btn-gray" onclick="forceCloseModal()">キャンセル</button>
+    </div>`);
+}
+async function saveStaffPassword(staffId){
+  const nw=document.getElementById('sp-new').value;
+  const cnf=document.getElementById('sp-cnf').value;
+  if(!nw){toast('パスワードを入力してください','err');return;}
+  if(nw!==cnf){toast('パスワードが一致しません','err');return;}
+  const{error}=await sb.from('shift_staff').update({password:nw}).eq('id',staffId);
+  if(error){toast('設定に失敗しました','err');return;}
+  staffList=staffList.map(s=>s.id===staffId?{...s,password:nw}:s);
+  forceCloseModal();toast('パスワードを設定しました');
+}
+
+// スタッフ自身がパスワード変更
+function openSelfPasswordModal(){
+  openModal(`<div class="modal-title">パスワード変更</div>
+    <div class="form-col">
+      <input type="password" id="myp-cur" placeholder="現在のパスワード"/>
+      <input type="password" id="myp-new" placeholder="新しいパスワード"/>
+      <input type="password" id="myp-cnf" placeholder="確認"/>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-sm btn-green" onclick="saveSelfPassword()">変更</button>
+      <button class="btn-sm btn-gray" onclick="forceCloseModal()">キャンセル</button>
+    </div>`);
+}
+async function saveSelfPassword(){
+  const cur=document.getElementById('myp-cur').value;
+  const nw=document.getElementById('myp-new').value;
+  const cnf=document.getElementById('myp-cnf').value;
+  const me=staffList.find(s=>s.id===currentUser.id);
+  const correctPw=me?.password||'0000';
+  if(cur!==correctPw){toast('現在のパスワードが違います','err');return;}
+  if(!nw){toast('新しいパスワードを入力してください','err');return;}
+  if(nw!==cnf){toast('パスワードが一致しません','err');return;}
+  const{error}=await sb.from('shift_staff').update({password:nw}).eq('id',currentUser.id);
+  if(error){toast('変更に失敗しました','err');return;}
+  staffList=staffList.map(s=>s.id===currentUser.id?{...s,password:nw}:s);
+  forceCloseModal();toast('パスワードを変更しました');
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────

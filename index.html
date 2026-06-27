@@ -383,7 +383,14 @@ function loginAsStaff(id,name){
   currentUser={id,name,role:'staff'};
   document.getElementById('header-user-name').textContent=name;
   document.getElementById('nav-admin').style.display='none';
-  showScreen('cal');
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('header').style.display='flex';
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('cal-screen').classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('nav-cal').classList.add('active');
+  window.scrollTo(0,0);
+  renderCal();
 }
 function adminLogin(){
   const pw=document.getElementById('admin-pw').value;
@@ -391,7 +398,14 @@ function adminLogin(){
   currentUser={id:'admin',name:'管理者',role:'admin'};
   document.getElementById('header-user-name').textContent='管理者';
   document.getElementById('nav-admin').style.display='block';
-  showScreen('cal');
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('header').style.display='flex';
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('cal-screen').classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('nav-cal').classList.add('active');
+  window.scrollTo(0,0);
+  renderCal();
 }
 async function registerStaff(){
   const name=document.getElementById('reg-name').value.trim();
@@ -406,7 +420,15 @@ async function registerStaff(){
   document.getElementById('reg-name').value='';document.getElementById('reg-wage').value='';document.getElementById('reg-max').value='';
   switchTab('staff');
 }
-function logout(){currentUser=null;selectedDay=null;document.getElementById('admin-pw').value='';showScreen('login');}
+function logout(){
+  currentUser=null;selectedDay=null;
+  document.getElementById('admin-pw').value='';
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('login-screen').classList.add('active');
+  document.getElementById('login-screen').style.display='';
+  document.getElementById('header').style.display='none';
+  window.scrollTo(0,0);
+}
 
 // ── Monthly hours ─────────────────────────────────────────────────────────────
 function getMonthlyHours(y,m){

@@ -292,13 +292,34 @@ async function loadMonth(y,m){
   AC[k]=am;
   if(me&&me.id!=='admin'){todayAtt=(AC[k][fd(new Date())]||{})[me.id]||null;}
 }
-function getMonthlyH(y,m){
+function getMonthlyH(y,m,leavesData){
   const k=y+'-'+m,am=AC[k]||{},sm=SC[k]||{},em=EC[k]||{},res={};
   staff.forEach(s=>res[s.id]=0);
-  Object.values(am).forEach(dm=>Object.entries(dm).forEach(([sid,a])=>{if(a.clock_in&&a.clock_out)res[sid]=(res[sid]||0)+ch(a.clock_in,a.clock_out);}));
+  // 1. Actual clock-in/out hours
+  Object.values(am).forEach(dm=>Object.entries(dm).forEach(([sid,a])=>{
+    if(a.clock_in&&a.clock_out)res[sid]=(res[sid]||0)+ch(a.clock_in,a.clock_out);
+  }));
+  // 2. Scheduled slots without attendance
   Object.entries(sm).forEach(([date,slots])=>slots.forEach(slot=>{
     (em[slot.id]||[]).forEach(e=>{
-      if(!(am[date]||{})[e.staff_id])res[e.staff_id]=(res[e.staff_id]||0)+chft(slot.start_time,slot.end_time);
+      const att=(am[date]||{})[e.staff_id];
+      const s=staff.find(st=>st.id===e.staff_id);
+      const isPart=s?.staff_type==='part';
+      if(!att){
+        // No attendance - use scheduled hours
+        res[e.staff_id]=(res[e.staff_id]||0)+chft(slot.start_time,slot.end_time);
+      } else if(att.status==='absent'){
+        // Absent: part-time=0 (A), full-time check leave type (C)
+        if(!isPart&&leavesData){
+          // Full-time: paid leave counts, sick leave = 0
+          const leave=leavesData.find(l=>l.staff_id===e.staff_id&&l.date===date&&l.status==='approved');
+          if(leave&&leave.leave_type==='paid'){
+            res[e.staff_id]=(res[e.staff_id]||0)+chft(slot.start_time,slot.end_time);
+          }
+          // sick/unpaid = 0, mourning = 0 (no change)
+        }
+        // part-time absent = 0 (already 0, no addition)
+      }
     });
   }));
   return res;
@@ -306,7 +327,7 @@ function getMonthlyH(y,m){
 function getWeeklyH(staffId,y,m){
   const k=y+'-'+m,sm=SC[k]||{},em=EC[k]||{},am=AC[k]||{};
   const today=new Date();
-  const ws=new Date(today);ws.setDate(today.getDate()-today.getDay()+wOff*7);ws.setHours(0,0,0,0);
+  const ws=new Date(today);ws.setDate(today.getDate()-((today.getDay()+6)%7)+wOff*7);ws.setHours(0,0,0,0);
   const we=new Date(ws);we.setDate(ws.getDate()+6);we.setHours(23,59,59,999);
   let total=0;
   Object.entries(sm).forEach(([date,slots])=>{
@@ -390,7 +411,7 @@ async function renderCal(){
   wrap.innerHTML='<div class="loading"><span class="spin"></span>読み込み中…</div>';
   await loadMonth(calY,calM);
   const k=calY+'-'+calM,sm=SC[k]||{},em=EC[k]||{},am=AC[k]||{};
-  const mh=getMonthlyH(calY,calM);
+  const mh=getMonthlyH(calY,calM,[]);
   let html='';
 
   // Clock banner (all staff who logged in as staff, not admin login)
@@ -563,7 +584,10 @@ function buildDayPanel(day,sm,em,am,mh){
         html+='<div style="display:flex;align-items:center;gap:7px;padding:6px 0;border-bottom:1px solid #f0ede8;font-size:13px;">';
         html+='<span class="av avf">'+s.name[0]+'</span>'+s.name;
         html+='<span style="margin-left:auto;color:#555;font-size:12px;">'+st+'</span>';
-        html+='<button class="bsm bd" onclick="openEditAtt(\''+s.id+'\',\''+s.name+'\',\''+ds+'\')">修正</button></div>';
+      window._attStaff={id:s.id,name:s.name};
+      if(me.role==='admin'||me.salaryVisible){
+        html+='<button class="btn" onclick="openEditAttById()" style="margin-bottom:12px;">出勤修正</button>';
+      }
       });
     }
     html+='<div style="margin-top:12px;"><button class="btn" onclick="openAddSlot(\''+ds+'\')">＋ シフト枠を追加</button></div>';
@@ -770,9 +794,12 @@ async function doEditSlot(slotId){
 }
 async function openManageSlot(slotId,slotName,ds){
   const k=calY+'-'+calM,ents=EC[k]?.[slotId]||[];
-  const allPart=staff.filter(s=>s.staff_type==='part');
+  // Find slot to determine type
+  let slotType='part';
+  Object.values(SC[k]||{}).forEach(slots=>slots.forEach(s=>{if(s.id===slotId)slotType=s.staff_type;}));
+  const eligibleStaff=staff.filter(s=>s.staff_type===slotType);
   let mrows=ents.map(e=>'<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid #eee;"><span style="font-size:13px;font-weight:600;">'+(e.shift_staff?.name||'?')+'</span><button class="bsm br" onclick="adminRemEnt(\''+e.id+'\',\''+slotId+'\',\''+ds+'\')">外す</button></div>').join('');
-  const notIn=allPart.filter(s=>!ents.find(e=>e.staff_id===s.id));
+  const notIn=eligibleStaff.filter(s=>!ents.find(e=>e.staff_id===s.id));
   const addOpts=notIn.map(s=>'<option value="'+s.id+'">'+s.name+'</option>').join('');
   openM('<div class="mtit">'+slotName+' の管理</div>'
     +(mrows||'<p class="empty">参加者なし</p>')
@@ -789,6 +816,7 @@ async function adminAddEnt(slotId,ds){
   if(error){toast('追加に失敗しました','err');return;}
   toast('追加しました');closeM();await loadMonth(calY,calM);renderCal();
 }
+function openEditAttById(){openEditAtt(window._attStaff?.id||'',window._attStaff?.name||'','');}
 function openEditAtt(staffId,staffName,ds){
   openM('<div class="mtit">'+staffName+' の出勤修正 ('+ds.slice(5)+')</div>'
     +'<div class="fcol"><label style="font-size:12px;color:#555;">出勤時刻</label><input type="time" id="eain"/>'
@@ -797,11 +825,13 @@ function openEditAtt(staffId,staffName,ds){
     +'<textarea id="eanote" placeholder="メモ"></textarea></div>'
     +'<div class="mbtns"><button class="bsm bg" onclick="doEditAtt(\''+staffId+'\',\''+ds+'\')">保存</button><button class="bsm bgr" onclick="closeM()">キャンセル</button></div>');
 }
-async function doEditAtt(staffId,ds){
+async function doEditAtt(staffId){
+  const ds=document.getElementById('eads').value;
   const inT=document.getElementById('eain').value,outT=document.getElementById('eaout').value;
   const status=document.getElementById('east').value,note=document.getElementById('eanote').value;
+  if(!ds){toast('日付を選択してください','err');return;}
   await sb.from('attendance').upsert({staff_id:staffId,date:ds,clock_in:inT?ds+'T'+inT+':00+09:00':null,clock_out:outT?ds+'T'+outT+':00+09:00':null,status,admin_note:note},{onConflict:'staff_id,date'});
-  toast('修正しました');closeM();await loadMonth(calY,calM);renderCal();
+  toast('修正しました');closeM();await loadMonth(calY,calM);renderAtt();
 }
 
 // ── Clock in/out ───────────────────────────────────────────────────────────────
@@ -833,26 +863,76 @@ async function clockOut(){
 }
 
 // ── Attendance ─────────────────────────────────────────────────────────────────
+let attSelStaff=null; // selected staff for detail view
+
 async function renderAtt(){
   const wrap=document.getElementById('watt');
   wrap.innerHTML='<div class="loading"><span class="spin"></span>読み込み中…</div>';
   await loadMonth(calY,calM);
+  // Load leaves for this month
+  const from=calY+'-'+String(calM+1).padStart(2,'0')+'-01';
+  const to=calY+'-'+String(calM+1).padStart(2,'0')+'-'+new Date(calY,calM+1,0).getDate();
+  const{data:leavesData}=await sb.from('leave_requests').select('*').gte('date',from).lte('date',to).eq('status','approved');
   const am=AC[calY+'-'+calM]||{};
+  const mh=getMonthlyH(calY,calM,leavesData||[]);
   const dispStaff=me.canManage?staff:staff.filter(s=>s.id===me.id);
+
   let html='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">';
-  html+='<span style="font-weight:800;font-size:17px;color:#2c3e50;">'+calY+'年'+(calM+1)+'月 出勤記録</span>';
+  html+='<span style="font-weight:800;font-size:17px;color:#2c3e50;">'+calY+'年'+(calM+1)+'月</span>';
   html+='<div style="display:flex;gap:5px;"><button class="arr" onclick="attChM(-1)">‹</button><button class="arr" onclick="attChM(1)">›</button></div></div>';
-  dispStaff.forEach(s=>{
-    const rows=Object.entries(am).filter(([,dm])=>dm[s.id]).sort().map(([date,dm])=>{
-      const a=dm[s.id],h=ch(a.clock_in,a.clock_out),w=cw(h,s.wage||settings.wage_per_hour,a.clock_in,a.clock_out);
-      const sl=a.status==='late'?'<span style="color:#e67e22;font-size:10px;"> 遅刻</span>':a.status==='early_leave'?'<span style="color:#e67e22;font-size:10px;"> 早退</span>':a.status==='absent'?'<span style="color:#c0392b;font-size:10px;"> 休暇</span>':'';
-      return'<div class="arow"><span>'+date.slice(5)+sl+'</span><span>'+ft(a.clock_in)+'〜'+ft(a.clock_out)+'</span><span style="font-weight:600;">'+h+'h</span>'+(me.salaryVisible?'<span>¥'+w.toLocaleString()+'</span>':'')+'</div>';
-    }).join('');
-    const totalH=Math.round(Object.values(am).reduce((sum,dm)=>{const a=dm[s.id];return a?sum+ch(a.clock_in,a.clock_out):sum;},0)*10)/10;
-    const roleLabel=s.role==='owner'?'オーナー':s.role==='manager'?'店長':s.staff_type==='full'?'正社員':'バイト';
-    html+='<div class="card"><div style="display:flex;align-items:center;gap:7px;margin-bottom:9px;"><span class="av '+(s.staff_type==='full'?'avf':'avp')+'">'+s.name[0]+'</span><strong style="font-size:13px;">'+s.name+'</strong><span style="font-size:10px;color:#888;">'+roleLabel+'</span><span style="margin-left:auto;font-size:12px;color:#555;">'+totalH+'h</span></div>'+(rows||'<p class="empty" style="padding:6px 0;">記録なし</p>')+'</div>';
-  });
-  if(me.salaryVisible){
+
+  if(attSelStaff&&me.canManage){
+    // Detail view for selected staff
+    const s=staff.find(x=>x.id===attSelStaff);
+    if(s){
+      html+='<button class="bsm bgr" onclick="attSelStaff=null;renderAtt()" style="margin-bottom:12px;">← 一覧に戻る</button>';
+      const totalH=Math.round((mh[s.id]||0)*10)/10;
+      const roleLabel=s.role==='owner'?'オーナー':s.role==='manager'?'店長':s.staff_type==='full'?'正社員':'バイト';
+      const isPart=s.staff_type==='part';
+      const wage=s.wage||settings.wage_per_hour;
+      html+='<div class="card">';
+      html+='<div style="display:flex;align-items:center;gap:7px;margin-bottom:10px;">';
+      html+='<span class="av '+(isPart?'avp':'avf')+'">'+s.name[0]+'</span>';
+      html+='<strong style="font-size:15px;">'+s.name+'</strong><span style="font-size:11px;color:#888;">'+roleLabel+'</span>';
+      html+='<span style="margin-left:auto;font-size:14px;font-weight:700;color:#2c3e50;">合計 '+totalH+'h</span>';
+      html+='</div>';
+      if(me.salaryVisible){
+        if(isPart)html+='<div style="font-size:13px;color:#555;margin-bottom:8px;">推定給与: ¥'+(totalH*wage).toLocaleString()+'</div>';
+        else html+='<div style="font-size:13px;color:#555;margin-bottom:8px;">月給: ¥'+(s.monthly_salary||0).toLocaleString()+'</div>';
+      }
+      // Day-by-day records
+      const allDates=Object.entries(am).filter(([,dm])=>dm[s.id]).sort();
+      if(allDates.length===0){
+        html+='<p class="empty" style="padding:8px 0;">打刻記録なし</p>';
+      } else {
+        allDates.forEach(([date,dm])=>{
+          const a=dm[s.id],h=ch(a.clock_in,a.clock_out),w=cw(h,wage,a.clock_in,a.clock_out);
+          const sl=a.status==='late'?'<span style="color:#e67e22;font-size:10px;"> 遅刻</span>':a.status==='early_leave'?'<span style="color:#e67e22;font-size:10px;"> 早退</span>':a.status==='absent'?'<span style="color:#c0392b;font-size:10px;"> 休暇</span>':'';
+          html+='<div class="arow"><span>'+date.slice(5)+sl+'</span><span>'+ft(a.clock_in)+'〜'+ft(a.clock_out)+'</span><span style="font-weight:600;">'+h+'h</span>'+(me.salaryVisible?'<span style="color:#555;">¥'+w.toLocaleString()+'</span>':'')+'</div>';
+        });
+      }
+      html+='</div>';
+      if(me.role==='admin'||me.salaryVisible){
+      html+='<button class="btn" onclick="openEditAttById(window._attStaff.id,window._attStaff.name)" style="margin-bottom:12px;">出勤修正</button>';
+      }
+    }
+  } else {
+    // List view - click to see detail
+    dispStaff.forEach(s=>{
+      const totalH=Math.round((mh[s.id]||0)*10)/10;
+      const isPart=s.staff_type==='part';
+      const roleLabel=s.role==='owner'?'オーナー':s.role==='manager'?'店長':isPart?'バイト':'正社員';
+      html+='<div class="card" style="cursor:pointer;" onclick="attSelStaff=&quot;'+s.id+'&quot;;renderAtt()">';
+      html+='<div style="display:flex;align-items:center;gap:7px;">';
+      html+='<span class="av '+(isPart?'avp':'avf')+'">'+s.name[0]+'</span>';
+      html+='<div><strong style="font-size:14px;">'+s.name+'</strong><span style="font-size:11px;color:#888;margin-left:6px;">'+roleLabel+'</span></div>';
+      html+='<span style="margin-left:auto;font-size:13px;font-weight:700;color:#2c3e50;">'+totalH+'h</span>';
+      html+='<span style="color:#aaa;font-size:16px;margin-left:4px;">›</span>';
+      html+='</div></div>';
+    });
+  }
+
+  if(me.salaryVisible&&!attSelStaff){
     html+='<div class="card"><div class="stitle">📄 PDF出力</div><div class="fcol"><div style="display:flex;gap:8px;align-items:center;"><span style="font-size:12px;white-space:nowrap;">期間：</span><input type="date" id="pdff"/><span>〜</span><input type="date" id="pdft"/></div><button class="btn" onclick="exportPDF()">PDFを出力</button></div></div>';
   }
   wrap.innerHTML=html;
@@ -898,11 +978,15 @@ async function rejLeave(id){await sb.from('leave_requests').update({status:'reje
 async function renderSwap(){
   const wrap=document.getElementById('wswap');
   wrap.innerHTML='<div class="loading"><span class="spin"></span>読み込み中…</div>';
+  await loadMonth(calY,calM); // Ensure month data is loaded
   const{data}=await sb.from('shift_swap_requests').select('*,shift_staff(name),shift_slots!from_slot_id(date,slot_name,start_time,end_time)').order('created_at',{ascending:false});
   const swaps=(data||[]).filter(s=>me.canManage||s.staff_id===me.id);
   const k=calY+'-'+calM,sm=SC[k]||{},em=EC[k]||{};
   const mySlots=[];
-  Object.entries(sm).forEach(([date,slots])=>slots.forEach(slot=>{if((em[slot.id]||[]).find(e=>e.staff_id===me?.id))mySlots.push({...slot,date});}));
+  // Find slots this staff is in (works for both part and full time)
+  Object.entries(sm).forEach(([date,slots])=>slots.forEach(slot=>{
+    if((em[slot.id]||[]).find(e=>e.staff_id===me?.id))mySlots.push({...slot,date});
+  }));
   const sopts=mySlots.map(s=>'<option value="'+s.id+'">'+s.date+' '+s.slot_name+' '+s.start_time.slice(0,5)+'〜'+s.end_time.slice(0,5)+'</option>').join('');
   let html='<div style="font-weight:800;font-size:17px;color:#2c3e50;margin-bottom:12px;">🔄 換班申請</div>';
   html+='<div class="card"><div class="stitle">＋ 申請する</div><div class="fcol">'+(sopts?'<select id="swfrom"><option value="">外したいシフトを選択…</option>'+sopts+'</select>':'<p style="font-size:12px;color:#888;">参加中のシフトがありません</p>')+'<textarea id="swreason" placeholder="理由・希望（任意）"></textarea>'+(sopts?'<button class="btn" onclick="doSwap()">申請する</button>':'')+'</div></div>';
@@ -932,7 +1016,7 @@ async function rejSwap(id){await sb.from('shift_swap_requests').update({status:'
 async function renderAdmin(){
   const wrap=document.getElementById('wadmin');
   await loadMonth(calY,calM);
-  const mh=getMonthlyH(calY,calM);
+  const mh=getMonthlyH(calY,calM,[]);
   const isOwner=me.role==='admin'||me.srole==='owner';
   let html='';
 

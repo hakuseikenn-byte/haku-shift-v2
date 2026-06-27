@@ -23,8 +23,10 @@ html,body{height:100%;overflow:hidden;font-family:'Hiragino Kaku Gothic ProN','N
 #p-login{
   background:linear-gradient(135deg,#2c3e50 0%,#4a6741 100%);
   display:flex;align-items:center;justify-content:center;padding:20px;
+  z-index:30;
 }
 #p-login.show{display:flex;}
+#p-login:not(.show){display:none!important;}
 
 /* App pages sit below header */
 #p-cal,#p-attendance,#p-leave,#p-admin{

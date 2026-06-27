@@ -141,7 +141,7 @@ textarea{resize:vertical;min-height:60px;}
 <!-- HEADER -->
 <div id="app-header">
   <div style="display:flex;align-items:center;gap:6px;">
-    <span class="h-logo">Haku</span>
+    <span class="h-logo" style="font-size:12px;letter-spacing:1px;">Café La Petite Haku</span>
     <span class="h-user" id="h-user"></span>
   </div>
   <div class="h-nav">
@@ -215,7 +215,7 @@ const LEAVE_TYPES={paid:'有給休暇',sick:'病欠',mourning:'忌引き',unpaid
 let ADMIN_PW='haku2026';
 let me=null;
 let staff=[],settings={wage_per_hour:1100,max_hours_per_month:80,insurance_threshold_weekly:20};
-let calY=new Date().getFullYear(),calM=new Date().getMonth(),selDay=null;
+let calY=new Date().getFullYear(),calM=new Date().getMonth(),selDay=null,calView='month',weekOff=0;
 let slotsCache={},entriesCache={},attCache={};
 let todayAtt=null;
 
@@ -373,6 +373,17 @@ async function renderCal(){
       ${wkH>=settings.insurance_threshold_weekly*0.85?`<div class="warn">⚠ 週${wkH.toFixed(1)}h — 雇用保険加入基準（週${settings.insurance_threshold_weekly}h）に近づいています</div>`:''}
       <div style="text-align:right;margin-top:6px;"><button onclick="openSelfPwModal()" style="background:none;border:none;color:#aaa;font-size:10px;cursor:pointer;text-decoration:underline;">🔑 PW変更</button></div>
     </div>`;
+  }
+
+  // View tabs
+  html+=`<div class="vtabs">
+    <button class="vt${calView==='month'?' on':''}" onclick="switchView('month')">月</button>
+    <button class="vt${calView==='week'?' on':''}" onclick="switchView('week')">週</button>
+  </div>`;
+
+  if(calView==='week'){
+    wrap.innerHTML=html+buildWeekGrid();
+    return;
   }
 
   // Legend
@@ -943,6 +954,62 @@ async function saveSelfPw(){
   await sb.from('shift_staff').update({password:nw}).eq('id',me.id);
   staff=staff.map(s=>s.id===me.id?{...s,password:nw}:s);closeModal();toast('変更しました');
 }
+
+// ── Week view ─────────────────────────────────────────────────────────────────
+function buildWeekGrid(){
+  const today=new Date(),sw=new Date(today);
+  sw.setDate(today.getDate()-today.getDay()+weekOff*7);
+  const days=Array.from({length:7},(_,i)=>{const d=new Date(sw);d.setDate(d.getDate()+i);return d;});
+  const todayStr=fmtDate(today);
+  const key=`${calY}-${calM}`,slotMap=slotsCache[key]||{},entMap=entriesCache[key]||{};
+  let th=`<tr><th style="width:38px;font-size:10px;">時間</th>`;
+  days.forEach((d,i)=>{
+    const ds=fmtDate(d),isT=ds===todayStr;
+    th+=`<th style="${isT?'background:#d4af7a;color:#2c3e50;':''}font-size:10px;">
+      <div style="color:${i===0?'#f8d7da':i===6?'#cce5ff':'inherit'}">${DAYS_JP[i]}</div>
+      <div style="font-size:11px;">${d.getDate()}</div>
+    </th>`;
+  });
+  th+='</tr>';
+  let tb='';
+  for(let h=6;h<=23;h++){
+    tb+=`<tr><td style="background:#f8f6f2;font-weight:600;color:#555;text-align:center;font-size:10px;width:38px;">${String(h).padStart(2,'0')}</td>`;
+    days.forEach(d=>{
+      const ds=fmtDate(d);
+      const daySlots=(slotMap[ds]||[]);
+      let cell='';
+      daySlots.forEach(slot=>{
+        const sh=parseInt(slot.start_time)||0,eh=parseInt(slot.end_time)||0;
+        if(h<sh||h>=eh)return;
+        const ents=entMap[slot.id]||[];
+        const isMine=ents.some(e=>e.staff_id===me?.id);
+        const dispEnts=me.role==='admin'||me.role==='manager'?ents:ents.filter(e=>e.staff_id===me?.id);
+        const bg=isMine?'#d4af7a':slot.staff_type==='full'?'#cce5ff':'#d4edda';
+        const tc=isMine?'#2c3e50':slot.staff_type==='full'?'#004085':'#155724';
+        const names=dispEnts.map(e=>e.shift_staff?.name?.[0]||'?').join('');
+        cell+=`<div style="background:${bg};color:${tc};border-radius:3px;padding:1px 3px;font-size:9px;font-weight:600;margin-bottom:1px;">${slot.slot_name}${names?` ${names}`:''}</div>`;
+      });
+      tb+=`<td style="padding:2px;border:1px solid #eee;vertical-align:top;min-width:40px;">${cell}</td>`;
+    });
+    tb+='</tr>';
+  }
+  const weekStart=fmtDate(days[0]),weekEnd=fmtDate(days[6]);
+  return`<div>
+    <div class="mnav">
+      <button class="arr" onclick="chW(-1)">‹</button>
+      <span class="mtitle" style="font-size:13px;">${weekStart}〜${weekEnd.slice(5)}</span>
+      <div style="display:flex;gap:4px;">
+        <button class="today-btn" onclick="weekOff=0;renderCal()">今週</button>
+        <button class="arr" onclick="chW(1)">›</button>
+      </div>
+    </div>
+    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+      <table style="width:100%;border-collapse:collapse;min-width:320px;"><thead>${th}</thead><tbody>${tb}</tbody></table>
+    </div>
+  </div>`;
+}
+function switchView(v){calView=v;selDay=null;renderCal();}
+function chW(d){weekOff+=d;renderCal();}
 
 // ── Jump to date ─────────────────────────────────────────────────────────────
 function openJumpModal(){

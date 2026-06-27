@@ -468,7 +468,7 @@ async function renderCal(){
   html+=`<div class="leg">
     <div class="legitem"><div class="legdot" style="background:#d4edda;border:1px solid #c3e6cb;"></div>バイト枠</div>
     <div class="legitem"><div class="legdot" style="background:#cce5ff;border:1px solid #b8d4f0;"></div>正社員枠</div>
-    <div class="legitem"><div class="legdot" style="background:#2c5f2e;"></div>満員</div>
+    <div class="legitem"><div class="legdot" style="background:#e74c3c;"></div>満員</div>
     <div class="legitem"><div class="legdot" style="background:#d4af7a;"></div>自分</div>
   </div>`;
 
@@ -493,7 +493,7 @@ async function renderCal(){
       const ents=em[slot.id]||[];
       const isFull=ents.length>=slot.max_staff;
       const isMine=ents.some(e=>e.staff_id===me?.id);
-      let bg=isMine?'#d4af7a':isFull?'#2c5f2e':slot.staff_type==='full'?'#cce5ff':'#d4edda';
+      let bg=isMine?'#d4af7a':isFull?'#e74c3c':slot.staff_type==='full'?'#cce5ff':'#d4edda';
       let tc=isMine?'#2c3e50':isFull?'#fff':slot.staff_type==='full'?'#004085':'#155724';
       chips+=`<div class="chip" style="background:${bg};color:${tc};">${slot.slot_name} ${ents.length}/${slot.max_staff}</div>`;
     });
@@ -560,6 +560,7 @@ function buildDayPanel(day,sm,em,am,mh){
       let acts='';
       if(isAdmin){
         acts+=`<button class="bsm bd" onclick="openManageSlot('${slot.id}','${slot.slot_name}','${ds}')">管理</button>`;
+        acts+=` <button class="bsm bg" onclick="editSlot('${slot.id}','${ds}')">編集</button>`;
         acts+=` <button class="bsm br" onclick="delSlot('${slot.id}','${ds}')">削除</button>`;
       } else if(me.stype==='part'){
         if(myE)acts+=`<button class="lvbtn" onclick="leaveSlot('${myE.id}','${slot.id}','${ds}')">キャンセル</button>`;
@@ -584,6 +585,7 @@ function buildDayPanel(day,sm,em,am,mh){
       let acts='';
       if(isAdmin){
         acts+=`<button class="bsm bd" onclick="openManageSlot('${slot.id}','${slot.slot_name}','${ds}')">管理</button>`;
+        acts+=` <button class="bsm bg" onclick="editSlot('${slot.id}','${ds}')">編集</button>`;
         acts+=` <button class="bsm br" onclick="delSlot('${slot.id}','${ds}')">削除</button>`;
       } else if(me.stype==='full'){
         if(myE)acts+=`<button class="lvbtn" onclick="leaveSlot('${myE.id}','${slot.id}','${ds}')">キャンセル</button>`;
@@ -675,8 +677,9 @@ function buildWeek(sm,em,am){
       const isMine=ents.some(e=>e.staff_id===me?.id);
       const dispE=me.role==='admin'||me.role==='manager'?ents:ents.filter(e=>e.staff_id===me?.id);
       if(me.role==='staff'&&dispE.length===0)return;
-      const bg=isMine?'#d4af7a':slot.staff_type==='full'?'#cce5ff':'#d4edda';
-      const tc=isMine?'#2c3e50':slot.staff_type==='full'?'#004085':'#155724';
+      const isFilled=ents.length>=slot.max_staff;
+      const bg=isMine?'#d4af7a':isFilled?'#e74c3c':slot.staff_type==='full'?'#cce5ff':'#d4edda';
+      const tc=isMine?'#2c3e50':isFilled?'#fff':slot.staff_type==='full'?'#004085':'#155724';
       const border=isMine?'#c09050':slot.staff_type==='full'?'#90b8e0':'#90c8a0';
       const names=dispE.map(e=>e.shift_staff?.name?.[0]||'?').join('');
       html+=`<div style="position:absolute;top:${startMin}px;left:1px;right:1px;height:${Math.max(heightMin-2,14)}px;background:${bg};color:${tc};border-radius:4px;border-left:3px solid ${border};padding:2px 3px;overflow:hidden;font-size:9px;font-weight:700;z-index:1;cursor:pointer;" onclick="event.stopPropagation();weekSlotClick('${slot.id}','${ds}')">
@@ -723,7 +726,7 @@ function weekSlotClick(slotId,ds){
   
   let acts='';
   if(isAdmin){
-    acts='<button class="bsm bd" onclick="closeM();openManageSlot(window._wSlot.slotId,window._wSlot.sname,window._wSlot.ds)">管理</button>';
+    acts='<button class="bsm bd" onclick="closeM();openManageSlot(window._wSlot.slotId,window._wSlot.sname,window._wSlot.ds)">管理</button> <button class="bsm bg" onclick="closeM();editSlot(window._wSlot.slotId,window._wSlot.ds)">編集</button>';
     acts+=' <button class="bsm br" onclick="closeM();delSlot(window._wSlot.slotId,window._wSlot.ds)">削除</button>';
   } else {
     const canJoin=(slot.staff_type==='part'&&me.stype==='part')||(slot.staff_type==='full'&&me.stype==='full');
@@ -766,6 +769,33 @@ async function leaveSlot(entId,slotId,ds){
   if(!confirm('キャンセルしますか？'))return;
   await sb.from('slot_entries').delete().eq('id',entId);
   toast('キャンセルしました');await loadMonth(calY,calM);renderCal();
+}
+async function editSlot(slotId,ds){
+  const k=calY+'-'+calM;
+  let slot=null;
+  Object.values(SC[k]||{}).forEach(slots=>slots.forEach(s=>{if(s.id===slotId)slot=s;}));
+  if(!slot){toast('枠が見つかりません','err');return;}
+  window._wSlot={slotId,ds,sname:slot.slot_name};
+  openM('<div class="mtit">シフト枠を編集</div>'
+    +'<div class="fcol">'
+    +'<input type="text" id="el-name" value="'+slot.slot_name+'" placeholder="枠名"/>'
+    +'<select id="el-type"><option value="part"'+(slot.staff_type==='part'?' selected':'')+'>アルバイト枠</option><option value="full"'+(slot.staff_type==='full'?' selected':'')+'>正社員枠</option></select>'
+    +'<div style="display:flex;gap:8px;align-items:center;"><input type="time" id="el-s" value="'+slot.start_time.slice(0,5)+'"/><span>〜</span><input type="time" id="el-e" value="'+slot.end_time.slice(0,5)+'"/></div>'
+    +'<div style="display:flex;align-items:center;gap:8px;"><span style="font-size:13px;color:#555;white-space:nowrap;">定員：</span><input type="number" id="el-max" value="'+slot.max_staff+'" min="1" max="20"/></div>'
+    +'</div>'
+    +'<div class="mbtns"><button class="bsm bg" onclick="doEditSlot()">保存</button><button class="bsm bgr" onclick="closeM()">キャンセル</button></div>');
+}
+async function doEditSlot(){
+  const slotId=window._wSlot.slotId,ds=window._wSlot.ds;
+  const name=document.getElementById('el-name').value.trim();
+  const stype=document.getElementById('el-type').value;
+  const start=document.getElementById('el-s').value;
+  const end=document.getElementById('el-e').value;
+  const max=parseInt(document.getElementById('el-max').value)||2;
+  if(!name){toast('枠名を入力してください','err');return;}
+  const{error}=await sb.from('shift_slots').update({slot_name:name,staff_type:stype,start_time:start,end_time:end,max_staff:max}).eq('id',slotId);
+  if(error){toast('更新に失敗しました','err');return;}
+  toast('更新しました');closeM();await loadMonth(calY,calM);renderCal();
 }
 async function delSlot(slotId,ds){
   if(!confirm('この枠を削除しますか？'))return;

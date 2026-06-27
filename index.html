@@ -343,17 +343,22 @@ function getWeeklyH(staffId,y,m){
 function renderSlogin(){
   const el=document.getElementById('slogin');if(!el)return;
   if(staff.length===0){el.innerHTML='<p class="empty">スタッフが登録されていません</p>';return;}
-  const opts=staff.map(s=>{
+  let html='<div class="fcol">';
+  html+='<select id="ssel" style="font-size:14px;padding:11px;">';
+  html+='<option value="">スタッフを選択…</option>';
+  staff.forEach(s=>{
     const lbl=s.role==='manager'?' 【店長】':s.staff_type==='full'?' 【正社員】':'';
-    return '<option value="'+s.id+'">'+s.name+lbl+'</option>';
-  }).join('');
-  el.innerHTML='<div class="fcol">'
-    +'<select id="ssel" style="font-size:14px;padding:11px;">'
-    +'<option value="">スタッフを選択…</option>'+opts+'</select>'
-    +'<input type="password" id="spw" placeholder="パスワード（初期：0000）" onkeydown="if(event.key==='Enter')doStaffLogin()"/>'
-    +'<button class="btn" onclick="doStaffLogin()">ログイン</button>'
-    +'</div>';
+    html+='<option value="'+s.id+'">'+s.name+lbl+'</option>';
+  });
+  html+='</select>';
+  html+='<input type="password" id="spw" placeholder="パスワード（初期：0000）"/>';
+  html+='<button class="btn" onclick="doStaffLogin()">ログイン</button>';
+  html+='</div>';
+  el.innerHTML=html;
+  const spwEl=document.getElementById('spw');
+  if(spwEl)spwEl.addEventListener('keydown',function(e){if(e.key==='Enter')doStaffLogin();});
 }
+
 function doStaffLogin(){
   const id=document.getElementById('ssel').value,pw=document.getElementById('spw').value;
   if(!id){toast('スタッフを選択してください','err');return;}

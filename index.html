@@ -188,7 +188,7 @@ textarea{resize:vertical;min-height:60px;}
 const SBU='https://hqddrswyqmammuwwrvna.supabase.co';
 const SBK='sb_publishable_766-Q62xxyGNiARJhTg13A_lb7YxuEQ';
 const sb=supabase.createClient(SBU,SBK);
-const SLAT=34.6994118,SLNG=135.510767,SR=200;
+const SLAT=34.719172,SLNG=135.477891,SR=200;
 const DJP=['日','月','火','水','木','金','土'];
 const LT={paid:'有給休暇',sick:'病欠',mourning:'忌引き',unpaid:'無給休暇'};
 
@@ -376,11 +376,14 @@ function doStaffLogin(){
   if(isOwnerRole)myRole='admin';
   else if(isManagerRole||canManage)myRole='manager';
   const salaryVisible=isOwnerRole||isManagerRole;
+  const _isPart=s.staff_type==='part';
   me={id:s.id,name:s.name,role:myRole,stype:s.staff_type||'part',srole:s.role||'part',
-      canManage,salaryVisible,gpsReq:s.gps_required!==false};
+      canManage,salaryVisible,gpsReq:s.gps_required!==false,isPart:_isPart};
   const roleDisp=isOwnerRole?' 【オーナー】':isManagerRole?' 【店長】':s.staff_type==='full'?' 【正社員】':'';
   document.getElementById('huser').textContent=s.name+roleDisp;
   document.getElementById('nb-admin').style.display=canManage?'block':'none';
+  document.getElementById('nb-leave').style.display=(!_isPart||canManage)?'block':'none';
+  document.getElementById('nb-cancel').style.display=(_isPart||canManage)?'block':'none';
   showP('cal');renderCal();
 }
 function doAdminLogin(){
@@ -520,9 +523,8 @@ async function renderCal(){
       const avClass=isPart?'avp':'avf';
       let timeStr=isPart?'今週'+wkH+'h / 今月'+h+'h':'今月'+h+'h';
       let salStr='';
-      if(me.salaryVisible){
-        if(isPart)salStr=' ¥'+(h*(s.wage||settings.wage_per_hour)).toLocaleString();
-        else salStr=' 月給¥'+(s.monthly_salary||0).toLocaleString();
+      if(me.salaryVisible&&isPart){
+        salStr=' ¥'+(h*(s.wage||settings.wage_per_hour)).toLocaleString();
       }
       html+='<div style="margin-bottom:8px;">';
       html+='<div style="display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;margin-bottom:2px;">';
@@ -975,9 +977,8 @@ async function renderAtt(){
       html+='<strong style="font-size:15px;">'+s.name+'</strong><span style="font-size:11px;color:#888;">'+roleLabel+'</span>';
       html+='<span style="margin-left:auto;font-size:14px;font-weight:700;color:#2c3e50;">合計 '+totalH+'h</span>';
       html+='</div>';
-      if(me.salaryVisible){
-        if(isPart)html+='<div style="font-size:13px;color:#555;margin-bottom:8px;">推定給与: ¥'+(totalH*wage).toLocaleString()+'</div>';
-        else html+='<div style="font-size:13px;color:#555;margin-bottom:8px;">月給: ¥'+(s.monthly_salary||0).toLocaleString()+'</div>';
+      if(me.salaryVisible&&isPart){
+        html+='<div style="font-size:13px;color:#555;margin-bottom:8px;">推定給与: ¥'+(totalH*wage).toLocaleString()+'</div>';
       }
       // Day-by-day records
       const allDates=Object.entries(am).filter(([,dm])=>dm[s.id]).sort();
@@ -1132,10 +1133,10 @@ async function renderAdmin(){
     let info='';
     if(me.salaryVisible){
       if(isPart)info='時給¥'+s.wage+'　週最大'+(s.max_hours_per_week||20)+'h';
-      else info='月給¥'+(s.monthly_salary||0).toLocaleString()+'　月最大'+(s.max_hours||0)+'h';
+      info='月'+maxMon+'h所定勤務';
       if(isOwner)info+='　PW:'+(s.password||'0000');
     } else {
-      info=isPart?'週最大'+(s.max_hours_per_week||20)+'h':'月給制';
+      info='月'+maxMon+'h所定勤務';
     }
     const timeStr=isPart?'今週'+wkH+'h / 今月'+h+'h':'今月'+h+'h';
     html+='<div style="background:#f8f6f2;border-radius:10px;padding:10px 12px;margin-bottom:8px;">';

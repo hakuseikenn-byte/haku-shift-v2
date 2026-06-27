@@ -11,180 +11,151 @@
 html,body{height:100%;overflow:hidden;font-family:'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif;color:#222;background:#f5f3ef;}
 
 /* ===== PAGE SYSTEM ===== */
-/* Each page is fullscreen fixed. Only one shows at a time. */
-.page{
-  position:fixed;top:0;left:0;right:0;bottom:0;
-  overflow-y:auto;-webkit-overflow-scrolling:touch;
-  display:none;
-}
+.page{position:fixed;top:0;left:0;right:0;bottom:0;overflow-y:auto;-webkit-overflow-scrolling:touch;display:none;background:#f5f3ef;}
 .page.show{display:block;}
-
-/* Login page */
-#p-login{
-  background:linear-gradient(135deg,#2c3e50 0%,#4a6741 100%);
-  display:flex;align-items:center;justify-content:center;padding:20px;
-  z-index:30;
-}
+#p-login{background:linear-gradient(135deg,#2c3e50 0%,#4a6741 100%);display:none;align-items:center;justify-content:center;padding:20px;z-index:30;}
 #p-login.show{display:flex;}
-#p-login:not(.show){display:none!important;}
-
-/* App pages sit below header */
-#p-cal,#p-attendance,#p-leave,#p-admin{
-  top:52px;background:#f5f3ef;padding:14px 12px 80px;
-}
+#p-cal,#p-attendance,#p-leave,#p-swap,#p-admin{top:52px;}
 
 /* ===== HEADER ===== */
-#app-header{
-  position:fixed;top:0;left:0;right:0;height:52px;
-  background:#2c3e50;color:#fff;
-  display:none;align-items:center;justify-content:space-between;
-  padding:0 14px;z-index:100;
-}
+#app-header{position:fixed;top:0;left:0;right:0;height:52px;background:#2c3e50;color:#fff;display:none;align-items:center;justify-content:space-between;padding:0 12px;z-index:100;}
 #app-header.show{display:flex;}
-.h-logo{font-weight:800;font-size:18px;color:#d4af7a;letter-spacing:2px;}
-.h-user{font-size:12px;color:rgba(255,255,255,.6);margin-left:8px;}
-.h-nav{display:flex;gap:5px;align-items:center;}
-.h-btn{padding:5px 10px;background:transparent;border:1px solid rgba(255,255,255,.25);border-radius:6px;color:rgba(255,255,255,.7);font-size:12px;cursor:pointer;}
+.h-logo{font-weight:800;font-size:17px;color:#d4af7a;letter-spacing:2px;}
+.h-user{font-size:11px;color:rgba(255,255,255,.6);margin-left:6px;}
+.h-nav{display:flex;gap:4px;align-items:center;}
+.h-btn{padding:5px 8px;background:transparent;border:1px solid rgba(255,255,255,.25);border-radius:6px;color:rgba(255,255,255,.7);font-size:11px;cursor:pointer;}
 .h-btn.on{background:rgba(255,255,255,.18);color:#fff;border-color:rgba(255,255,255,.5);}
-.h-out{padding:5px 8px;background:transparent;border:none;color:rgba(255,255,255,.4);font-size:12px;cursor:pointer;}
+.h-out{padding:5px 6px;background:transparent;border:none;color:rgba(255,255,255,.4);font-size:11px;cursor:pointer;}
 
-/* ===== LOGIN CARD ===== */
-.login-card{background:#fff;border-radius:18px;padding:30px 24px;width:100%;max-width:370px;box-shadow:0 8px 32px rgba(0,0,0,.2);}
-.logo-wrap{text-align:center;margin-bottom:24px;}
-.logo-circle{display:block;width:52px;height:52px;line-height:52px;border-radius:50%;background:#2c3e50;color:#d4af7a;font-size:24px;font-weight:800;margin:0 auto 10px;}
-.logo-name{font-weight:700;font-size:16px;color:#2c3e50;letter-spacing:1px;display:block;}
-.logo-sub{font-size:12px;color:#888;margin-top:4px;letter-spacing:2px;display:block;}
-.tab-bar{display:flex;border-radius:8px;overflow:hidden;border:1px solid #e0e0e0;margin-bottom:18px;}
-.tab-btn{flex:1;padding:9px 0;background:#f8f6f2;border:none;cursor:pointer;font-size:13px;color:#666;font-weight:600;}
+/* ===== LOGIN ===== */
+.login-card{background:#fff;border-radius:18px;padding:28px 22px;width:100%;max-width:370px;box-shadow:0 8px 32px rgba(0,0,0,.2);}
+.logo-wrap{text-align:center;margin-bottom:22px;}
+.logo-circle{display:block;width:50px;height:50px;line-height:50px;border-radius:50%;background:#2c3e50;color:#d4af7a;font-size:22px;font-weight:800;margin:0 auto 10px;}
+.logo-name{font-weight:700;font-size:15px;color:#2c3e50;display:block;}
+.logo-sub{font-size:11px;color:#888;margin-top:3px;letter-spacing:2px;display:block;}
+.tab-bar{display:flex;border-radius:8px;overflow:hidden;border:1px solid #e0e0e0;margin-bottom:16px;}
+.tab-btn{flex:1;padding:8px 0;background:#f8f6f2;border:none;cursor:pointer;font-size:12px;color:#666;font-weight:600;}
 .tab-btn.on{background:#2c3e50;color:#fff;}
 .tab-pane{display:none;}
 .tab-pane.on{display:block;}
 
 /* ===== COMMON ===== */
-.card{background:#fff;border-radius:14px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:14px;}
-.sec-title{font-weight:800;font-size:15px;color:#2c3e50;margin-bottom:13px;}
-.form-col{display:flex;flex-direction:column;gap:11px;}
-input,select,textarea{padding:10px 12px;border-radius:8px;border:1px solid #d0d0d0;font-size:14px;outline:none;background:#fafafa;color:#222;width:100%;font-family:inherit;}
-textarea{resize:vertical;min-height:70px;}
-.btn{padding:12px 0;background:#2c3e50;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;width:100%;}
-.btn-sm{padding:5px 13px;border:none;border-radius:6px;font-size:12px;cursor:pointer;font-weight:700;}
+.wrap{max-width:520px;margin:0 auto;padding:14px 12px 80px;}
+.card{background:#fff;border-radius:14px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:12px;}
+.sec-title{font-weight:800;font-size:14px;color:#2c3e50;margin-bottom:12px;}
+.form-col{display:flex;flex-direction:column;gap:10px;}
+input,select,textarea{padding:9px 11px;border-radius:8px;border:1px solid #d0d0d0;font-size:14px;outline:none;background:#fafafa;color:#222;width:100%;font-family:inherit;}
+textarea{resize:vertical;min-height:60px;}
+.btn{padding:11px 0;background:#2c3e50;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;width:100%;}
+.btn-sm{padding:5px 11px;border:none;border-radius:6px;font-size:12px;cursor:pointer;font-weight:700;}
 .g{background:#2c5f2e;color:#fff;}
 .r{background:#c0392b;color:#fff;}
 .d{background:#2c3e50;color:#fff;}
 .gr{background:#ddd;color:#555;}
 .gold{background:#d4af7a;color:#2c3e50;}
-.empty{text-align:center;color:#999;font-size:13px;padding:16px 0;line-height:1.8;}
+.empty{text-align:center;color:#999;font-size:13px;padding:14px 0;line-height:1.8;}
+.av{width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;flex-shrink:0;}
+.av-full{background:#2c3e50;color:#d4af7a;}
+.av-part{background:#4a6741;color:#fff;}
+.prog-bg{height:5px;border-radius:99px;background:#eee;overflow:hidden;margin:5px 0;}
+.prog-fill{height:100%;border-radius:99px;}
+.warn{background:#fef9e7;border:1px solid #f0c040;border-radius:8px;padding:6px 10px;font-size:11px;color:#7d6608;margin-top:6px;}
+.badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;}
+.pending-b{background:#fef3cd;color:#856404;}
+.approved-b{background:#d4edda;color:#155724;}
+.rejected-b{background:#f8d7da;color:#721c24;}
 
-/* Progress */
-.prog-bg{height:6px;border-radius:99px;background:#eee;overflow:hidden;margin:6px 0;}
-.prog-fill{height:100%;border-radius:99px;transition:width .4s;}
-
-/* Avatar */
-.av{width:34px;height:34px;border-radius:50%;background:#2c3e50;color:#d4af7a;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;flex-shrink:0;}
-.av.sm{width:26px;height:26px;font-size:12px;}
-
-/* Clock banner */
-.clock-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;}
-.clock-in-btn{padding:10px 18px;background:#2c5f2e;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;}
-.clock-out-btn{padding:10px 18px;background:#c0392b;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;}
-
-/* View tabs */
-.view-tabs{display:flex;gap:4px;margin-bottom:14px;}
-.vt{flex:1;padding:8px 0;background:#fff;border:1px solid #ddd;border-radius:8px;font-size:13px;font-weight:600;color:#666;cursor:pointer;text-align:center;}
-.vt.on{background:#2c3e50;color:#fff;border-color:#2c3e50;}
-
-/* Month nav */
-.mnav{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
-.mtitle{font-weight:800;font-size:18px;color:#2c3e50;}
-.arr{background:none;border:1px solid #ddd;border-radius:6px;font-size:20px;cursor:pointer;color:#2c3e50;padding:2px 10px;line-height:1.4;}
-.today-btn{padding:4px 12px;background:#d4af7a;color:#2c3e50;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;}
-
-/* Calendar grid */
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:12px;}
-.dh{text-align:center;font-size:11px;font-weight:700;padding:5px 0;}
-.cd{border:1px solid #e8e8e8;border-radius:6px;padding:4px 3px 3px;min-height:58px;cursor:pointer;display:flex;flex-direction:column;background:#fff;}
+/* ===== CALENDAR ===== */
+.mnav{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.mtitle{font-weight:800;font-size:17px;color:#2c3e50;}
+.arr{background:none;border:1px solid #ddd;border-radius:6px;font-size:18px;cursor:pointer;color:#2c3e50;padding:2px 9px;line-height:1.4;}
+.today-btn{padding:3px 10px;background:#d4af7a;color:#2c3e50;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:10px;}
+.dh{text-align:center;font-size:10px;font-weight:700;padding:4px 0;}
+.cd{border:1px solid #e8e8e8;border-radius:6px;padding:3px 2px 2px;min-height:64px;cursor:pointer;display:flex;flex-direction:column;background:#fff;overflow:hidden;}
 .cd.sel{border-color:#2c3e50;box-shadow:0 0 0 2px #2c3e50;}
 .cd.tod{background:#fef9e7;}
-.cdn{font-size:12px;font-weight:700;line-height:1;margin-bottom:2px;}
-.chip{font-size:9px;padding:1px 3px;border-radius:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600;margin-bottom:1px;}
+.cdn{font-size:11px;font-weight:700;line-height:1;margin-bottom:2px;}
+.slot-chip{font-size:8px;padding:1px 3px;border-radius:3px;margin-bottom:1px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.slot-chip.part{background:#d4edda;color:#155724;}
+.slot-chip.full{background:#cce5ff;color:#004085;}
+.slot-chip.filled{background:#2c5f2e;color:#fff;}
+.slot-chip.mine{background:#d4af7a;color:#2c3e50;}
 
-/* Day panel */
-.dp-title{font-weight:800;font-size:16px;color:#2c3e50;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid #f0ede8;}
-.sr{margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid #f0ede8;}
-.sr:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0;}
-.sn{display:flex;align-items:center;gap:7px;font-weight:600;font-size:14px;color:#2c3e50;margin-bottom:7px;}
-.sbadge{display:inline-flex;align-items:center;gap:6px;border-radius:6px;padding:4px 10px;font-size:13px;font-weight:600;}
-.add-btn{background:none;border:1px dashed #bbb;border-radius:7px;color:#777;padding:5px 12px;font-size:13px;cursor:pointer;}
+/* ===== DAY PANEL ===== */
+.dp{background:#fff;border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:0 2px 10px rgba(0,0,0,.07);}
+.dp-title{font-weight:800;font-size:15px;color:#2c3e50;margin-bottom:12px;padding-bottom:7px;border-bottom:2px solid #f0ede8;}
 
-/* Week */
-.wk-grid{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-.wk-table{width:100%;border-collapse:collapse;min-width:480px;font-size:12px;}
-.wk-table th{background:#2c3e50;color:#fff;padding:6px 4px;text-align:center;font-weight:600;border:1px solid #3d5166;}
-.wk-table td{padding:4px;border:1px solid #e8e8e8;vertical-align:top;min-width:55px;background:#fff;}
-.wk-tc{background:#f8f6f2!important;font-weight:600;color:#555;text-align:center;font-size:11px;width:40px;}
-.wk-chip{border-radius:4px;padding:2px 4px;font-size:10px;font-weight:600;display:block;margin-bottom:1px;text-align:center;}
+/* Slot card */
+.slot-card{border-radius:10px;padding:10px 12px;margin-bottom:8px;border:1px solid #e0e0e0;}
+.slot-card.part-slot{background:#f0fff4;border-color:#c3e6cb;}
+.slot-card.full-slot{background:#f0f4ff;border-color:#b8d4f0;}
+.slot-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.slot-name{font-weight:700;font-size:13px;color:#2c3e50;}
+.slot-time{font-size:11px;color:#666;}
+.slot-capacity{font-size:11px;color:#888;}
+.slot-members{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px;min-height:22px;}
+.member-tag{display:flex;align-items:center;gap:4px;background:#fff;border:1px solid #ddd;border-radius:20px;padding:2px 8px;font-size:11px;font-weight:600;}
+.member-tag.me-tag{background:#d4af7a;border-color:#d4af7a;color:#2c3e50;}
+.empty-slot{color:#bbb;font-size:11px;font-style:italic;}
+.slot-actions{display:flex;gap:6px;flex-wrap:wrap;}
+.join-btn{padding:5px 14px;background:#2c5f2e;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;}
+.leave-btn{padding:5px 14px;background:#c0392b;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;}
+.full-badge{font-size:11px;color:#888;padding:5px 0;}
 
-/* Attendance */
-.att-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #eee;font-size:13px;}
-.att-row:last-child{border-bottom:none;}
+/* Clock banner */
+.clock-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;background:#fff;border-radius:12px;padding:12px 14px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,.06);}
+.clock-in-btn{padding:9px 16px;background:#2c5f2e;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;}
+.clock-out-btn{padding:9px 16px;background:#c0392b;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;}
 
-/* Warning */
-.warn{background:#fef9e7;border:1px solid #f0c040;border-radius:8px;padding:7px 10px;font-size:12px;color:#7d6608;margin-top:4px;}
-
-/* Leave */
-.lv-card{background:#f8f6f2;border-radius:10px;padding:12px 14px;margin-bottom:10px;}
-.lv-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;}
-.lv-badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;}
-.pending{background:#fef3cd;color:#856404;}
-.approved{background:#d4edda;color:#155724;}
-.rejected{background:#f8d7da;color:#721c24;}
-
-/* Staff card */
-.staff-card{background:#f8f6f2;border-radius:10px;padding:12px 14px;margin-bottom:10px;}
-.staff-card:last-child{margin-bottom:0;}
+/* Summary */
+.sum-card{background:#fff;border-radius:12px;padding:12px 14px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,.06);}
 
 /* Modal */
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:flex-end;justify-content:center;}
 .modal-bg.show{display:flex;}
-.modal-box{background:#fff;border-radius:18px 18px 0 0;padding:24px 20px 40px;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;}
-.modal-title{font-weight:800;font-size:16px;color:#2c3e50;margin-bottom:16px;}
-.modal-btns{display:flex;gap:8px;margin-top:16px;}
+.modal-box{background:#fff;border-radius:18px 18px 0 0;padding:22px 18px 40px;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;}
+.modal-title{font-weight:800;font-size:15px;color:#2c3e50;margin-bottom:14px;}
+.modal-btns{display:flex;gap:8px;margin-top:14px;}
 
 /* Toast */
-#toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);padding:10px 22px;border-radius:8px;color:#fff;font-size:14px;font-weight:600;z-index:999;box-shadow:0 4px 16px rgba(0,0,0,.2);display:none;white-space:nowrap;max-width:90vw;}
-
-/* Spinner */
+#toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);padding:9px 20px;border-radius:8px;color:#fff;font-size:13px;font-weight:600;z-index:999;box-shadow:0 4px 16px rgba(0,0,0,.2);display:none;white-space:nowrap;max-width:90vw;}
 @keyframes spin{to{transform:rotate(360deg);}}
-.spin{display:inline-block;width:16px;height:16px;border:2px solid #ddd;border-top-color:#2c3e50;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px;}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid #ddd;border-top-color:#2c3e50;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px;}
 .loading{text-align:center;color:#aaa;font-size:13px;padding:30px 0;}
 
-/* Setting row */
-.s-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
-.s-label{font-size:13px;color:#555;}
-.s-input{width:110px;}
+/* View tabs */
+.vtabs{display:flex;gap:4px;margin-bottom:12px;}
+.vt{flex:1;padding:7px 0;background:#fff;border:1px solid #ddd;border-radius:8px;font-size:12px;font-weight:600;color:#666;cursor:pointer;text-align:center;}
+.vt.on{background:#2c3e50;color:#fff;border-color:#2c3e50;}
+
+/* Legend */
+.legend{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
+.leg-item{display:flex;align-items:center;gap:4px;font-size:11px;color:#555;}
+.leg-dot{width:10px;height:10px;border-radius:3px;}
 </style>
 </head>
 <body>
-
 <div id="toast"></div>
 
-<!-- ===== HEADER ===== -->
+<!-- HEADER -->
 <div id="app-header">
-  <div style="display:flex;align-items:center;gap:8px;">
+  <div style="display:flex;align-items:center;gap:6px;">
     <span class="h-logo">Haku</span>
     <span class="h-user" id="h-user"></span>
   </div>
   <div class="h-nav">
     <button class="h-btn on" id="nb-cal" onclick="nav('cal')">📅</button>
     <button class="h-btn" id="nb-attendance" onclick="nav('attendance')">🕐</button>
-    <button class="h-btn" id="nb-leave" onclick="nav('leave')">📋</button>
+    <button class="h-btn" id="nb-leave" onclick="nav('leave')">🌿</button>
+    <button class="h-btn" id="nb-swap" onclick="nav('swap')">🔄</button>
     <button class="h-btn" id="nb-admin" style="display:none;" onclick="nav('admin')">⚙</button>
     <button class="h-out" onclick="logout()">退出</button>
   </div>
 </div>
 
-<!-- ===== LOGIN PAGE ===== -->
-<div id="p-login" class="page show">
+<!-- LOGIN -->
+<div id="p-login" class="page">
   <div class="login-card">
     <div class="logo-wrap">
       <span class="logo-circle">H</span>
@@ -202,6 +173,7 @@ textarea{resize:vertical;min-height:70px;}
     <div id="lt-reg" class="tab-pane">
       <div class="form-col">
         <input type="text" id="reg-name" placeholder="お名前"/>
+        <select id="reg-type"><option value="part">アルバイト</option><option value="full">正社員・店長</option></select>
         <input type="number" id="reg-wage" placeholder="時給（円）"/>
         <input type="number" id="reg-max" placeholder="月最大時間（空白=デフォルト）"/>
         <button class="btn" onclick="registerStaff()">登録する</button>
@@ -216,54 +188,44 @@ textarea{resize:vertical;min-height:70px;}
   </div>
 </div>
 
-<!-- ===== CAL PAGE ===== -->
-<div id="p-cal" class="page"></div>
+<!-- CAL -->
+<div id="p-cal" class="page"><div class="wrap" id="cal-wrap"></div></div>
+<!-- ATTENDANCE -->
+<div id="p-attendance" class="page"><div class="wrap" id="att-wrap"></div></div>
+<!-- LEAVE -->
+<div id="p-leave" class="page"><div class="wrap" id="leave-wrap"></div></div>
+<!-- SWAP -->
+<div id="p-swap" class="page"><div class="wrap" id="swap-wrap"></div></div>
+<!-- ADMIN -->
+<div id="p-admin" class="page"><div class="wrap" id="admin-wrap"></div></div>
 
-<!-- ===== ATTENDANCE PAGE ===== -->
-<div id="p-attendance" class="page"></div>
-
-<!-- ===== LEAVE PAGE ===== -->
-<div id="p-leave" class="page"></div>
-
-<!-- ===== ADMIN PAGE ===== -->
-<div id="p-admin" class="page"></div>
-
-<!-- ===== MODAL ===== -->
+<!-- MODAL -->
 <div id="modal-bg" class="modal-bg" onclick="if(event.target===this)closeModal()">
   <div class="modal-box" id="modal-box"></div>
 </div>
 
 <script>
-// ── Config ────────────────────────────────────────────────────────────────────
 const SB_URL='https://hqddrswyqmammuwwrvna.supabase.co';
 const SB_KEY='sb_publishable_766-Q62xxyGNiARJhTg13A_lb7YxuEQ';
 const sb=supabase.createClient(SB_URL,SB_KEY);
 const STORE_LAT=34.719172,STORE_LNG=135.477891,STORE_R=200;
-const CHIP_COLORS=['#2c5f2e','#2471a3','#7d3c98','#c0392b','#d4af7a','#1a5276'];
 const DAYS_JP=['日','月','火','水','木','金','土'];
 const LEAVE_TYPES={paid:'有給休暇',sick:'病欠',mourning:'忌引き',unpaid:'無給休暇'};
 
-// ── State ─────────────────────────────────────────────────────────────────────
 let ADMIN_PW='haku2026';
-let me=null; // {id,name,role}
-let staff=[],shiftTypes=[],settings={wage_per_hour:1100,max_hours_per_month:80,insurance_threshold_weekly:20};
-let calY=new Date().getFullYear(),calM=new Date().getMonth();
-let calView='month',selDay=null,weekOff=0;
-let schedCache={},attCache={};
+let me=null;
+let staff=[],settings={wage_per_hour:1100,max_hours_per_month:80,insurance_threshold_weekly:20};
+let calY=new Date().getFullYear(),calM=new Date().getMonth(),selDay=null;
+let slotsCache={},entriesCache={},attCache={};
 let todayAtt=null;
-let curPage='login';
 
-// ── Toast ─────────────────────────────────────────────────────────────────────
-function toast(msg,type='ok'){
-  const el=document.getElementById('toast');
-  el.textContent=msg;el.style.background=type==='err'?'#c0392b':'#2c5f2e';
-  el.style.display='block';clearTimeout(window._tt);
-  window._tt=setTimeout(()=>el.style.display='none',2800);
-}
+// ── Toast & Modal ─────────────────────────────────────────────────────────────
+function toast(msg,type='ok'){const el=document.getElementById('toast');el.textContent=msg;el.style.background=type==='err'?'#c0392b':'#2c5f2e';el.style.display='block';clearTimeout(window._tt);window._tt=setTimeout(()=>el.style.display='none',2800);}
+function openModal(html){document.getElementById('modal-box').innerHTML=html;document.getElementById('modal-bg').classList.add('show');}
+function closeModal(){document.getElementById('modal-bg').classList.remove('show');}
 
-// ── Page navigation ───────────────────────────────────────────────────────────
+// ── Page nav ──────────────────────────────────────────────────────────────────
 function showPage(name){
-  // Hide all pages
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('show'));
   if(name==='login'){
     document.getElementById('p-login').classList.add('show');
@@ -272,90 +234,85 @@ function showPage(name){
     document.getElementById('p-'+name).classList.add('show');
     document.getElementById('app-header').classList.add('show');
     document.querySelectorAll('.h-btn').forEach(b=>b.classList.remove('on'));
-    const nb=document.getElementById('nb-'+name);
-    if(nb)nb.classList.add('on');
+    const nb=document.getElementById('nb-'+name);if(nb)nb.classList.add('on');
   }
-  curPage=name;
 }
-
 function nav(name){
   showPage(name);
   if(name==='cal')renderCal();
-  else if(name==='attendance')renderAttendance();
+  else if(name==='attendance')renderAtt();
   else if(name==='leave')renderLeave();
+  else if(name==='swap')renderSwap();
   else if(name==='admin')renderAdmin();
 }
-
-// ── Modal ─────────────────────────────────────────────────────────────────────
-function openModal(html){document.getElementById('modal-box').innerHTML=html;document.getElementById('modal-bg').classList.add('show');}
-function closeModal(){document.getElementById('modal-bg').classList.remove('show');}
+function ltab(name){
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('on',['staff','reg','admin'][i]===name));
+  document.querySelectorAll('.tab-pane').forEach((p,i)=>p.classList.toggle('on',['lt-staff','lt-reg','lt-admin'][i]==='lt-'+name));
+}
 
 // ── Utils ─────────────────────────────────────────────────────────────────────
 function fmtTime(ts){if(!ts)return'--:--';const d=new Date(ts);return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');}
 function fmtDate(d){return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
 function calcH(i,o){if(!i||!o)return 0;return Math.round((new Date(o)-new Date(i))/36000)/100;}
 function calcHFromTime(s,e){const[sh,sm]=s.split(':').map(Number);const[eh,em]=e.split(':').map(Number);return Math.max(0,(eh*60+em-sh*60-sm)/60);}
-function calcWage(h,wage,i,o){
-  if(!i||!o||h<=0)return h*wage;
-  let total=0;let cur=new Date(i);const out=new Date(o);
-  while(cur<out){const next=new Date(Math.min(cur.getTime()+3600000,out.getTime()));const hr=cur.getHours();total+=(next-cur)/3600000*wage*(hr>=22||hr<5?1.25:1);cur=next;}
-  return Math.round(total);
-}
-function dist(la1,lo1,la2,lo2){const R=6371000,dLa=(la2-la1)*Math.PI/180,dLo=(lo2-lo1)*Math.PI/180;const a=Math.sin(dLa/2)**2+Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(dLo/2)**2;return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));}
+function calcWage(h,wage,i,o){if(!i||!o||h<=0)return h*wage;let t=0;let c=new Date(i);const out=new Date(o);while(c<out){const n=new Date(Math.min(c.getTime()+3600000,out.getTime()));const hr=c.getHours();t+=(n-c)/3600000*wage*(hr>=22||hr<5?1.25:1);c=n;}return Math.round(t);}
+function distM(la1,lo1,la2,lo2){const R=6371000,dLa=(la2-la1)*Math.PI/180,dLo=(lo2-lo1)*Math.PI/180;const a=Math.sin(dLa/2)**2+Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(dLo/2)**2;return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));}
 
-// ── Data ──────────────────────────────────────────────────────────────────────
-async function loadAll(){await Promise.all([loadStaff(),loadSettings(),loadShiftTypes()]);}
+// ── Data loaders ──────────────────────────────────────────────────────────────
+async function loadAll(){await Promise.all([loadStaff(),loadSettings()]);}
 async function loadStaff(){const{data}=await sb.from('shift_staff').select('*').order('created_at');staff=data||[];renderStaffLoginArea();}
 async function loadSettings(){const{data}=await sb.from('shift_settings').select('*').eq('id',1).single();if(data){settings=data;if(data.admin_password)ADMIN_PW=data.admin_password;}}
-async function loadShiftTypes(){const{data}=await sb.from('shift_types').select('*').order('start_time');shiftTypes=data||[];}
-async function loadSched(y,m){
+
+async function loadMonthData(y,m){
   const from=`${y}-${String(m+1).padStart(2,'0')}-01`,to=`${y}-${String(m+1).padStart(2,'0')}-${new Date(y,m+1,0).getDate()}`;
-  const{data}=await sb.from('schedules').select('*').gte('date',from).lte('date',to);
-  const map={};(data||[]).forEach(r=>{if(!map[r.date])map[r.date]={};map[r.date][r.staff_id]=r;});
-  schedCache[`${y}-${m}`]=map;
-}
-async function loadAtt(y,m){
-  const from=`${y}-${String(m+1).padStart(2,'0')}-01`,to=`${y}-${String(m+1).padStart(2,'0')}-${new Date(y,m+1,0).getDate()}`;
-  const{data}=await sb.from('attendance').select('*').gte('date',from).lte('date',to);
-  const map={};(data||[]).forEach(r=>{if(!map[r.date])map[r.date]={};map[r.date][r.staff_id]=r;});
-  attCache[`${y}-${m}`]=map;
-  if(me&&me.role==='staff'){todayAtt=(attCache[`${y}-${m}`][fmtDate(new Date())]||{})[me.id]||null;}
+  const key=`${y}-${m}`;
+  const[slotsRes,entriesRes,attRes]=await Promise.all([
+    sb.from('shift_slots').select('*').gte('date',from).lte('date',to).order('start_time'),
+    sb.from('slot_entries').select('*,shift_staff(id,name,staff_type)').gte('created_at',from+'T00:00:00').lte('created_at',to+'T23:59:59'),
+    sb.from('attendance').select('*').gte('date',from).lte('date',to)
+  ]);
+  // slots by date
+  const slotMap={};
+  (slotsRes.data||[]).forEach(s=>{if(!slotMap[s.date])slotMap[s.date]=[];slotMap[s.date].push(s);});
+  slotsCache[key]=slotMap;
+  // entries by slot_id
+  const entMap={};
+  (entriesRes.data||[]).forEach(e=>{if(!entMap[e.slot_id])entMap[e.slot_id]=[];entMap[e.slot_id].push(e);});
+  entriesCache[key]=entMap;
+  // attendance by date+staff
+  const attMap={};
+  (attRes.data||[]).forEach(a=>{if(!attMap[a.date])attMap[a.date]={};attMap[a.date][a.staff_id]=a;});
+  attCache[key]=attMap;
+  if(me&&me.role!=='admin'){todayAtt=(attCache[key][fmtDate(new Date())]||{})[me.id]||null;}
 }
 
 function getMonthlyHours(y,m){
-  const sm=schedCache[`${y}-${m}`]||{},am=attCache[`${y}-${m}`]||{};
-  const res={};staff.forEach(s=>res[s.id]=0);
-  Object.entries(am).forEach(([date,dm])=>Object.entries(dm).forEach(([sid,a])=>{if(a.clock_in&&a.clock_out)res[sid]=(res[sid]||0)+calcH(a.clock_in,a.clock_out);}));
-  Object.entries(sm).forEach(([date,dm])=>Object.entries(dm).forEach(([sid,sc])=>{if(!(am[date]||{})[sid]){const st=shiftTypes.find(t=>t.id===sc.shift_type_id);const h=sc.custom_start&&sc.custom_end?calcHFromTime(sc.custom_start,sc.custom_end):st?calcHFromTime(st.start_time,st.end_time):0;res[sid]=(res[sid]||0)+h;}}));
+  const key=`${y}-${m}`,am=attCache[key]||{},res={};
+  staff.forEach(s=>res[s.id]=0);
+  Object.values(am).forEach(dm=>Object.entries(dm).forEach(([sid,a])=>{if(a.clock_in&&a.clock_out)res[sid]=(res[sid]||0)+calcH(a.clock_in,a.clock_out);}));
   return res;
 }
 
-// ── Login tab ─────────────────────────────────────────────────────────────────
-function ltab(name){
-  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('on',['staff','reg','admin'][i]===name));
-  document.querySelectorAll('.tab-pane').forEach((p,i)=>p.classList.toggle('on',['lt-staff','lt-reg','lt-admin'][i]==='lt-'+name));
-}
+// ── Auth ──────────────────────────────────────────────────────────────────────
 function renderStaffLoginArea(){
   const el=document.getElementById('staff-login-area');if(!el)return;
-  if(staff.length===0){el.innerHTML='<p class="empty">まだスタッフが登録されていません。<br>「新規登録」から追加してください。</p>';return;}
+  if(staff.length===0){el.innerHTML='<p class="empty">まだスタッフが登録されていません。</p>';return;}
   el.innerHTML=`<div class="form-col">
-    <select id="st-sel" style="font-size:15px;padding:12px;">
+    <select id="st-sel" style="font-size:14px;padding:11px;">
       <option value="">スタッフを選択…</option>
-      ${staff.map(s=>`<option value="${s.id}">${s.name}</option>`).join('')}
+      ${staff.map(s=>`<option value="${s.id}">${s.name}${s.staff_type==='full'?' 【正社員】':''}</option>`).join('')}
     </select>
     <input type="password" id="st-pw" placeholder="パスワード（初期：0000）" onkeydown="if(event.key==='Enter')staffLogin()"/>
     <button class="btn" onclick="staffLogin()">ログイン</button>
   </div>`;
 }
 function staffLogin(){
-  const id=document.getElementById('st-sel').value;
-  const pw=document.getElementById('st-pw').value;
+  const id=document.getElementById('st-sel').value,pw=document.getElementById('st-pw').value;
   if(!id){toast('スタッフを選択してください','err');return;}
   const s=staff.find(x=>x.id===id);
-  if(!s){toast('スタッフが見つかりません','err');return;}
-  if(pw!==(s.password||'0000')){toast('パスワードが違います','err');return;}
-  me={id:s.id,name:s.name,role:'staff'};
-  document.getElementById('h-user').textContent=s.name;
+  if(!s||(pw!==(s.password||'0000'))){toast('パスワードが違います','err');return;}
+  me={id:s.id,name:s.name,role:'staff',staffType:s.staff_type||'part'};
+  document.getElementById('h-user').textContent=s.name+(s.staff_type==='full'?' 【正社員】':'');
   document.getElementById('nb-admin').style.display='none';
   showPage('cal');renderCal();
 }
@@ -369,260 +326,325 @@ function adminLogin(){
 }
 async function registerStaff(){
   const name=document.getElementById('reg-name').value.trim();
+  const stype=document.getElementById('reg-type').value;
   const wage=parseInt(document.getElementById('reg-wage').value)||settings.wage_per_hour;
   const maxH=parseInt(document.getElementById('reg-max').value)||settings.max_hours_per_month;
   if(!name){toast('名前を入力してください','err');return;}
   if(staff.find(s=>s.name===name)){toast('同じ名前が既にあります','err');return;}
-  const{data,error}=await sb.from('shift_staff').insert({name,wage,max_hours:maxH}).select().single();
+  const{data,error}=await sb.from('shift_staff').insert({name,staff_type:stype,wage,max_hours:maxH}).select().single();
   if(error){toast('登録に失敗しました','err');return;}
   staff.push(data);renderStaffLoginArea();
   document.getElementById('reg-name').value='';toast(`${name} を登録しました`);ltab('staff');
 }
-function logout(){
-  me=null;selDay=null;
-  document.getElementById('adm-pw').value='';
-  renderStaffLoginArea();
-  showPage('login');
-}
+function logout(){me=null;selDay=null;document.getElementById('adm-pw').value='';renderStaffLoginArea();showPage('login');}
 
 // ── CALENDAR ──────────────────────────────────────────────────────────────────
 async function renderCal(){
-  const el=document.getElementById('p-cal');
-  el.innerHTML='<div class="loading"><span class="spin"></span>読み込み中…</div>';
-  await Promise.all([loadSched(calY,calM),loadAtt(calY,calM)]);
+  const wrap=document.getElementById('cal-wrap');
+  wrap.innerHTML='<div class="loading"><span class="spin"></span>読み込み中…</div>';
+  await loadMonthData(calY,calM);
+  const key=`${calY}-${calM}`,slotMap=slotsCache[key]||{},entMap=entriesCache[key]||{},attMap=attCache[key]||{};
   const mh=getMonthlyHours(calY,calM);
   let html='';
 
-  // Clock banner (staff only)
-  if(me.role==='staff'){
+  // Clock banner
+  if(me.role!=='admin'){
     const a=todayAtt;
     if(!a||!a.clock_in){
-      html+=`<div class="clock-bar card"><div style="font-size:13px;color:#555;">本日未出勤</div><button class="clock-in-btn" onclick="clockIn()">出勤 🟢</button></div>`;
+      html+=`<div class="clock-bar"><div style="font-size:12px;color:#555;">本日未出勤</div><button class="clock-in-btn" onclick="clockIn()">出勤 🟢</button></div>`;
     } else if(!a.clock_out){
-      html+=`<div class="clock-bar card"><div style="font-size:13px;color:#555;">出勤中 <strong style="color:#2c3e50">${fmtTime(a.clock_in)}〜</strong></div><button class="clock-out-btn" onclick="clockOut()">退勤 🔴</button></div>`;
+      html+=`<div class="clock-bar"><div style="font-size:12px;color:#555;">出勤中 <strong>${fmtTime(a.clock_in)}〜</strong></div><button class="clock-out-btn" onclick="clockOut()">退勤 🔴</button></div>`;
     } else {
-      html+=`<div class="clock-bar card"><div style="font-size:13px;color:#555;">本日 <strong style="color:#2c3e50">${fmtTime(a.clock_in)}〜${fmtTime(a.clock_out)}</strong></div><span style="font-size:12px;color:#888;">退勤済み</span></div>`;
+      html+=`<div class="clock-bar"><div style="font-size:12px;color:#555;"><strong>${fmtTime(a.clock_in)}〜${fmtTime(a.clock_out)}</strong> 退勤済</div><span style="font-size:11px;color:#aaa;">お疲れ様！</span></div>`;
     }
-    // Hours summary
+    // Summary
     const myS=staff.find(s=>s.id===me.id);
-    const myH=Math.round((mh[me.id]||0)*10)/10;
-    const max=myS?.max_hours||settings.max_hours_per_month;
-    const wage=myS?.wage||settings.wage_per_hour;
-    const pct=Math.min(myH/max*100,100);
-    const fc=pct>90?'#c0392b':pct>70?'#e67e22':'#2c5f2e';
+    const myH=Math.round((mh[me.id]||0)*10)/10,max=myS?.max_hours||settings.max_hours_per_month,wage=myS?.wage||settings.wage_per_hour;
+    const pct=Math.min(myH/max*100,100),fc=pct>90?'#c0392b':pct>70?'#e67e22':'#2c5f2e';
     const wkH=myH/(new Date(calY,calM+1,0).getDate()/7);
-    html+=`<div class="card">
-      <div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="font-size:13px;color:#666;">今月の勤務時間</span><span style="font-size:14px;font-weight:600;color:#2c3e50;">${myH}h / ${max}h</span></div>
+    html+=`<div class="sum-card">
+      <div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:12px;color:#666;">今月の勤務時間</span><span style="font-size:13px;font-weight:600;color:#2c3e50;">${myH}h / ${max}h</span></div>
       <div class="prog-bg"><div class="prog-fill" style="width:${pct}%;background:${fc};"></div></div>
-      <div style="display:flex;justify-content:space-between;"><span style="font-size:13px;color:#666;">推定給与</span><span style="font-size:14px;font-weight:600;color:#2c3e50;">¥${(myH*wage).toLocaleString()}</span></div>
-      ${wkH>=settings.insurance_threshold_weekly*0.85?`<div class="warn" style="margin-top:8px;">⚠ 週${wkH.toFixed(1)}h — 雇用保険加入基準（週${settings.insurance_threshold_weekly}h）に近づいています</div>`:''}
-      <div style="text-align:right;margin-top:8px;"><button onclick="openSelfPwModal()" style="background:none;border:none;color:#aaa;font-size:11px;cursor:pointer;text-decoration:underline;">🔑 パスワード変更</button></div>
+      <div style="display:flex;justify-content:space-between;"><span style="font-size:12px;color:#666;">推定給与</span><span style="font-size:13px;font-weight:600;color:#2c3e50;">¥${(myH*wage).toLocaleString()}</span></div>
+      ${wkH>=settings.insurance_threshold_weekly*0.85?`<div class="warn">⚠ 週${wkH.toFixed(1)}h — 雇用保険加入基準（週${settings.insurance_threshold_weekly}h）に近づいています</div>`:''}
+      <div style="text-align:right;margin-top:6px;"><button onclick="openSelfPwModal()" style="background:none;border:none;color:#aaa;font-size:10px;cursor:pointer;text-decoration:underline;">🔑 PW変更</button></div>
     </div>`;
   }
 
-  // View tabs
-  html+=`<div class="view-tabs">
-    <button class="vt${calView==='month'?' on':''}" onclick="switchView('month')">月</button>
-    <button class="vt${calView==='week'?' on':''}" onclick="switchView('week')">週</button>
+  // Legend
+  html+=`<div class="legend">
+    <div class="leg-item"><div class="leg-dot" style="background:#d4edda;border:1px solid #c3e6cb;"></div>アルバイト枠</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#cce5ff;border:1px solid #b8d4f0;"></div>正社員枠</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#2c5f2e;"></div>埋まった枠</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#d4af7a;"></div>自分のシフト</div>
   </div>`;
 
-  // Calendar
-  if(calView==='month') html+=buildMonthGrid(mh);
-  else html+=buildWeekGrid();
+  // Month nav
+  const dim=new Date(calY,calM+1,0).getDate(),fdow=new Date(calY,calM,1).getDay(),todayStr=fmtDate(new Date());
+  html+=`<div class="mnav">
+    <button class="arr" onclick="chM(-1)">‹</button>
+    <span class="mtitle">${calY}年${calM+1}月</span>
+    <div style="display:flex;gap:4px;"><button class="today-btn" onclick="goToday()">今日</button><button class="arr" onclick="chM(1)">›</button></div>
+  </div>`;
 
-  // Day panel
-  if(calView==='month'&&selDay) html+=buildDayPanel(selDay,mh);
-
-  // Admin summary
-  if(me.role==='admin'){
-    html+=`<div class="card"><div class="sec-title">今月のスタッフ時間</div>`;
-    staff.forEach(s=>{
-      const h=Math.round((mh[s.id]||0)*10)/10,max=s.max_hours||settings.max_hours_per_month;
-      const pct=Math.min(h/max*100,100);
-      html+=`<div style="margin-bottom:10px;">
-        <div style="display:flex;align-items:center;gap:7px;font-weight:600;font-size:13px;margin-bottom:3px;"><span class="av sm">${s.name[0]}</span>${s.name}</div>
-        <div class="prog-bg"><div class="prog-fill" style="width:${pct}%;background:${pct>90?'#c0392b':'#2c5f2e'};"></div></div>
-        <div style="font-size:12px;color:#555;">${h}h / ${max}h　¥${(h*(s.wage||settings.wage_per_hour)).toLocaleString()}</div>
-      </div>`;
-    });
-    html+=`</div>`;
-  }
-
-  el.innerHTML=html;
-}
-
-function buildMonthGrid(mh){
-  const dim=new Date(calY,calM+1,0).getDate(),fdow=new Date(calY,calM,1).getDay();
-  const todayStr=fmtDate(new Date()),key=`${calY}-${calM}`;
-  const sm=schedCache[key]||{},am=attCache[key]||{};
+  // Grid
   let g=DAYS_JP.map((d,i)=>`<div class="dh" style="color:${i===0?'#c0392b':i===6?'#2471a3':'#555'}">${d}</div>`).join('');
   for(let i=0;i<fdow;i++)g+='<div></div>';
   for(let day=1;day<=dim;day++){
-    const dow=(fdow+day-1)%7;
-    const ds=`${calY}-${String(calM+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const dow=(fdow+day-1)%7,ds=`${calY}-${String(calM+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
     const isSel=selDay===day,isToday=ds===todayStr;
-    const dispStaff=me.role==='admin'?staff:staff.filter(s=>s.id===me.id);
+    const daySlots=slotMap[ds]||[];
     let chips='';
-    dispStaff.forEach((s,idx)=>{
-      const sc=(sm[ds]||{})[s.id],at=(am[ds]||{})[s.id];
-      if(!sc&&!at)return;
-      const st=sc?shiftTypes.find(t=>t.id===sc.shift_type_id):null;
-      const startT=at?.clock_in?fmtTime(at.clock_in):sc?.custom_start||st?.start_time||'';
-      const endT=at?.clock_out?fmtTime(at.clock_out):sc?.custom_end||st?.end_time||'';
-      const color=CHIP_COLORS[idx%CHIP_COLORS.length];
-      const label=me.role==='admin'?`${s.name[0]} ${startT.slice(0,5)}`:`${startT.slice(0,5)}〜${endT.slice(0,5)}`;
-      chips+=`<div class="chip" style="background:${color};color:#fff;">${label}</div>`;
+    daySlots.forEach(slot=>{
+      const ents=entMap[slot.id]||[];
+      const isFull=ents.length>=slot.max_staff;
+      const isMine=ents.some(e=>e.staff_id===me?.id);
+      const cls=isMine?'mine':isFull?'filled':slot.staff_type==='full'?'full':'part';
+      chips+=`<div class="slot-chip ${cls}">${slot.slot_name} ${ents.length}/${slot.max_staff}</div>`;
+    });
+    // Full-time attendance/leave
+    const dayAtt=attMap[ds]||{};
+    staff.filter(s=>s.staff_type==='full').forEach(s=>{
+      const a=dayAtt[s.id];
+      if(a&&a.status==='absent')chips+=`<div class="slot-chip" style="background:#f8d7da;color:#721c24;">${s.name[0]}休</div>`;
     });
     g+=`<button class="cd${isSel?' sel':''}${isToday?' tod':''}" onclick="selDate(${day})">
       <span class="cdn" style="color:${isSel?'#2c3e50':dow===0?'#c0392b':dow===6?'#2471a3':'#222'}">${day}</span>
       ${chips}
     </button>`;
   }
-  return`<div>
-    <div class="mnav">
-      <button class="arr" onclick="chM(-1)">‹</button>
-      <span class="mtitle">${calY}年${calM+1}月</span>
-      <div style="display:flex;gap:4px;">
-        <button class="today-btn" onclick="goToday()">今日</button>
-        <button class="arr" onclick="chM(1)">›</button>
-      </div>
-    </div>
-    <div class="cal-grid">${g}</div>
-  </div>`;
-}
+  html+=`<div class="cal-grid">${g}</div>`;
 
-function buildWeekGrid(){
-  const today=new Date(),sw=new Date(today);
-  sw.setDate(today.getDate()-today.getDay()+weekOff*7);
-  const days=Array.from({length:7},(_,i)=>{const d=new Date(sw);d.setDate(d.getDate()+i);return d;});
-  const todayStr=fmtDate(today),key=`${calY}-${calM}`;
-  const sm=schedCache[key]||{},am=attCache[key]||{};
-  let th=`<tr><th style="width:40px;">時間</th>`;
-  days.forEach((d,i)=>{const ds=fmtDate(d),isT=ds===todayStr;th+=`<th style="${isT?'background:#d4af7a;color:#2c3e50;':''}"><div style="font-size:10px;">${DAYS_JP[i]}</div><div>${d.getDate()}</div></th>`;});
-  th+='</tr>';
-  let tb='';
-  for(let h=6;h<=23;h++){
-    tb+=`<tr><td class="wk-tc">${String(h).padStart(2,'0')}</td>`;
-    days.forEach(d=>{
-      const ds=fmtDate(d),dsc=sm[ds]||{},dac=am[ds]||{};
-      let cell='';
-      const dispStaff=me.role==='admin'?staff:staff.filter(s=>s.id===me.id);
-      dispStaff.forEach((s,idx)=>{
-        const sc=dsc[s.id],at=dac[s.id];
-        if(!sc&&!at)return;
-        const st=sc?shiftTypes.find(t=>t.id===sc.shift_type_id):null;
-        const sT=at?.clock_in?fmtTime(at.clock_in):sc?.custom_start||st?.start_time||'';
-        const eT=at?.clock_out?fmtTime(at.clock_out):sc?.custom_end||st?.end_time||'';
-        const sh=parseInt(sT)||0,eh=parseInt(eT)||0;
-        if(h>=sh&&h<eh)cell+=`<span class="wk-chip" style="background:${CHIP_COLORS[idx%CHIP_COLORS.length]};color:#fff;">${s.name[0]}</span>`;
+  // Day panel
+  if(selDay){
+    const ds=`${calY}-${String(calM+1).padStart(2,'0')}-${String(selDay).padStart(2,'0')}`;
+    const daySlots=slotMap[ds]||[],dayAtt=attMap[ds]||{};
+    html+=`<div class="dp"><div class="dp-title">${calM+1}月${selDay}日</div>`;
+
+    if(daySlots.length===0&&me.role!=='admin') html+='<p class="empty">この日はシフト枠がありません</p>';
+
+    // Part-time slots
+    const partSlots=daySlots.filter(s=>s.staff_type==='part');
+    const fullSlots=daySlots.filter(s=>s.staff_type==='full');
+
+    if(partSlots.length>0){
+      html+=`<div style="font-size:12px;font-weight:700;color:#2c5f2e;margin-bottom:8px;">🟩 アルバイト枠</div>`;
+      partSlots.forEach(slot=>{
+        const ents=entMap[slot.id]||[];
+        const isFull=ents.length>=slot.max_staff;
+        const myEntry=ents.find(e=>e.staff_id===me?.id);
+        const members=ents.map(e=>`<span class="member-tag${e.staff_id===me?.id?' me-tag':''}">${e.shift_staff?.name||'?'}</span>`).join('');
+        let acts='';
+        if(me.role==='admin'){
+          acts+=`<button class="btn-sm d" onclick="openManageSlotModal('${slot.id}','${slot.slot_name}')">管理</button>`;
+          acts+=` <button class="btn-sm r" onclick="deleteSlot('${slot.id}','${ds}')">削除</button>`;
+        } else if(me.staffType==='part'){
+          if(myEntry) acts+=`<button class="leave-btn" onclick="leaveSlot('${myEntry.id}','${slot.id}','${ds}')">キャンセル</button>`;
+          else if(!isFull) acts+=`<button class="join-btn" onclick="joinSlot('${slot.id}','${ds}')">参加する</button>`;
+          else acts+=`<span class="full-badge">満員</span>`;
+        }
+        html+=`<div class="slot-card part-slot">
+          <div class="slot-header"><span class="slot-name">${slot.slot_name}</span><span class="slot-time">${slot.start_time.slice(0,5)}〜${slot.end_time.slice(0,5)}</span></div>
+          <div style="font-size:11px;color:#888;margin-bottom:6px;">定員 ${slot.max_staff}人　残り ${Math.max(0,slot.max_staff-ents.length)}人</div>
+          <div class="slot-members">${members||'<span class="empty-slot">まだ誰も入っていません</span>'}</div>
+          <div class="slot-actions">${acts}</div>
+        </div>`;
       });
-      tb+=`<td>${cell}</td>`;
-    });
-    tb+='</tr>';
-  }
-  return`<div>
-    <div class="mnav">
-      <button class="arr" onclick="chW(-1)">‹</button>
-      <span class="mtitle" style="font-size:14px;">${fmtDate(days[0])} 〜 ${fmtDate(days[6])}</span>
-      <div style="display:flex;gap:4px;">
-        <button class="today-btn" onclick="weekOff=0;renderCal()">今週</button>
-        <button class="arr" onclick="chW(1)">›</button>
-      </div>
-    </div>
-    <div class="wk-grid"><table class="wk-table"><thead>${th}</thead><tbody>${tb}</tbody></table></div>
-  </div>`;
-}
+    }
 
-function buildDayPanel(day,mh){
-  const ds=`${calY}-${String(calM+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`,key=`${calY}-${calM}`;
-  const dsc=(schedCache[key]||{})[ds]||{},dac=(attCache[key]||{})[ds]||{};
-  const dispStaff=me.role==='admin'?staff:staff.filter(s=>s.id===me.id);
-  let rows=dispStaff.map(s=>{
-    const sc=dsc[s.id],at=dac[s.id],canEdit=me.role==='admin'||me.id===s.id;
-    const h=Math.round((mh[s.id]||0)*10)/10,max=s.max_hours||settings.max_hours_per_month;
-    const st=sc?shiftTypes.find(t=>t.id===sc.shift_type_id):null;
-    let sInfo='',aInfo='',acts='';
-    if(sc){const lbl=sc.custom_start?`${sc.custom_start}〜${sc.custom_end}`:st?`${st.name} ${st.start_time}〜${st.end_time}`:'';sInfo=`<span class="sbadge" style="background:#eaf4e8;color:#2c5f2e;margin-right:6px;">📅 ${lbl}</span>`;}
-    if(at&&at.clock_in){const st2=at.status==='late'?'⚠遅刻':at.status==='early_leave'?'⚠早退':'';aInfo=`<span class="sbadge" style="background:#e8f4fd;color:#2471a3;">🕐 ${fmtTime(at.clock_in)}〜${at.clock_out?fmtTime(at.clock_out):'退勤待'} ${st2}</span>`;}
-    if(canEdit&&!sc)acts+=`<button class="add-btn" onclick="openAddSched('${s.id}','${ds}')">＋ シフト追加</button>`;
-    if(canEdit&&sc)acts+=`<button class="btn-sm gr" onclick="delSched('${sc.id}','${ds}')">削除</button>`;
-    if(me.role==='admin'&&at)acts+=` <button class="btn-sm d" onclick="openEditAtt('${at.id}','${s.name}')">出勤修正</button>`;
-    return`<div class="sr">
-      <div class="sn"><span class="av sm">${s.name[0]}</span>${s.name}<span style="font-size:11px;color:#888;margin-left:3px;">${h}h/${max}h</span></div>
-      <div style="margin-bottom:6px;">${sInfo}${aInfo||(!sc?'<span style="color:#bbb;font-size:12px;">シフトなし</span>':'')}</div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;">${acts}</div>
-    </div>`;
-  }).join('');
-  return`<div class="card"><div class="dp-title">${calM+1}月${day}日</div>${rows}</div>`;
+    if(fullSlots.length>0){
+      html+=`<div style="font-size:12px;font-weight:700;color:#2471a3;margin-bottom:8px;margin-top:10px;">🟦 正社員枠</div>`;
+      fullSlots.forEach(slot=>{
+        const ents=entMap[slot.id]||[];
+        const isFull=ents.length>=slot.max_staff;
+        const myEntry=ents.find(e=>e.staff_id===me?.id);
+        const members=ents.map(e=>`<span class="member-tag${e.staff_id===me?.id?' me-tag':''}">${e.shift_staff?.name||'?'}</span>`).join('');
+        let acts='';
+        if(me.role==='admin'){
+          acts+=`<button class="btn-sm d" onclick="openManageSlotModal('${slot.id}','${slot.slot_name}')">管理</button>`;
+          acts+=` <button class="btn-sm r" onclick="deleteSlot('${slot.id}','${ds}')">削除</button>`;
+        } else if(me.staffType==='full'){
+          if(myEntry) acts+=`<button class="leave-btn" onclick="leaveSlot('${myEntry.id}','${slot.id}','${ds}')">キャンセル</button>`;
+          else if(!isFull) acts+=`<button class="join-btn" onclick="joinSlot('${slot.id}','${ds}')">参加する</button>`;
+          else acts+=`<span class="full-badge">満員</span>`;
+        }
+        html+=`<div class="slot-card full-slot">
+          <div class="slot-header"><span class="slot-name">${slot.slot_name}</span><span class="slot-time">${slot.start_time.slice(0,5)}〜${slot.end_time.slice(0,5)}</span></div>
+          <div style="font-size:11px;color:#888;margin-bottom:6px;">定員 ${slot.max_staff}人　残り ${Math.max(0,slot.max_staff-ents.length)}人</div>
+          <div class="slot-members">${members||'<span class="empty-slot">まだ誰も入っていません</span>'}</div>
+          <div class="slot-actions">${acts}</div>
+        </div>`;
+      });
+    }
+
+    // Full-time status (admin only)
+    if(me.role==='admin'){
+      const fullStaff=staff.filter(s=>s.staff_type==='full');
+      if(fullStaff.length>0){
+        html+=`<div style="font-size:12px;font-weight:700;color:#555;margin-bottom:8px;margin-top:10px;">正社員 出勤状況</div>`;
+        fullStaff.forEach(s=>{
+          const a=dayAtt[s.id];
+          const st=a?a.status==='absent'?'休暇':a.clock_in&&a.clock_out?`${fmtTime(a.clock_in)}〜${fmtTime(a.clock_out)}`:a.clock_in?`${fmtTime(a.clock_in)}〜出勤中`:'未打刻':'予定なし';
+          html+=`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f0ede8;font-size:13px;">
+            <span class="av av-full">${s.name[0]}</span>${s.name}
+            <span style="margin-left:auto;color:#555;font-size:12px;">${st}</span>
+            <button class="btn-sm d" onclick="openEditAttModal('${s.id}','${s.name}','${ds}')">修正</button>
+          </div>`;
+        });
+      }
+      html+=`<div style="margin-top:12px;"><button class="btn" onclick="openAddSlotModal('${ds}')">＋ シフト枠を追加</button></div>`;
+    }
+    html+='</div>';
+  }
+
+  // Admin monthly summary
+  if(me.role==='admin'){
+    html+=`<div class="card"><div class="sec-title">今月のスタッフ時間</div>`;
+    staff.forEach(s=>{
+      const h=Math.round((mh[s.id]||0)*10)/10,max=s.max_hours||settings.max_hours_per_month;
+      const pct=Math.min(h/max*100,100);
+      html+=`<div style="margin-bottom:8px;">
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;margin-bottom:2px;">
+          <span class="av ${s.staff_type==='full'?'av-full':'av-part'}" style="width:22px;height:22px;font-size:10px;">${s.name[0]}</span>
+          ${s.name}<span style="font-size:10px;color:#888;">${s.staff_type==='full'?'正社員':'バイト'}</span>
+          <span style="margin-left:auto;font-size:11px;color:#555;">${h}h/¥${(h*(s.wage||settings.wage_per_hour)).toLocaleString()}</span>
+        </div>
+        <div class="prog-bg"><div class="prog-fill" style="width:${pct}%;background:${pct>90?'#c0392b':'#2c5f2e'};"></div></div>
+      </div>`;
+    });
+    html+='</div>';
+  }
+
+  wrap.innerHTML=html;
 }
 
 function selDate(d){selDay=selDay===d?null:d;renderCal();}
-async function chM(delta){calM+=delta;if(calM>11){calM=0;calY++;}if(calM<0){calM=11;calY--;}selDay=null;await renderCal();}
-function chW(d){weekOff+=d;renderCal();}
-function switchView(v){calView=v;selDay=null;renderCal();}
-function goToday(){const n=new Date();calY=n.getFullYear();calM=n.getMonth();selDay=n.getDate();weekOff=0;renderCal();}
+async function chM(d){calM+=d;if(calM>11){calM=0;calY++;}if(calM<0){calM=11;calY--;}selDay=null;await renderCal();}
+function goToday(){const n=new Date();calY=n.getFullYear();calM=n.getMonth();selDay=n.getDate();renderCal();}
 
-// ── Shift schedule ────────────────────────────────────────────────────────────
-function openAddSched(staffId,ds){
-  const opts=shiftTypes.map(t=>`<option value="${t.id}">${t.name} ${t.start_time}〜${t.end_time}</option>`).join('');
-  openModal(`<div class="modal-title">シフト追加</div>
+// ── Slot actions ──────────────────────────────────────────────────────────────
+async function joinSlot(slotId,ds){
+  const{error}=await sb.from('slot_entries').insert({slot_id:slotId,staff_id:me.id,status:'confirmed'});
+  if(error){toast('参加できませんでした','err');return;}
+  toast('シフトに参加しました！');await loadMonthData(calY,calM);renderCal();
+}
+async function leaveSlot(entryId,slotId,ds){
+  if(!confirm('シフトをキャンセルしますか？\n※換班が必要な場合は換班申請をしてください。'))return;
+  await sb.from('slot_entries').delete().eq('id',entryId);
+  toast('キャンセルしました');await loadMonthData(calY,calM);renderCal();
+}
+async function deleteSlot(slotId,ds){
+  if(!confirm('この枠を削除しますか？参加者も全員削除されます。'))return;
+  await sb.from('shift_slots').delete().eq('id',slotId);
+  toast('削除しました');await loadMonthData(calY,calM);renderCal();
+}
+
+// ── Add slot modal ────────────────────────────────────────────────────────────
+function openAddSlotModal(ds){
+  openModal(`<div class="modal-title">シフト枠を追加 (${ds})</div>
     <div class="form-col">
-      <select id="ms-type"><option value="custom">カスタム時間</option>${opts}</select>
-      <div id="ms-custom">
-        <div style="display:flex;gap:8px;"><input type="time" id="ms-s" value="09:00"/><span style="align-self:center;">〜</span><input type="time" id="ms-e" value="17:00"/></div>
+      <input type="text" id="sl-name" placeholder="枠名（例：早番、遅番）"/>
+      <select id="sl-type"><option value="part">アルバイト枠</option><option value="full">正社員枠</option></select>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <input type="time" id="sl-s" value="09:00"/>
+        <span>〜</span>
+        <input type="time" id="sl-e" value="13:00"/>
       </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:13px;color:#555;white-space:nowrap;">定員：</span>
+        <input type="number" id="sl-max" value="2" min="1" max="20"/>
+      </div>
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;">
+        <input type="checkbox" id="sl-repeat"/> 今月の同じ曜日に繰り返す
+      </label>
     </div>
     <div class="modal-btns">
-      <button class="btn-sm g" onclick="confirmSched('${staffId}','${ds}')">追加</button>
+      <button class="btn-sm g" onclick="confirmAddSlot('${ds}')">追加</button>
       <button class="btn-sm gr" onclick="closeModal()">キャンセル</button>
     </div>`);
-  document.getElementById('ms-type').addEventListener('change',function(){
-    document.getElementById('ms-custom').style.display=this.value==='custom'?'block':'none';
-  });
-  document.getElementById('ms-custom').style.display='block';
 }
-async function confirmSched(sid,ds){
-  const tv=document.getElementById('ms-type').value;
-  let payload={staff_id:sid,date:ds,status:'scheduled'};
-  if(tv==='custom'){payload.custom_start=document.getElementById('ms-s').value;payload.custom_end=document.getElementById('ms-e').value;}
-  else payload.shift_type_id=tv;
-  const{error}=await sb.from('schedules').upsert(payload,{onConflict:'staff_id,date'});
+async function confirmAddSlot(ds){
+  const name=document.getElementById('sl-name').value.trim();
+  const stype=document.getElementById('sl-type').value;
+  const start=document.getElementById('sl-s').value;
+  const end=document.getElementById('sl-e').value;
+  const max=parseInt(document.getElementById('sl-max').value)||2;
+  const repeat=document.getElementById('sl-repeat').checked;
+  if(!name){toast('枠名を入力してください','err');return;}
+
+  let dates=[ds];
+  if(repeat){
+    const baseDate=new Date(ds);const dow=baseDate.getDay();
+    const dim=new Date(calY,calM+1,0).getDate();
+    dates=[];
+    for(let d=1;d<=dim;d++){
+      const dd=new Date(calY,calM,d);
+      if(dd.getDay()===dow)dates.push(fmtDate(dd));
+    }
+  }
+  const inserts=dates.map(d=>({date:d,slot_name:name,staff_type:stype,start_time:start,end_time:end,max_staff:max}));
+  const{error}=await sb.from('shift_slots').insert(inserts);
   if(error){toast('追加に失敗しました','err');return;}
-  toast('シフトを追加しました');closeModal();await loadSched(calY,calM);renderCal();
-}
-async function delSched(id,ds){
-  if(!confirm('シフトを削除しますか？'))return;
-  await sb.from('schedules').delete().eq('id',id);
-  toast('削除しました');await loadSched(calY,calM);renderCal();
+  toast(`${inserts.length}件追加しました`);closeModal();await loadMonthData(calY,calM);renderCal();
 }
 
-// ── Attendance edit (admin) ───────────────────────────────────────────────────
-function openEditAtt(attId,name){
-  openModal(`<div class="modal-title">${name} の出勤修正</div>
+// ── Manage slot modal (admin) ─────────────────────────────────────────────────
+async function openManageSlotModal(slotId,slotName){
+  const key=`${calY}-${calM}`,ents=entriesCache[key]?.[slotId]||[];
+  const allPart=staff.filter(s=>s.staff_type==='part');
+  const memberRows=ents.map(e=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid #eee;">
+      <span style="font-size:13px;font-weight:600;">${e.shift_staff?.name||'?'}</span>
+      <button class="btn-sm r" onclick="adminRemoveEntry('${e.id}','${slotId}')">外す</button>
+    </div>`).join('');
+  const notInSlot=allPart.filter(s=>!ents.find(e=>e.staff_id===s.id));
+  const addOpts=notInSlot.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+  openModal(`<div class="modal-title">${slotName} の管理</div>
+    <div style="margin-bottom:12px;">${memberRows||'<p class="empty">参加者なし</p>'}</div>
+    ${addOpts?`<div style="display:flex;gap:8px;margin-top:8px;">
+      <select id="add-staff-sel" style="flex:1;">${addOpts}</select>
+      <button class="btn-sm g" onclick="adminAddEntry('${slotId}')">追加</button>
+    </div>`:''}
+    <div class="modal-btns"><button class="btn-sm gr" onclick="closeModal()">閉じる</button></div>`);
+}
+async function adminRemoveEntry(entId,slotId){
+  await sb.from('slot_entries').delete().eq('id',entId);
+  toast('外しました');closeModal();await loadMonthData(calY,calM);renderCal();
+}
+async function adminAddEntry(slotId){
+  const sid=document.getElementById('add-staff-sel').value;
+  if(!sid)return;
+  const{error}=await sb.from('slot_entries').insert({slot_id:slotId,staff_id:sid,status:'confirmed'});
+  if(error){toast('追加に失敗しました','err');return;}
+  toast('追加しました');closeModal();await loadMonthData(calY,calM);renderCal();
+}
+
+// ── Edit attendance modal ─────────────────────────────────────────────────────
+function openEditAttModal(staffId,staffName,ds){
+  openModal(`<div class="modal-title">${staffName} の出勤修正 (${ds})</div>
     <div class="form-col">
-      <label style="font-size:13px;color:#555;">出勤時刻</label><input type="time" id="ea-in"/>
-      <label style="font-size:13px;color:#555;">退勤時刻</label><input type="time" id="ea-out"/>
-      <select id="ea-st"><option value="normal">通常</option><option value="late">遅刻</option><option value="early_leave">早退</option><option value="absent">欠勤</option></select>
-      <textarea id="ea-note" placeholder="メモ（任意）"></textarea>
+      <label style="font-size:12px;color:#555;">出勤時刻</label><input type="time" id="ea-in"/>
+      <label style="font-size:12px;color:#555;">退勤時刻</label><input type="time" id="ea-out"/>
+      <select id="ea-st"><option value="normal">通常</option><option value="late">遅刻</option><option value="early_leave">早退</option><option value="absent">休暇・欠勤</option></select>
+      <textarea id="ea-note" placeholder="メモ"></textarea>
     </div>
     <div class="modal-btns">
-      <button class="btn-sm g" onclick="saveAttEdit('${attId}')">保存</button>
+      <button class="btn-sm g" onclick="saveAttEdit('${staffId}','${ds}')">保存</button>
       <button class="btn-sm gr" onclick="closeModal()">キャンセル</button>
     </div>`);
 }
-async function saveAttEdit(id){
+async function saveAttEdit(staffId,ds){
   const inT=document.getElementById('ea-in').value,outT=document.getElementById('ea-out').value;
   const status=document.getElementById('ea-st').value,note=document.getElementById('ea-note').value;
-  const today=fmtDate(new Date());
-  const{error}=await sb.from('attendance').update({clock_in:inT?`${today}T${inT}:00+09:00`:null,clock_out:outT?`${today}T${outT}:00+09:00`:null,status,admin_note:note}).eq('id',id);
-  if(error){toast('保存に失敗しました','err');return;}
-  toast('修正しました');closeModal();await loadAtt(calY,calM);renderCal();
+  const payload={staff_id:staffId,date:ds,clock_in:inT?`${ds}T${inT}:00+09:00`:null,clock_out:outT?`${ds}T${outT}:00+09:00`:null,status,admin_note:note};
+  await sb.from('attendance').upsert(payload,{onConflict:'staff_id,date'});
+  toast('修正しました');closeModal();await loadMonthData(calY,calM);renderCal();
 }
 
 // ── Clock in/out ──────────────────────────────────────────────────────────────
 async function clockIn(){
   const today=fmtDate(new Date());
-  const doClockIn=async(lat,lng)=>{
+  const doIn=async(lat,lng)=>{
     const{data:ex}=await sb.from('attendance').select('*').eq('staff_id',me.id).eq('date',today).single();
     if(ex&&ex.clock_in){toast('既に出勤済みです','err');return;}
     const{data,error}=await sb.from('attendance').upsert({staff_id:me.id,date:today,clock_in:new Date().toISOString(),clock_in_lat:lat,clock_in_lng:lng,status:'normal'},{onConflict:'staff_id,date'}).select().single();
@@ -631,84 +653,77 @@ async function clockIn(){
   };
   try{
     const pos=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{timeout:8000}));
-    const d=dist(pos.coords.latitude,pos.coords.longitude,STORE_LAT,STORE_LNG);
-    if(d>STORE_R){toast(`店舗から${Math.round(d)}m離れています（上限${STORE_R}m）`,'err');return;}
-    await doClockIn(pos.coords.latitude,pos.coords.longitude);
-  }catch(e){
-    if(e.code===1){toast('位置情報の許可が必要です','err');return;}
-    await doClockIn(null,null);toast('出勤打刻しました（GPS取得失敗）');
-  }
+    if(distM(pos.coords.latitude,pos.coords.longitude,STORE_LAT,STORE_LNG)>STORE_R){toast(`店舗から離れすぎています`,'err');return;}
+    await doIn(pos.coords.latitude,pos.coords.longitude);
+  }catch(e){if(e.code===1){toast('位置情報の許可が必要です','err');return;}await doIn(null,null);}
 }
 async function clockOut(){
   if(!todayAtt){toast('出勤記録がありません','err');return;}
-  const now=new Date(),today=fmtDate(now);
-  let status='normal';
-  const sc=(schedCache[`${calY}-${calM}`]||{})[today]?.[me.id];
-  if(sc){
-    const st=shiftTypes.find(t=>t.id===sc.shift_type_id);
-    const endT=sc.custom_end||st?.end_time;
-    if(endT){const[eh,em]=endT.split(':').map(Number);const exp=new Date(now);exp.setHours(eh,em,0);if(now<exp)status='early_leave';}
-    const startT=sc.custom_start||st?.start_time;
-    if(startT&&todayAtt.clock_in){const[sh,sm2]=startT.split(':').map(Number);const exp=new Date(now);exp.setHours(sh,sm2,0);if(new Date(todayAtt.clock_in)>new Date(exp.getTime()+5*60000))status='late';}
-  }
+  const now=new Date();
   try{
     const pos=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{timeout:8000}));
-    await sb.from('attendance').update({clock_out:now.toISOString(),clock_out_lat:pos.coords.latitude,clock_out_lng:pos.coords.longitude,status}).eq('id',todayAtt.id);
-  }catch{
-    await sb.from('attendance').update({clock_out:now.toISOString(),status}).eq('id',todayAtt.id);
-  }
-  todayAtt={...todayAtt,clock_out:now.toISOString(),status};
-  toast('退勤打刻しました 🔴');renderCal();
+    await sb.from('attendance').update({clock_out:now.toISOString(),clock_out_lat:pos.coords.latitude,clock_out_lng:pos.coords.longitude}).eq('id',todayAtt.id);
+  }catch{await sb.from('attendance').update({clock_out:now.toISOString()}).eq('id',todayAtt.id);}
+  todayAtt={...todayAtt,clock_out:now.toISOString()};toast('退勤打刻しました 🔴');renderCal();
 }
 
 // ── ATTENDANCE ────────────────────────────────────────────────────────────────
-async function renderAttendance(){
-  const el=document.getElementById('p-attendance');
-  el.innerHTML='<div class="loading"><span class="spin"></span>読み込み中…</div>';
-  await loadAtt(calY,calM);
+async function renderAtt(){
+  const wrap=document.getElementById('att-wrap');
+  wrap.innerHTML='<div class="loading"><span class="spin"></span>読み込み中…</div>';
+  await loadMonthData(calY,calM);
   const am=attCache[`${calY}-${calM}`]||{};
   const dispStaff=me.role==='admin'?staff:staff.filter(s=>s.id===me.id);
-  let html=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-    <span style="font-weight:800;font-size:18px;color:#2c3e50;">${calY}年${calM+1}月 出勤記録</span>
-    <div style="display:flex;gap:6px;"><button class="arr" onclick="attChM(-1)">‹</button><button class="arr" onclick="attChM(1)">›</button></div>
+  let html=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+    <span style="font-weight:800;font-size:17px;color:#2c3e50;">${calY}年${calM+1}月 出勤記録</span>
+    <div style="display:flex;gap:5px;"><button class="arr" onclick="attChM(-1)">‹</button><button class="arr" onclick="attChM(1)">›</button></div>
   </div>`;
   dispStaff.forEach(s=>{
-    const rows=Object.entries(am).filter(([,dm])=>dm[s.id]).map(([date,dm])=>{
+    const rows=Object.entries(am).filter(([,dm])=>dm[s.id]).sort().map(([date,dm])=>{
       const a=dm[s.id],h=calcH(a.clock_in,a.clock_out),w=calcWage(h,s.wage||settings.wage_per_hour,a.clock_in,a.clock_out);
-      const sl=a.status==='late'?'<span style="color:#e67e22;font-size:11px;"> 遅刻</span>':a.status==='early_leave'?'<span style="color:#e67e22;font-size:11px;"> 早退</span>':'';
-      return`<div class="att-row"><span>${date.slice(5)}${sl}</span><span>${fmtTime(a.clock_in)}〜${fmtTime(a.clock_out)}</span><span style="font-weight:600;">${h}h</span>${me.role==='admin'?`<span>¥${w.toLocaleString()}</span>`:''}</div>`;
+      const sl=a.status==='late'?'<span style="color:#e67e22;font-size:10px;">遅刻</span>':a.status==='early_leave'?'<span style="color:#e67e22;font-size:10px;">早退</span>':a.status==='absent'?'<span style="color:#c0392b;font-size:10px;">休暇</span>':'';
+      return`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #eee;font-size:12px;">
+        <span>${date.slice(5)} ${sl}</span><span>${fmtTime(a.clock_in)}〜${fmtTime(a.clock_out)}</span>
+        <span style="font-weight:600;">${h}h</span>${me.role==='admin'?`<span>¥${w.toLocaleString()}</span>`:''}
+      </div>`;
     }).join('');
     const totalH=Math.round(Object.values(am).reduce((sum,dm)=>{const a=dm[s.id];return a?sum+calcH(a.clock_in,a.clock_out):sum;},0)*10)/10;
-    html+=`<div class="card"><div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;"><span class="av sm">${s.name[0]}</span><strong>${s.name}</strong><span style="margin-left:auto;font-size:13px;color:#555;">${totalH}h</span></div>${rows||'<p class="empty" style="padding:8px 0;">記録なし</p>'}</div>`;
+    html+=`<div class="card">
+      <div style="display:flex;align-items:center;gap:7px;margin-bottom:9px;">
+        <span class="av ${s.staff_type==='full'?'av-full':'av-part'}" style="width:26px;height:26px;font-size:11px;">${s.name[0]}</span>
+        <strong style="font-size:13px;">${s.name}</strong><span style="font-size:10px;color:#888;">${s.staff_type==='full'?'正社員':'バイト'}</span>
+        <span style="margin-left:auto;font-size:12px;color:#555;">${totalH}h</span>
+      </div>${rows||'<p class="empty" style="padding:6px 0;">記録なし</p>'}
+    </div>`;
   });
   if(me.role==='admin'){
     html+=`<div class="card"><div class="sec-title">📄 PDF出力</div>
-      <div style="display:flex;flex-direction:column;gap:10px;">
-        <div style="display:flex;gap:8px;align-items:center;"><span style="font-size:13px;color:#555;white-space:nowrap;">期間：</span><input type="date" id="pdf-from" style="flex:1;"/> <span>〜</span> <input type="date" id="pdf-to" style="flex:1;"/></div>
+      <div class="form-col">
+        <div style="display:flex;gap:8px;align-items:center;"><span style="font-size:12px;white-space:nowrap;">期間：</span><input type="date" id="pdf-from"/><span>〜</span><input type="date" id="pdf-to"/></div>
         <button class="btn" onclick="exportPDF()">PDFを出力</button>
       </div></div>`;
   }
-  el.innerHTML=html;
+  wrap.innerHTML=html;
 }
-async function attChM(d){calM+=d;if(calM>11){calM=0;calY++;}if(calM<0){calM=11;calY--;}await renderAttendance();}
+async function attChM(d){calM+=d;if(calM>11){calM=0;calY++;}if(calM<0){calM=11;calY--;}await renderAtt();}
 async function exportPDF(){
   const from=document.getElementById('pdf-from').value,to=document.getElementById('pdf-to').value;
   if(!from||!to){toast('期間を指定してください','err');return;}
   const{jsPDF}=window.jspdf;const doc=new jsPDF();
-  doc.setFontSize(16);doc.text('Cafe La Petite Haku - Attendance',14,20);
-  doc.setFontSize(11);doc.text(`${from} to ${to}`,14,30);let y=42;
+  doc.setFontSize(14);doc.text('Cafe La Petite Haku - Attendance',14,18);
+  doc.setFontSize(10);doc.text(`${from} ~ ${to}`,14,27);let y=38;
   const{data}=await sb.from('attendance').select('*,shift_staff(name,wage)').gte('date',from).lte('date',to).order('date');
-  (data||[]).forEach(r=>{if(y>270){doc.addPage();y=20;}const h=calcH(r.clock_in,r.clock_out);const w=calcWage(h,r.shift_staff?.wage||settings.wage_per_hour,r.clock_in,r.clock_out);doc.text(`${r.date}  ${r.shift_staff?.name||''}  ${fmtTime(r.clock_in)}-${fmtTime(r.clock_out)}  ${h}h  ¥${w.toLocaleString()}`,14,y);y+=8;});
+  (data||[]).forEach(r=>{if(y>270){doc.addPage();y=18;}const h=calcH(r.clock_in,r.clock_out);const w=calcWage(h,r.shift_staff?.wage||settings.wage_per_hour,r.clock_in,r.clock_out);doc.text(`${r.date} ${r.shift_staff?.name||''} ${fmtTime(r.clock_in)}-${fmtTime(r.clock_out)} ${h}h ¥${w.toLocaleString()}`,14,y);y+=7;});
   doc.save(`haku-att-${from}-${to}.pdf`);toast('PDFを出力しました');
 }
 
 // ── LEAVE ─────────────────────────────────────────────────────────────────────
 async function renderLeave(){
-  const el=document.getElementById('p-leave');
-  el.innerHTML='<div class="loading"><span class="spin"></span>読み込み中…</div>';
+  const wrap=document.getElementById('leave-wrap');
+  wrap.innerHTML='<div class="loading"><span class="spin"></span>読み込み中…</div>';
   const{data}=await sb.from('leave_requests').select('*,shift_staff(name)').order('created_at',{ascending:false});
   const leaves=(data||[]).filter(l=>me.role==='admin'||l.staff_id===me.id);
-  let html=`<div style="font-weight:800;font-size:18px;color:#2c3e50;margin-bottom:14px;">休暇申請</div>
+  let html=`<div style="font-weight:800;font-size:17px;color:#2c3e50;margin-bottom:12px;">🌿 休暇申請</div>
   <div class="card"><div class="sec-title">＋ 申請する</div>
     <div class="form-col">
       <input type="date" id="lv-date"/>
@@ -718,37 +733,98 @@ async function renderLeave(){
     </div></div>`;
   if(leaves.length===0)html+='<p class="empty">申請がありません</p>';
   else leaves.forEach(l=>{
-    const sc=l.status==='pending'?'pending':l.status==='approved'?'approved':'rejected';
+    const sc=l.status==='pending'?'pending-b':l.status==='approved'?'approved-b':'rejected-b';
     const sl=l.status==='pending'?'審査中':l.status==='approved'?'承認済':'却下';
-    html+=`<div class="lv-card">
-      <div class="lv-top"><div><div style="font-weight:700;color:#2c3e50;">${l.date}</div><div style="font-size:13px;color:#555;margin-top:2px;">${LEAVE_TYPES[l.leave_type]||l.leave_type}</div>${me.role==='admin'?`<div style="font-size:12px;color:#888;">${l.shift_staff?.name||''}</div>`:''}</div><span class="lv-badge ${sc}">${sl}</span></div>
+    html+=`<div class="card" style="padding:12px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+        <div><div style="font-weight:700;color:#2c3e50;font-size:14px;">${l.date}</div>
+        <div style="font-size:12px;color:#555;">${LEAVE_TYPES[l.leave_type]||l.leave_type}</div>
+        ${me.role==='admin'?`<div style="font-size:11px;color:#888;">${l.shift_staff?.name||''}</div>`:''}</div>
+        <span class="badge ${sc}">${sl}</span>
+      </div>
       ${l.reason?`<div style="font-size:12px;color:#666;margin-bottom:8px;">${l.reason}</div>`:''}
-      ${me.role==='admin'&&l.status==='pending'?`<div style="display:flex;gap:8px;"><button class="btn-sm g" onclick="approveLeave('${l.id}')">承認</button><button class="btn-sm r" onclick="rejectLeave('${l.id}')">却下</button></div>`:''}
+      ${me.role==='admin'&&l.status==='pending'?`<div style="display:flex;gap:7px;"><button class="btn-sm g" onclick="approveLeave('${l.id}')">承認</button><button class="btn-sm r" onclick="rejectLeave('${l.id}')">却下</button></div>`:''}
     </div>`;
   });
-  el.innerHTML=html;
+  wrap.innerHTML=html;
 }
 async function submitLeave(){
   const date=document.getElementById('lv-date').value,type=document.getElementById('lv-type').value,reason=document.getElementById('lv-reason').value;
   if(!date){toast('日付を選択してください','err');return;}
-  const{error}=await sb.from('leave_requests').insert({staff_id:me.id,date,leave_type:type,reason,status:'pending'});
-  if(error){toast('申請に失敗しました','err');return;}
+  await sb.from('leave_requests').insert({staff_id:me.id,date,leave_type:type,reason,status:'pending'});
   toast('申請しました');renderLeave();
 }
 async function approveLeave(id){await sb.from('leave_requests').update({status:'approved',approved_by:'admin',approved_at:new Date().toISOString()}).eq('id',id);toast('承認しました');renderLeave();}
 async function rejectLeave(id){await sb.from('leave_requests').update({status:'rejected'}).eq('id',id);toast('却下しました');renderLeave();}
 
+// ── SWAP ──────────────────────────────────────────────────────────────────────
+async function renderSwap(){
+  const wrap=document.getElementById('swap-wrap');
+  wrap.innerHTML='<div class="loading"><span class="spin"></span>読み込み中…</div>';
+  const{data}=await sb.from('shift_swap_requests').select('*,shift_staff(name),shift_slots!from_slot_id(date,slot_name,start_time,end_time)').order('created_at',{ascending:false});
+  const swaps=(data||[]).filter(s=>me.role==='admin'||s.staff_id===me.id);
+  let html=`<div style="font-weight:800;font-size:17px;color:#2c3e50;margin-bottom:12px;">🔄 換班申請</div>`;
+
+  // Apply
+  const key=`${calY}-${calM}`,slotMap=slotsCache[key]||{},entMap=entriesCache[key]||{};
+  const mySlots=[];
+  Object.entries(slotMap).forEach(([date,slots])=>{
+    slots.forEach(slot=>{
+      const ents=entMap[slot.id]||[];
+      if(ents.find(e=>e.staff_id===me?.id))mySlots.push({...slot,date});
+    });
+  });
+  const slotOpts=mySlots.map(s=>`<option value="${s.id}">${s.date} ${s.slot_name} ${s.start_time.slice(0,5)}〜${s.end_time.slice(0,5)}</option>`).join('');
+  html+=`<div class="card"><div class="sec-title">＋ 換班申請</div>
+    <div class="form-col">
+      ${slotOpts?`<select id="sw-from"><option value="">外したいシフトを選択…</option>${slotOpts}</select>`:'<p style="font-size:12px;color:#888;">参加中のシフトがありません</p>'}
+      <textarea id="sw-reason" placeholder="理由・希望（任意）"></textarea>
+      ${slotOpts?`<button class="btn" onclick="submitSwap()">申請する</button>`:''}
+    </div></div>`;
+
+  if(swaps.length===0)html+='<p class="empty">申請がありません</p>';
+  else swaps.forEach(s=>{
+    const sc=s.status==='pending'?'pending-b':s.status==='approved'?'approved-b':'rejected-b';
+    const sl=s.status==='pending'?'審査中':s.status==='approved'?'承認済':'却下';
+    const slot=s.shift_slots;
+    html+=`<div class="card" style="padding:12px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+        <div><div style="font-weight:700;font-size:13px;color:#2c3e50;">${slot?.date||''} ${slot?.slot_name||''}</div>
+        <div style="font-size:11px;color:#666;">${slot?.start_time?.slice(0,5)||''}〜${slot?.end_time?.slice(0,5)||''}</div>
+        ${me.role==='admin'?`<div style="font-size:11px;color:#888;">${s.shift_staff?.name||''}</div>`:''}</div>
+        <span class="badge ${sc}">${sl}</span>
+      </div>
+      ${s.reason?`<div style="font-size:12px;color:#666;margin-bottom:8px;">${s.reason}</div>`:''}
+      ${me.role==='admin'&&s.status==='pending'?`<div style="display:flex;gap:7px;"><button class="btn-sm g" onclick="approveSwap('${s.id}','${s.from_slot_id}','${s.staff_id}')">承認</button><button class="btn-sm r" onclick="rejectSwap('${s.id}')">却下</button></div>`:''}
+    </div>`;
+  });
+  wrap.innerHTML=html;
+}
+async function submitSwap(){
+  const fromSlot=document.getElementById('sw-from').value,reason=document.getElementById('sw-reason').value;
+  if(!fromSlot){toast('シフトを選択してください','err');return;}
+  await sb.from('shift_swap_requests').insert({staff_id:me.id,from_slot_id:fromSlot,reason,status:'pending'});
+  toast('申請しました');renderSwap();
+}
+async function approveSwap(id,slotId,staffId){
+  await sb.from('slot_entries').delete().eq('slot_id',slotId).eq('staff_id',staffId);
+  await sb.from('shift_swap_requests').update({status:'approved',approved_by:'admin',approved_at:new Date().toISOString()}).eq('id',id);
+  toast('承認しました（シフトから外しました）');renderSwap();
+}
+async function rejectSwap(id){await sb.from('shift_swap_requests').update({status:'rejected'}).eq('id',id);toast('却下しました');renderSwap();}
+
 // ── ADMIN ─────────────────────────────────────────────────────────────────────
 async function renderAdmin(){
-  const el=document.getElementById('p-admin');
+  const wrap=document.getElementById('admin-wrap');
+  await loadMonthData(calY,calM);
   const mh=getMonthlyHours(calY,calM);
   let html=`
   <div class="card"><div class="sec-title">⚙ グローバル設定</div>
-    <div class="s-row"><span class="s-label">デフォルト時給（円）</span><input type="number" class="s-input" id="s-wage" value="${settings.wage_per_hour}"/></div>
-    <div class="s-row"><span class="s-label">月最大時間</span><input type="number" class="s-input" id="s-max" value="${settings.max_hours_per_month}"/></div>
-    <div class="s-row"><span class="s-label">雇用保険警告（週h）</span><input type="number" class="s-input" id="s-ins" value="${settings.insurance_threshold_weekly}"/></div>
-    <p style="font-size:11px;color:#888;margin-top:4px;">※法定：週20h以上で雇用保険加入義務</p>
-    <button class="btn" style="margin-top:12px;" onclick="saveSettings()">設定を保存</button>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;"><span style="font-size:13px;color:#555;">デフォルト時給（円）</span><input type="number" style="width:110px;" id="s-wage" value="${settings.wage_per_hour}"/></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;"><span style="font-size:13px;color:#555;">月最大時間</span><input type="number" style="width:110px;" id="s-max" value="${settings.max_hours_per_month}"/></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;"><span style="font-size:13px;color:#555;">雇用保険警告（週h）</span><input type="number" style="width:110px;" id="s-ins" value="${settings.insurance_threshold_weekly}"/></div>
+    <p style="font-size:11px;color:#888;">※法定：週20h以上で雇用保険加入義務</p>
+    <button class="btn" style="margin-top:10px;" onclick="saveSettings()">設定を保存</button>
   </div>
 
   <div class="card"><div class="sec-title">🔑 管理者パスワード変更</div>
@@ -759,19 +835,10 @@ async function renderAdmin(){
       <button class="btn" onclick="changeAdminPw()">変更する</button>
     </div></div>
 
-  <div class="card"><div class="sec-title">⏰ 班型設定</div>
-    ${shiftTypes.map(t=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-      <span style="flex:1;font-size:14px;font-weight:600;">${t.name}</span>
-      <input type="time" value="${t.start_time}" onchange="updST('${t.id}','start_time',this.value)" style="width:95px;padding:5px;font-size:12px;"/>
-      <span>〜</span>
-      <input type="time" value="${t.end_time}" onchange="updST('${t.id}','end_time',this.value)" style="width:95px;padding:5px;font-size:12px;"/>
-    </div>`).join('')}
-    <button class="btn-sm d" style="margin-top:8px;" onclick="openAddSTModal()">＋ 班型追加</button>
-  </div>
-
   <div class="card"><div class="sec-title">＋ スタッフ追加</div>
     <div class="form-col">
       <input type="text" id="a-name" placeholder="名前"/>
+      <select id="a-type"><option value="part">アルバイト</option><option value="full">正社員・店長</option></select>
       <input type="number" id="a-wage" placeholder="時給（円）"/>
       <input type="number" id="a-max" placeholder="月最大時間"/>
       <button class="btn" onclick="adminAddStaff()">追加する</button>
@@ -780,11 +847,14 @@ async function renderAdmin(){
   <div class="card"><div class="sec-title">👥 スタッフ一覧</div>
     ${staff.length===0?'<p class="empty">スタッフがいません</p>':staff.map(s=>{
       const h=Math.round((mh[s.id]||0)*10)/10;
-      return`<div class="staff-card">
-        <div style="display:flex;align-items:center;gap:8px;font-weight:600;margin-bottom:4px;"><span class="av sm">${s.name[0]}</span>${s.name}</div>
-        <div style="font-size:12px;color:#777;margin-bottom:2px;">時給 ¥${s.wage}　月最大 ${s.max_hours}h　初期PW: ${s.password||'0000'}</div>
-        <div style="font-size:12px;color:#555;margin-bottom:8px;">今月: ${h}h　¥${(h*s.wage).toLocaleString()}</div>
-        <div style="display:flex;gap:7px;flex-wrap:wrap;">
+      return`<div class="card" style="padding:10px;margin-bottom:8px;">
+        <div style="display:flex;align-items:center;gap:6px;font-weight:600;font-size:13px;margin-bottom:3px;">
+          <span class="av ${s.staff_type==='full'?'av-full':'av-part'}" style="width:24px;height:24px;font-size:10px;">${s.name[0]}</span>
+          ${s.name}<span style="font-size:10px;color:#888;">${s.staff_type==='full'?'正社員':'バイト'}</span>
+        </div>
+        <div style="font-size:11px;color:#777;margin-bottom:3px;">時給¥${s.wage}　最大${s.max_hours}h　PW:${s.password||'0000'}</div>
+        <div style="font-size:11px;color:#555;margin-bottom:7px;">今月:${h}h　¥${(h*s.wage).toLocaleString()}</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
           <button class="btn-sm d" onclick="openEditStaff('${s.id}')">編集</button>
           <button class="btn-sm gold" onclick="openSetPwModal('${s.id}','${s.name}')">PW設定</button>
           <button class="btn-sm r" onclick="delStaff('${s.id}','${s.name}')">削除</button>
@@ -792,104 +862,75 @@ async function renderAdmin(){
       </div>`;
     }).join('')}
   </div>`;
-  el.innerHTML=html;
+  wrap.innerHTML=html;
 }
 
 async function saveSettings(){
-  const wage=parseInt(document.getElementById('s-wage').value)||1100;
-  const max=parseInt(document.getElementById('s-max').value)||80;
-  const ins=parseInt(document.getElementById('s-ins').value)||20;
+  const wage=parseInt(document.getElementById('s-wage').value)||1100,max=parseInt(document.getElementById('s-max').value)||80,ins=parseInt(document.getElementById('s-ins').value)||20;
   await sb.from('shift_settings').upsert({id:1,wage_per_hour:wage,max_hours_per_month:max,insurance_threshold_weekly:ins,admin_password:ADMIN_PW});
-  settings={...settings,wage_per_hour:wage,max_hours_per_month:max,insurance_threshold_weekly:ins};
-  toast('設定を保存しました');
+  settings={...settings,wage_per_hour:wage,max_hours_per_month:max,insurance_threshold_weekly:ins};toast('保存しました');
 }
 async function changeAdminPw(){
   const cur=document.getElementById('pw-cur').value,nw=document.getElementById('pw-new').value,cnf=document.getElementById('pw-cnf').value;
   if(cur!==ADMIN_PW){toast('現在のパスワードが違います','err');return;}
   if(!nw||nw!==cnf){toast('パスワードが一致しません','err');return;}
   await sb.from('shift_settings').update({admin_password:nw}).eq('id',1);
-  ADMIN_PW=nw;['pw-cur','pw-new','pw-cnf'].forEach(id=>document.getElementById(id).value='');
-  toast('パスワードを変更しました');
+  ADMIN_PW=nw;['pw-cur','pw-new','pw-cnf'].forEach(id=>document.getElementById(id).value='');toast('変更しました');
 }
-async function updST(id,field,val){await sb.from('shift_types').update({[field]:val}).eq('id',id);await loadShiftTypes();toast('更新しました');}
-function openAddSTModal(){
-  openModal(`<div class="modal-title">班型追加</div>
-    <div class="form-col">
-      <input type="text" id="st-n" placeholder="名前（例：夜番）"/>
-      <div style="display:flex;gap:8px;"><input type="time" id="st-s" value="18:00"/><span style="align-self:center;">〜</span><input type="time" id="st-e" value="22:00"/></div>
-    </div>
-    <div class="modal-btns"><button class="btn-sm g" onclick="addST()">追加</button><button class="btn-sm gr" onclick="closeModal()">キャンセル</button></div>`);
-}
-async function addST(){
-  const name=document.getElementById('st-n').value.trim();
+async function adminAddStaff(){
+  const name=document.getElementById('a-name').value.trim(),stype=document.getElementById('a-type').value,wage=parseInt(document.getElementById('a-wage').value)||settings.wage_per_hour,maxH=parseInt(document.getElementById('a-max').value)||settings.max_hours_per_month;
   if(!name){toast('名前を入力してください','err');return;}
-  await sb.from('shift_types').insert({name,start_time:document.getElementById('st-s').value,end_time:document.getElementById('st-e').value});
-  await loadShiftTypes();closeModal();toast('班型を追加しました');renderAdmin();
+  if(staff.find(s=>s.name===name)){toast('同じ名前が既にあります','err');return;}
+  const{data,error}=await sb.from('shift_staff').insert({name,staff_type:stype,wage,max_hours:maxH}).select().single();
+  if(error){toast('追加に失敗しました','err');return;}
+  staff.push(data);toast(`${name} を追加しました`);renderAdmin();
 }
 function openEditStaff(id){
   const s=staff.find(x=>x.id===id);if(!s)return;
   openModal(`<div class="modal-title">${s.name} の編集</div>
     <div class="form-col">
       <input type="text" id="es-n" value="${s.name}"/>
+      <select id="es-t"><option value="part"${s.staff_type==='part'?' selected':''}>アルバイト</option><option value="full"${s.staff_type==='full'?' selected':''}>正社員・店長</option></select>
       <input type="number" id="es-w" value="${s.wage}" placeholder="時給"/>
       <input type="number" id="es-m" value="${s.max_hours}" placeholder="月最大時間"/>
     </div>
     <div class="modal-btns"><button class="btn-sm g" onclick="saveEditStaff('${id}')">保存</button><button class="btn-sm gr" onclick="closeModal()">キャンセル</button></div>`);
 }
 async function saveEditStaff(id){
-  const name=document.getElementById('es-n').value.trim(),wage=parseInt(document.getElementById('es-w').value),maxH=parseInt(document.getElementById('es-m').value);
+  const name=document.getElementById('es-n').value.trim(),stype=document.getElementById('es-t').value,wage=parseInt(document.getElementById('es-w').value),maxH=parseInt(document.getElementById('es-m').value);
   if(!name){toast('名前を入力してください','err');return;}
-  await sb.from('shift_staff').update({name,wage,max_hours:maxH}).eq('id',id);
-  staff=staff.map(s=>s.id===id?{...s,name,wage,max_hours:maxH}:s);
+  await sb.from('shift_staff').update({name,staff_type:stype,wage,max_hours:maxH}).eq('id',id);
+  staff=staff.map(s=>s.id===id?{...s,name,staff_type:stype,wage,max_hours:maxH}:s);
   closeModal();toast('更新しました');renderAdmin();
-}
-async function adminAddStaff(){
-  const name=document.getElementById('a-name').value.trim(),wage=parseInt(document.getElementById('a-wage').value)||settings.wage_per_hour,maxH=parseInt(document.getElementById('a-max').value)||settings.max_hours_per_month;
-  if(!name){toast('名前を入力してください','err');return;}
-  if(staff.find(s=>s.name===name)){toast('同じ名前が既にあります','err');return;}
-  const{data,error}=await sb.from('shift_staff').insert({name,wage,max_hours:maxH}).select().single();
-  if(error){toast('追加に失敗しました','err');return;}
-  staff.push(data);toast(`${name} を追加しました`);renderAdmin();
 }
 async function delStaff(id,name){
   if(!confirm(`${name} を削除しますか？`))return;
   await sb.from('shift_staff').delete().eq('id',id);
   staff=staff.filter(s=>s.id!==id);toast(`${name} を削除しました`);renderAdmin();
 }
-
-// ── Password management ───────────────────────────────────────────────────────
 function openSetPwModal(id,name){
-  openModal(`<div class="modal-title">${name} のパスワード設定</div>
-    <div class="form-col">
-      <input type="password" id="sp-n" placeholder="新しいパスワード"/>
-      <input type="password" id="sp-c" placeholder="確認"/>
-    </div>
+  openModal(`<div class="modal-title">${name} のPW設定</div>
+    <div class="form-col"><input type="password" id="sp-n" placeholder="新しいパスワード"/><input type="password" id="sp-c" placeholder="確認"/></div>
     <div class="modal-btns"><button class="btn-sm g" onclick="saveStaffPw('${id}')">設定</button><button class="btn-sm gr" onclick="closeModal()">キャンセル</button></div>`);
 }
 async function saveStaffPw(id){
   const nw=document.getElementById('sp-n').value,cnf=document.getElementById('sp-c').value;
   if(!nw||nw!==cnf){toast('パスワードが一致しません','err');return;}
   await sb.from('shift_staff').update({password:nw}).eq('id',id);
-  staff=staff.map(s=>s.id===id?{...s,password:nw}:s);
-  closeModal();toast('パスワードを設定しました');renderAdmin();
+  staff=staff.map(s=>s.id===id?{...s,password:nw}:s);closeModal();toast('設定しました');renderAdmin();
 }
 function openSelfPwModal(){
   openModal(`<div class="modal-title">パスワード変更</div>
-    <div class="form-col">
-      <input type="password" id="mp-c" placeholder="現在のパスワード"/>
-      <input type="password" id="mp-n" placeholder="新しいパスワード"/>
-      <input type="password" id="mp-cf" placeholder="確認"/>
-    </div>
+    <div class="form-col"><input type="password" id="mp-c" placeholder="現在のPW"/><input type="password" id="mp-n" placeholder="新しいPW"/><input type="password" id="mp-cf" placeholder="確認"/></div>
     <div class="modal-btns"><button class="btn-sm g" onclick="saveSelfPw()">変更</button><button class="btn-sm gr" onclick="closeModal()">キャンセル</button></div>`);
 }
 async function saveSelfPw(){
   const cur=document.getElementById('mp-c').value,nw=document.getElementById('mp-n').value,cnf=document.getElementById('mp-cf').value;
-  const myStaff=staff.find(s=>s.id===me.id);
-  if(cur!==(myStaff?.password||'0000')){toast('現在のパスワードが違います','err');return;}
-  if(!nw||nw!==cnf){toast('パスワードが一致しません','err');return;}
+  const myS=staff.find(s=>s.id===me.id);
+  if(cur!==(myS?.password||'0000')){toast('現在のPWが違います','err');return;}
+  if(!nw||nw!==cnf){toast('PWが一致しません','err');return;}
   await sb.from('shift_staff').update({password:nw}).eq('id',me.id);
-  staff=staff.map(s=>s.id===me.id?{...s,password:nw}:s);
-  closeModal();toast('パスワードを変更しました');
+  staff=staff.map(s=>s.id===me.id?{...s,password:nw}:s);closeModal();toast('変更しました');
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────

@@ -1154,17 +1154,23 @@ async function doEditStaff(id){
   const maxWeek=isPart?parseInt(document.getElementById('eswk').value)||20:0;
   const salary=!isPart?parseInt(document.getElementById('esal').value)||0:0;
   const maxH=!isPart?parseInt(document.getElementById('esm').value)||settings.max_hours_per_month:0;
-  await sb.from('shift_staff').update({name,staff_type:stypeV,role:roleV,wage,max_hours:maxH,max_hours_per_week:maxWeek,monthly_salary:salary}).eq('id',id);
+  const{error}=await sb.from('shift_staff').update({name,staff_type:stypeV,role:roleV,wage,max_hours:maxH,max_hours_per_week:maxWeek,monthly_salary:salary}).eq('id',id);
+  if(error){toast('更新に失敗しました','err');return;}
   staff=staff.map(s=>s.id===id?{...s,name,staff_type:stypeV,role:roleV,wage,max_hours:maxH,max_hours_per_week:maxWeek,monthly_salary:salary}:s);
-  closeM();toast('更新しました');renderAdmin();
+  buildStaffColorMap();closeM();toast('更新しました');renderAdmin();
 }
 async function delStaff(id,name){
-  if(!confirm(name+' を削除しますか？'))return;
+  if(!confirm(name+' を削除しますか？この操作は取り消せません。'))return;
   await sb.from('shift_staff').delete().eq('id',id);
-  staff=staff.filter(s=>s.id!==id);toast(name+' を削除しました');renderAdmin();
+  staff=staff.filter(s=>s.id!==id);buildStaffColorMap();toast(name+' を削除しました');renderAdmin();
 }
 function openSetPW(id,name){
-  openM('<div class="mtit">'+name+' のPW設定</div><div class="fcol"><input type="password" id="spn" placeholder="新しいパスワード"/><input type="password" id="spc" placeholder="確認"/></div><div class="mbtns"><button class="bsm bg" onclick="doSetPW(\''+id+'\')">設定</button><button class="bsm bgr" onclick="closeM()">キャンセル</button></div>');
+  window._setPWid=id;
+  openM('<div class="mtit">'+name+' のパスワード設定</div>'
+    +'<div class="fcol">'
+    +'<div><span class="flabel">新しいパスワード</span><input type="password" id="spn"/></div>'
+    +'<div><span class="flabel">確認</span><input type="password" id="spc"/></div>'
+    +'</div><div class="mbtns"><button class="bsm bg" onclick="doSetPW(window._setPWid)">設定</button><button class="bsm bgr" onclick="closeM()">キャンセル</button></div>');
 }
 async function doSetPW(id){
   const nw=document.getElementById('spn').value,cnf=document.getElementById('spc').value;
@@ -1173,7 +1179,12 @@ async function doSetPW(id){
   staff=staff.map(s=>s.id===id?{...s,password:nw}:s);closeM();toast('設定しました');renderAdmin();
 }
 function openSelfPW(){
-  openM('<div class="mtit">パスワード変更</div><div class="fcol"><input type="password" id="mpc" placeholder="現在のPW"/><input type="password" id="mpn" placeholder="新しいPW"/><input type="password" id="mpcf" placeholder="確認"/></div><div class="mbtns"><button class="bsm bg" onclick="doSelfPW()">変更</button><button class="bsm bgr" onclick="closeM()">キャンセル</button></div>');
+  openM('<div class="mtit">パスワード変更</div>'
+    +'<div class="fcol">'
+    +'<div><span class="flabel">現在のパスワード</span><input type="password" id="mpc"/></div>'
+    +'<div><span class="flabel">新しいパスワード</span><input type="password" id="mpn"/></div>'
+    +'<div><span class="flabel">確認</span><input type="password" id="mpcf"/></div>'
+    +'</div><div class="mbtns"><button class="bsm bg" onclick="doSelfPW()">変更</button><button class="bsm bgr" onclick="closeM()">キャンセル</button></div>');
 }
 async function doSelfPW(){
   const cur=document.getElementById('mpc').value,nw=document.getElementById('mpn').value,cnf=document.getElementById('mpcf').value;
@@ -1184,8 +1195,144 @@ async function doSelfPW(){
   staff=staff.map(s=>s.id===me.id?{...s,password:nw}:s);closeM();toast('変更しました');
 }
 
-// ── Init ───────────────────────────────────────────────────────────────────────
-document.getElementById('admpw').addEventListener('keydown',function(e){if(e.key==='Enter')doAdminLogin();});
+// ── 取消出勤申請 ──────────────────────────────────────────────────────────────
+function openCancelRequest(entryId,slotId,ds,slotName){
+  window._cancelData={entryId,slotId,ds,slotName};
+  openM('<div class="mtit">取消出勤申請</div>'
+    +'<div style="background:#fef9e7;border-radius:8px;padding:10px;margin-bottom:12px;font-size:12px;color:#7d6608;">⚠ 管理者の承認後にシフトから外れます。承認まで有効です。</div>'
+    +'<div class="fcol">'
+    +'<div><span class="flabel">対象シフト</span><input type="text" value="'+ds.slice(5)+' '+slotName+'" readonly style="background:#f0f0f0;"/></div>'
+    +'<div><span class="flabel">理由（任意）</span><textarea id="cr-reason" placeholder="例：体調不良、予定が入ってしまいました"></textarea></div>'
+    +'</div><div class="mbtns"><button class="bsm br" onclick="doCancel()">申請する</button><button class="bsm bgr" onclick="closeM()">キャンセル</button></div>');
+}
+async function doCancel(){
+  const{entryId,slotId,ds}=window._cancelData;
+  const reason=document.getElementById('cr-reason').value;
+  const{error}=await sb.from('cancel_requests').insert({staff_id:me.id,slot_id:slotId,slot_entry_id:entryId,date:ds,reason,status:'pending'});
+  if(error){toast('申請に失敗しました','err');return;}
+  toast('取消申請を送りました。管理者の承認をお待ちください。');closeM();
+}
+
+// ── 出勤修正モーダル ───────────────────────────────────────────────────────────
+function openTodayAtt(staffId,staffName,ds){
+  window._attEditData={staffId,staffName,ds};
+  const att=(AC[calY+'-'+calM]?.[ds]||{})[staffId];
+  const inVal=att?.clock_in?ft(att.clock_in):'';
+  const outVal=att?.clock_out?ft(att.clock_out):'';
+  const statVal=att?.status||'normal';
+  openM('<div class="mtit">'+staffName+' の出勤修正</div>'
+    +'<div style="background:#f8f6f2;border-radius:8px;padding:10px;margin-bottom:12px;font-size:12px;">'
+    +'<div>対象日: <strong>'+ds+'</strong></div>'
+    +(att?'<div style="margin-top:4px;color:#555;">現在の打刻: '+ft(att.clock_in)+'〜'+ft(att.clock_out)+'</div>':'<div style="margin-top:4px;color:#888;">打刻記録なし</div>')
+    +'</div>'
+    +'<div class="fcol">'
+    +'<div><span class="flabel">出勤時刻</span><input type="time" id="att-in" value="'+inVal+'"/></div>'
+    +'<div><span class="flabel">退勤時刻（空白=出勤中に戻す）</span><input type="time" id="att-out" value="'+outVal+'"/></div>'
+    +'<div><span class="flabel">ステータス</span><select id="att-st"><option value="normal"'+(statVal==='normal'?' selected':'')+'>通常</option><option value="late"'+(statVal==='late'?' selected':'')+'>遅刻</option><option value="early_leave"'+(statVal==='early_leave'?' selected':'')+'>早退</option><option value="absent"'+(statVal==='absent'?' selected':'')+'>休暇・欠勤</option></select></div>'
+    +'<div><span class="flabel">メモ</span><textarea id="att-note" placeholder="備考">'+(att?.admin_note||'')+'</textarea></div>'
+    +'</div>'
+    +'<p class="hint" style="margin-top:8px;">退勤時刻を空白にすると「出勤中」に戻ります（誤退勤の修正に使用）</p>'
+    +'<div class="mbtns"><button class="bsm bg" onclick="doTodayAtt()">保存</button><button class="bsm bgr" onclick="closeM()">キャンセル</button></div>');
+}
+async function doTodayAtt(){
+  const{staffId,staffName,ds}=window._attEditData;
+  const inT=document.getElementById('att-in').value;
+  const outT=document.getElementById('att-out').value;
+  const status=document.getElementById('att-st').value;
+  const note=document.getElementById('att-note').value;
+  if(!inT){toast('出勤時刻を入力してください','err');return;}
+  const clockIn=ds+'T'+inT+':00+09:00';
+  const clockOut=outT?ds+'T'+outT+':00+09:00':null;
+  const{error}=await sb.from('attendance').upsert({staff_id:staffId,date:ds,clock_in:clockIn,clock_out:clockOut,status,admin_note:note},{onConflict:'staff_id,date'});
+  if(error){toast('保存に失敗しました','err');return;}
+  toast(outT?'修正しました':'出勤中状態に戻しました');
+  closeM();await loadMonth(calY,calM);renderCal();
+}
+
+// ── 取消申請ページ ─────────────────────────────────────────────────────────────
+async function renderCancel(){
+  const wrap=document.getElementById('wcancel');
+  wrap.innerHTML='<div class="loading"><span class="spin"></span>読み込み中…</div>';
+  await loadMonth(calY,calM);
+  const{data}=await sb.from('cancel_requests').select('*,shift_staff(name),shift_slots(slot_name,date,start_time,end_time)').order('created_at',{ascending:false});
+  const cancels=(data||[]).filter(c=>me.canManage||c.staff_id===me.id);
+  let html='<div style="font-weight:800;font-size:17px;color:#2c3e50;margin-bottom:12px;">↩️ 取消出勤申請</div>';
+  html+='<div class="card" style="background:#fef9e7;border:1px solid #f0c040;padding:12px;margin-bottom:12px;">';
+  html+='<div style="font-size:12px;color:#7d6608;line-height:1.7;">💡 シフトを取消したい場合は、カレンダーの該当シフトから「取消申請」ボタンで申請してください。</div></div>';
+  if(cancels.length===0)html+='<p class="empty">申請がありません</p>';
+  else cancels.forEach(c=>{window._ca={id:c.id,eid:c.slot_entry_id};
+    const sc2=c.status==='pending'?'bp':c.status==='approved'?'ba':'brej';
+    const sl=c.status==='pending'?'審査中':c.status==='approved'?'承認済':'却下';
+    const s=staff.find(x=>x.id===c.staff_id);
+    const sc=staffColorMap[c.staff_id]||'#2c3e50';
+    const slot=c.shift_slots;
+    html+='<div class="card" style="padding:12px;">';
+    html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">';
+    html+='<span class="av" style="background:'+sc+';color:#fff;">'+(s?.name?.[0]||'?')+'</span>';
+    html+='<div><div style="font-weight:700;color:#2c3e50;">'+(slot?.date||c.date)+' '+(slot?.slot_name||'')+'</div>';
+    html+='<div style="font-size:11px;color:#666;">'+(slot?.start_time?.slice(0,5)||'')+'〜'+(slot?.end_time?.slice(0,5)||'')+'</div>';
+    if(me.canManage)html+='<div style="font-size:11px;color:#888;">'+(c.shift_staff?.name||'')+'</div>';
+    html+='</div><span class="badge '+sc2+'" style="margin-left:auto;">'+sl+'</span></div>';
+    if(c.reason)html+='<div style="font-size:12px;color:#666;margin-bottom:8px;">理由: '+c.reason+'</div>';
+    if(me.canManage&&c.status==='pending'){
+      html+='<div style="display:flex;gap:7px;">';
+      html+='<button class="bsm bg" onclick="appCancel(window._ca.id,window._ca.eid)">承認（シフトから外す）</button>';
+      html+='<button class="bsm br" onclick="rejCancel(window._ca.id)">却下</button></div>';
+    }
+    html+='</div>';
+  });
+  wrap.innerHTML=html;
+}
+async function appCancel(cancelId,entryId){
+  if(entryId&&entryId!=='null'){await sb.from('slot_entries').delete().eq('id',entryId);}
+  await sb.from('cancel_requests').update({status:'approved',approved_by:'admin',approved_at:new Date().toISOString()}).eq('id',cancelId);
+  toast('承認しました。シフトから外しました。');await loadMonth(calY,calM);renderCancel();
+}
+async function rejCancel(id){
+  await sb.from('cancel_requests').update({status:'rejected'}).eq('id',id);
+  toast('却下しました');renderCancel();
+}
+
+// ── 全員PDF ──────────────────────────────────────────────────────────────────
+async function exportAllPDF(){
+  const fr=document.getElementById('pdff-all')?.value;
+  const to=document.getElementById('pdft-all')?.value;
+  if(!fr||!to){toast('期間を指定してください','err');return;}
+  const{jsPDF}=window.jspdf;const doc=new jsPDF();
+  doc.setFont('helvetica');
+  doc.setFontSize(14);doc.text('Cafe La Petite Haku - 出勤記録',14,18);
+  doc.setFontSize(10);doc.text('期間: '+fr+' 〜 '+to,14,28);
+  const{data}=await sb.from('attendance').select('*,shift_staff(name,wage,staff_type,monthly_salary)').gte('date',fr).lte('date',to).order('date');
+  let y=40;
+  const byStaff={};
+  (data||[]).forEach(r=>{
+    const sid=r.staff_id;
+    if(!byStaff[sid])byStaff[sid]={name:r.shift_staff?.name||'?',wage:r.shift_staff?.wage||0,isPart:r.shift_staff?.staff_type==='part',rows:[],totalH:0,totalW:0,late:0,early:0,absent:0};
+    const h=ch(r.clock_in,r.clock_out);
+    const w=byStaff[sid].isPart?cw(h,byStaff[sid].wage,r.clock_in,r.clock_out):0;
+    byStaff[sid].rows.push({...r,h,w});byStaff[sid].totalH+=h;byStaff[sid].totalW+=w;
+    if(r.status==='late')byStaff[sid].late++;
+    if(r.status==='early_leave')byStaff[sid].early++;
+    if(r.status==='absent')byStaff[sid].absent++;
+  });
+  Object.values(byStaff).forEach(sd=>{
+    if(y>250){doc.addPage();y=20;}
+    doc.setFontSize(12);doc.text(sd.name+(sd.isPart?' (バイト)':' (正社員)'),14,y);y+=6;
+    doc.setFontSize(9);
+    doc.text('合計: '+Math.round(sd.totalH*10)/10+'h'+(sd.isPart?' ¥'+sd.totalW.toLocaleString():''),14,y);y+=5;
+    if(!sd.isPart)doc.text('遅刻: '+sd.late+'回　早退: '+sd.early+'回　欠勤・休暇: '+sd.absent+'回',14,y);y+=5;
+    sd.rows.forEach(r=>{
+      if(y>275){doc.addPage();y=20;}
+      const stStr=r.status==='late'?'[遅刻]':r.status==='early_leave'?'[早退]':r.status==='absent'?'[休暇]':'';
+      doc.text(r.date.slice(5)+' '+ft(r.clock_in)+'〜'+ft(r.clock_out)+' '+r.h+'h'+(sd.isPart?' ¥'+r.w.toLocaleString():'')+' '+stStr,18,y);y+=5;
+    });
+    y+=4;doc.line(14,y,200,y);y+=8;
+  });
+  doc.save('haku-all-'+fr+'-'+to+'.pdf');toast('全員分PDFを出力しました');
+}
+
+// ── 初期化 ────────────────────────────────────────────────────────────────────
+document.getElementById('admpw').addEventListener('keydown',e=>{if(e.key==='Enter')doAdminLogin();});
 loadAll();
 </script>
 </body>

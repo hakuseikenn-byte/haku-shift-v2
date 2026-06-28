@@ -357,8 +357,8 @@ function applyNav(){
   document.getElementById('nb-requests').style.display=me.canManage?'block':'none';
   // 休暇申請：正社員のみ（管理者でない一般正社員も）。アルバイトは表示しない
   document.getElementById('nb-leave').style.display=(!me.isPart&&me.id!=='admin')?'block':'none';
-  // アルバイト：取消申請状況
-  document.getElementById('nb-mycancel').style.display=(me.isPart&&me.id!=='admin')?'block':'none';
+  // 申請状況（取消・代班）：管理者ログイン以外の全員
+  document.getElementById('nb-mycancel').style.display=(me.id!=='admin')?'block':'none';
 }
 
 function logout(){
@@ -369,11 +369,12 @@ function logout(){
 
 async function refreshPendingCount(){
   if(!me||!me.canManage){return;}
-  const[lr,cr]=await Promise.all([
+  const[lr,cr,sr]=await Promise.all([
     sb.from('leave_requests').select('id').eq('status','pending'),
-    sb.from('cancel_requests').select('id').eq('status','pending')
+    sb.from('cancel_requests').select('id').eq('status','pending'),
+    sb.from('swap_requests').select('id').eq('status','waiting_admin')
   ]);
-  pendingCount=((lr.data||[]).length)+((cr.data||[]).length);
+  pendingCount=((lr.data||[]).length)+((cr.data||[]).length)+((sr.data||[]).length);
   const dot=document.getElementById('reqdot');
   if(dot){
     if(pendingCount>0){dot.style.display='flex';dot.textContent=pendingCount;}
@@ -525,7 +526,7 @@ function buildDayPanel(day,sm,em){
     } else {
       const canJoin=(slot.staff_type==='part'&&me.isPart)||(slot.staff_type==='full'&&!me.isPart);
       if(canJoin){
-        if(myE)acts='<button class="bsm br" onclick="openCancelReq(\''+myE.id+'\',\''+slot.id+'\',\''+ds+'\',\''+slot.slot_name+'\')">取消申請</button>';
+        if(myE)acts='<button class="bsm bgold" onclick="openSwapReq(\''+myE.id+'\',\''+slot.id+'\',\''+ds+'\',\''+slot.slot_name+'\')">代わりを探す</button> <button class="bsm br" onclick="openCancelReq(\''+myE.id+'\',\''+slot.id+'\',\''+ds+'\',\''+slot.slot_name+'\')">取消申請</button>';
         else if(!isFull)acts='<button class="joinbtn" onclick="joinSlot(\''+slot.id+'\',\''+ds+'\')">参加する</button>';
         else acts='<span style="font-size:11px;color:#888;">満員</span>';
       }
@@ -702,7 +703,7 @@ function wkSlotClick(el){
   } else {
     const canJoin=(slot.staff_type==='part'&&me.isPart)||(slot.staff_type==='full'&&!me.isPart);
     if(canJoin){
-      if(myE)acts='<button class="bsm br" onclick="closeM();openCancelReq(window._wk.eid,window._wk.sid,window._wk.ds,window._wk.sn)">取消申請</button>';
+      if(myE)acts='<button class="bsm bgold" onclick="closeM();openSwapReq(window._wk.eid,window._wk.sid,window._wk.ds,window._wk.sn)">代わりを探す</button> <button class="bsm br" onclick="closeM();openCancelReq(window._wk.eid,window._wk.sid,window._wk.ds,window._wk.sn)">取消申請</button>';
       else if(!isFull)acts='<button class="joinbtn" onclick="closeM();joinSlot(window._wk.sid,window._wk.ds)">参加する</button>';
       else acts='<span style="font-size:12px;color:#888;">満員</span>';
     }
@@ -918,6 +919,119 @@ async function doCancelReq(){
 }
 
 // ════════════════════════════════════════════════════════════
+// 代班（シフト交代）
+// ════════════════════════════════════════════════════════════
+// A：代わりを探す → 候補者を絞り込んで選択
+async function openSwapReq(entryId,slotId,ds,slotName){
+  openM('<div class="mtit">代わりを探す</div><div class="loading"><span class="spin"></span>候補を確認中…</div>');
+  // 対象枠の情報
+  const{data:slot}=await sb.from('shift_slots').select('*').eq('id',slotId).single();
+  if(!slot){toast('枠が見つかりません','err');closeM();return;}
+  const slotH=chft(slot.start_time,slot.end_time);
+  // 同タイプのスタッフ（自分以外）
+  const sameType=staff.filter(s=>s.staff_type===slot.staff_type&&s.id!==me.id);
+  // その日に既にこの人が別の枠に入っていないか＆週上限チェック
+  const slotDate=new Date(ds+'T00:00:00');
+  const diffToMon=(slotDate.getDay()+6)%7;
+  const wkStart=new Date(slotDate);wkStart.setDate(slotDate.getDate()-diffToMon);
+  const wkEnd=new Date(wkStart);wkEnd.setDate(wkStart.getDate()+6);
+  const wkStartStr=fd(wkStart),wkEndStr=fd(wkEnd);
+  const{data:wkSlots}=await sb.from('shift_slots').select('*').gte('date',wkStartStr).lte('date',wkEndStr);
+  const{data:allEnts}=await sb.from('slot_entries').select('slot_id,staff_id');
+  // 候補を絞る
+  const candidates=[];
+  for(const cand of sameType){
+    const candSlotIds=new Set((allEnts||[]).filter(e=>e.staff_id===cand.id).map(e=>e.slot_id));
+    // 既にこの枠にいる人は除外
+    if(candSlotIds.has(slotId))continue;
+    // その日に既に別の枠に入っている人は除外（ダブルブッキング防止）
+    const sameDaySlot=(wkSlots||[]).find(s=>s.date===ds&&candSlotIds.has(s.id));
+    if(sameDaySlot)continue;
+    // 週上限チェック
+    let weekH=0;const counted=new Set();
+    (wkSlots||[]).forEach(s=>{
+      if(!candSlotIds.has(s.id))return;
+      const key=s.date+'_'+s.start_time+'_'+s.end_time;
+      if(counted.has(key))return;counted.add(key);
+      weekH+=chft(s.start_time,s.end_time);
+    });
+    const maxWk=cand.staff_type==='part'?(cand.max_hours_per_week||20):9999;
+    if(weekH+slotH>maxWk)continue; // 超える人は除外
+    candidates.push({...cand,weekH});
+  }
+  window._swap={entryId,slotId,ds,slotName,slotH};
+  let html='<div class="mtit">代わりを探す（'+ds.slice(5)+' '+slotName+'）</div>';
+  html+='<div style="font-size:12px;color:#666;margin-bottom:12px;line-height:1.6;">この時間に代われるスタッフ（その日空いている＆上限以内）から選んでください。相手が同意し、管理者が承認すると交代が成立します。</div>';
+  if(candidates.length===0){
+    html+='<p class="empty">代われるスタッフがいません<br><span style="font-size:11px;">（全員その日に予定あり、または上限超過）</span></p>';
+  }else{
+    html+='<div style="font-size:12px;font-weight:700;margin-bottom:8px;">代わってもらう人を選ぶ：</div>';
+    candidates.forEach(c=>{
+      const sc=staffColorMap[c.id]||'#5a6b7a';
+      html+='<button onclick="doSwapReq(\''+c.id+'\',\''+c.name+'\')" style="display:flex;align-items:center;gap:8px;width:100%;background:#f8f6f2;border:1px solid #e0e0e0;border-radius:10px;padding:10px 12px;margin-bottom:7px;cursor:pointer;text-align:left;">';
+      html+='<span class="av" style="background:'+sc+';">'+c.name[0]+'</span>';
+      html+='<span style="font-weight:600;font-size:13px;">'+c.name+'</span>';
+      html+='<span style="font-size:11px;color:#888;margin-left:auto;">今週'+(Math.round(c.weekH*10)/10)+'h</span></button>';
+    });
+  }
+  html+='<div class="mbtns"><button class="bsm bgr" onclick="closeM()">閉じる</button></div>';
+  openM(html);
+}
+
+async function doSwapReq(targetId,targetName){
+  const{entryId,slotId,ds,slotName}=window._swap;
+  const reason=prompt(targetName+'さんに代わりを依頼します。\n理由を入力してください（任意）：')||'';
+  const{error}=await sb.from('swap_requests').insert({
+    slot_id:slotId,slot_entry_id:entryId,date:ds,
+    requester_id:me.id,requester_name:me.name,
+    target_id:targetId,target_name:targetName,
+    reason,status:'waiting_b'
+  });
+  if(error){toast('依頼に失敗しました','err');return;}
+  toast(targetName+'さんに代班を依頼しました');closeM();
+}
+
+// B：自分宛ての代班依頼を確認・同意
+async function renderMySwaps(){
+  // 自分が「代わってほしい」と頼まれている依頼
+  const{data}=await sb.from('swap_requests').select('*,shift_slots(slot_name,date,start_time,end_time)').eq('target_id',me.id).eq('status','waiting_b').order('created_at',{ascending:false});
+  return data||[];
+}
+
+async function agreeSwap(swapId,agree){
+  if(!agree){
+    await sb.from('swap_requests').update({status:'rejected'}).eq('id',swapId);
+    toast('依頼を辞退しました');renderMyCancel();return;
+  }
+  // B同意：上限を再チェック
+  const{data:sw}=await sb.from('swap_requests').select('*,shift_slots(*)').eq('id',swapId).single();
+  if(!sw){toast('依頼が見つかりません','err');return;}
+  const slot=sw.shift_slots;
+  const slotH=chft(slot.start_time,slot.end_time);
+  const slotDate=new Date(sw.date+'T00:00:00');
+  const diffToMon=(slotDate.getDay()+6)%7;
+  const wkStart=new Date(slotDate);wkStart.setDate(slotDate.getDate()-diffToMon);
+  const wkEnd=new Date(wkStart);wkEnd.setDate(wkStart.getDate()+6);
+  const{data:wkSlots}=await sb.from('shift_slots').select('*').gte('date',fd(wkStart)).lte('date',fd(wkEnd));
+  const{data:myEnts}=await sb.from('slot_entries').select('slot_id').eq('staff_id',me.id);
+  const mySlotIds=new Set((myEnts||[]).map(e=>e.slot_id));
+  let weekH=0;const counted=new Set();
+  (wkSlots||[]).forEach(s=>{
+    if(!mySlotIds.has(s.id))return;
+    const key=s.date+'_'+s.start_time+'_'+s.end_time;
+    if(counted.has(key))return;counted.add(key);
+    weekH+=chft(s.start_time,s.end_time);
+  });
+  const myS=staff.find(s=>s.id===me.id);
+  const maxWk=myS?.staff_type==='part'?(myS.max_hours_per_week||20):9999;
+  if(weekH+slotH>maxWk){
+    toast('この週は最大'+maxWk+'時間までです。代われません','err');return;
+  }
+  await sb.from('swap_requests').update({status:'waiting_admin',b_agreed:true,b_agreed_at:new Date().toISOString()}).eq('id',swapId);
+  toast('同意しました。管理者の承認待ちです');renderMyCancel();refreshPendingCount();
+}
+
+// ════════════════════════════════════════════════════════════
 // 休暇申請（正社員）
 // ════════════════════════════════════════════════════════════
 async function renderLeave(){
@@ -980,12 +1094,48 @@ async function doLeave(){
 async function renderMyCancel(){
   const wrap=document.getElementById('wmycancel');
   wrap.innerHTML='<div class="loading"><span class="spin"></span>読み込み中…</div>';
+  // B視角：自分宛ての代班依頼
+  const myReqs=await renderMySwaps();
+  // 自分が出した代班依頼の状況
+  const{data:mySwapsOut}=await sb.from('swap_requests').select('*,shift_slots(slot_name,date,start_time,end_time)').eq('requester_id',me.id).order('created_at',{ascending:false});
   const{data}=await sb.from('cancel_requests').select('*,shift_slots(slot_name,date,start_time,end_time)').eq('staff_id',me.id).order('created_at',{ascending:false});
   const showHist=window._myCancelHist||false;
   const all=data||[];
   const list=showHist?all:all.filter(c=>c.status==='pending');
-  let html='<div style="font-weight:800;font-size:17px;color:#5a6b7a;margin-bottom:6px;">↩️ 取消申請の状況</div>';
-  html+='<p class="hint" style="margin-bottom:12px;">提出した取消出勤申請の承認状況を確認できます。</p>';
+  let html='<div style="font-weight:800;font-size:17px;color:#5a6b7a;margin-bottom:6px;">↩️ 申請の状況</div>';
+  html+='<p class="hint" style="margin-bottom:12px;">代班依頼・取消申請の状況を確認できます。</p>';
+  // ── 自分宛ての代班依頼（要対応）──
+  if(myReqs.length>0){
+    html+='<div style="font-size:13px;font-weight:700;color:#b8860b;margin-bottom:8px;">🔔 あなたへの代班依頼</div>';
+    myReqs.forEach(r=>{
+      const slot=r.shift_slots;
+      html+='<div class="reqcard" style="border-left-color:#c9b896;">';
+      html+='<div style="font-weight:700;font-size:13px;color:#5a6b7a;margin-bottom:3px;">'+r.requester_name+'さんから代班のお願い</div>';
+      html+='<div style="font-size:12px;color:#666;margin-bottom:3px;">'+(slot?.date||r.date)+' '+(slot?.slot_name||'')+' '+(slot?.start_time?.slice(0,5)||'')+'〜'+(slot?.end_time?.slice(0,5)||'')+'</div>';
+      if(r.reason)html+='<div style="font-size:12px;color:#888;margin-bottom:8px;">理由：'+r.reason+'</div>';
+      html+='<div style="display:flex;gap:7px;margin-top:8px;"><button class="bsm bg" onclick="agreeSwap(\''+r.id+'\',true)">代わってもいい</button><button class="bsm bgr" onclick="agreeSwap(\''+r.id+'\',false)">今回は無理</button></div>';
+      html+='</div>';
+    });
+    html+='<div style="height:14px;"></div>';
+  }
+  // ── 自分が出した代班依頼の状況 ──
+  if(mySwapsOut&&mySwapsOut.length>0){
+    const activeSwaps=mySwapsOut.filter(s=>s.status==='waiting_b'||s.status==='waiting_admin');
+    if(activeSwaps.length>0){
+      html+='<div style="font-size:13px;font-weight:700;color:#5a6b7a;margin-bottom:8px;">📤 出した代班依頼</div>';
+      activeSwaps.forEach(s=>{
+        const slot=s.shift_slots;
+        const stLabel=s.status==='waiting_b'?'相手の返事待ち':'管理者の承認待ち';
+        html+='<div class="reqcard" style="border-left-color:#aec0a8;">';
+        html+='<div style="font-weight:700;font-size:13px;color:#5a6b7a;">'+s.target_name+'さんへ依頼中</div>';
+        html+='<div style="font-size:12px;color:#666;">'+(slot?.date||s.date)+' '+(slot?.slot_name||'')+'</div>';
+        html+='<div style="margin-top:4px;"><span class="badge bp">'+stLabel+'</span></div>';
+        html+='</div>';
+      });
+      html+='<div style="height:14px;"></div>';
+    }
+  }
+  html+='<div style="font-size:13px;font-weight:700;color:#5a6b7a;margin-bottom:8px;">取消申請</div>';
   html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">';
   html+='<span style="font-size:13px;font-weight:700;color:#5a6b7a;">'+(showHist?'すべての申請':'審査中の申請')+'</span>';
   html+='<button class="bsm bgr" onclick="window._myCancelHist='+(!showHist)+';renderMyCancel()">'+(showHist?'審査中のみ':'過去の記録も見る')+'</button></div>';
@@ -1014,18 +1164,21 @@ let reqTab='pending';
 async function renderRequests(){
   const wrap=document.getElementById('wrequests');
   wrap.innerHTML='<div class="loading"><span class="spin"></span>読み込み中…</div>';
-  const[lr,cr]=await Promise.all([
+  const[lr,cr,sr]=await Promise.all([
     sb.from('leave_requests').select('*,shift_staff(name,staff_type)').order('created_at',{ascending:false}),
-    sb.from('cancel_requests').select('*,shift_staff(name),shift_slots(slot_name,date,start_time,end_time)').order('created_at',{ascending:false})
+    sb.from('cancel_requests').select('*,shift_staff(name),shift_slots(slot_name,date,start_time,end_time)').order('created_at',{ascending:false}),
+    sb.from('swap_requests').select('*,shift_slots(slot_name,date,start_time,end_time)').order('created_at',{ascending:false})
   ]);
-  const allLeaves=lr.data||[],allCancels=cr.data||[];
+  const allLeaves=lr.data||[],allCancels=cr.data||[],allSwaps=sr.data||[];
   const isPending=reqTab==='pending';
   const leaves=isPending?allLeaves.filter(l=>l.status==='pending'):allLeaves;
   const cancels=isPending?allCancels.filter(c=>c.status==='pending'):allCancels;
+  const swaps=isPending?allSwaps.filter(s=>s.status==='waiting_admin'):allSwaps;
 
   let html='<div style="font-weight:800;font-size:17px;color:#5a6b7a;margin-bottom:12px;">📋 申請確認</div>';
   html+='<div class="seg">';
-  html+='<button class="segb'+(isPending?' on':'')+'" onclick="reqTab=\'pending\';window._reqSearch=\'\';renderRequests()">審査中'+( (allLeaves.filter(l=>l.status==='pending').length+allCancels.filter(c=>c.status==='pending').length)>0?'（'+(allLeaves.filter(l=>l.status==='pending').length+allCancels.filter(c=>c.status==='pending').length)+'）':'')+'</button>';
+  const totalPending=allLeaves.filter(l=>l.status==='pending').length+allCancels.filter(c=>c.status==='pending').length+allSwaps.filter(s=>s.status==='waiting_admin').length;
+  html+='<button class="segb'+(isPending?' on':'')+'" onclick="reqTab=\'pending\';window._reqSearch=\'\';renderRequests()">審査中'+(totalPending>0?'（'+totalPending+'）':'')+'</button>';
   html+='<button class="segb'+(!isPending?' on':'')+'" onclick="reqTab=\'all\';renderRequests()">すべて</button></div>';
   // 日付検索（すべてタブのみ）
   if(!isPending){
@@ -1042,6 +1195,7 @@ async function renderRequests(){
   let items=[];
   cancels.forEach(c=>items.push({type:'cancel',data:c,time:c.created_at,date:c.date}));
   leaves.forEach(l=>items.push({type:'leave',data:l,time:l.created_at,date:l.date}));
+  swaps.forEach(s=>items.push({type:'swap',data:s,time:s.created_at,date:s.date}));
   // 日付検索フィルター
   const searchDate=window._reqSearch||'';
   if(searchDate)items=items.filter(it=>it.date===searchDate);
@@ -1050,7 +1204,27 @@ async function renderRequests(){
   if(items.length===0){html+='<p class="empty">'+(isPending?'審査中の申請はありません':'申請記録がありません')+'</p>';wrap.innerHTML=html;return;}
 
   items.forEach(it=>{
-    if(it.type==='cancel'){
+    if(it.type==='swap'){
+      const s=it.data;
+      const sc=s.status==='waiting_admin'?'bp':s.status==='approved'?'ba':s.status==='rejected'?'brej':'bp';
+      const sl=s.status==='waiting_admin'?'承認待ち':s.status==='approved'?'承認済':s.status==='rejected'?'却下/辞退':s.status==='waiting_b'?'相手の返事待ち':s.status;
+      const slot=s.shift_slots;
+      const reqColor=staffColorMap[s.requester_id]||'#5a6b7a';
+      html+='<div class="reqcard" style="border-left-color:#c9b896;">';
+      html+='<div style="display:flex;align-items:center;gap:7px;margin-bottom:7px;">';
+      html+='<span class="av" style="background:'+reqColor+';">'+(s.requester_name?.[0]||'?')+'</span>';
+      html+='<div><div style="font-weight:700;font-size:13px;">'+s.requester_name+' → '+s.target_name+' <span style="font-size:10px;color:#b8860b;font-weight:600;">代班</span></div>';
+      html+='<div style="font-size:11px;color:#666;">'+(slot?.date||s.date)+' '+(slot?.slot_name||'')+' '+(slot?.start_time?.slice(0,5)||'')+'〜'+(slot?.end_time?.slice(0,5)||'')+'</div></div>';
+      html+='<span class="badge '+sc+'" style="margin-left:auto;">'+sl+'</span></div>';
+      if(s.reason)html+='<div style="font-size:12px;color:#666;margin-bottom:8px;">理由：'+s.reason+'</div>';
+      html+='<div style="font-size:11px;color:#7a9b76;margin-bottom:8px;">✓ '+s.target_name+'さんが代わりに同意済み</div>';
+      if(s.status==='waiting_admin'){
+        html+='<div style="display:flex;gap:7px;"><button class="bsm bg" onclick="appSwap(\''+s.id+'\')">承認（交代を確定）</button><button class="bsm br" onclick="rejSwap(\''+s.id+'\')">却下</button></div>';
+      }else if(s.approved_by){
+        html+='<div style="font-size:11px;color:#999;margin-top:4px;">'+(s.status==='approved'?'承認':'却下')+'：'+s.approved_by+'</div>';
+      }
+      html+='</div>';
+    } else if(it.type==='cancel'){
       const c=it.data;
       window._cId=c.id;
       const sc=c.status==='pending'?'bp':c.status==='approved'?'ba':'brej';
@@ -1110,6 +1284,24 @@ async function appLeave(id){
 }
 async function rejLeave(id){
   await sb.from('leave_requests').update({status:'rejected',approved_by:me.name}).eq('id',id);
+  toast('却下しました');renderRequests();refreshPendingCount();
+}
+async function appSwap(swapId){
+  const{data:sw}=await sb.from('swap_requests').select('*').eq('id',swapId).single();
+  if(!sw){toast('依頼が見つかりません','err');return;}
+  // A を枠から外す
+  if(sw.slot_entry_id){await sb.from('slot_entries').delete().eq('id',sw.slot_entry_id);}
+  // B を枠に入れる（重複チェック）
+  const{data:exist}=await sb.from('slot_entries').select('id').eq('slot_id',sw.slot_id).eq('staff_id',sw.target_id);
+  if(!exist||exist.length===0){
+    await sb.from('slot_entries').insert({slot_id:sw.slot_id,staff_id:sw.target_id,status:'confirmed'});
+  }
+  await sb.from('swap_requests').update({status:'approved',approved_by:me.name,approved_at:new Date().toISOString()}).eq('id',swapId);
+  await logAction('代班承認',sw.date,sw.requester_name+'→'+sw.target_name+'の交代を承認');
+  toast('交代を承認しました');renderRequests();refreshPendingCount();await loadMonth(calY,calM);
+}
+async function rejSwap(id){
+  await sb.from('swap_requests').update({status:'rejected',approved_by:me.name}).eq('id',id);
   toast('却下しました');renderRequests();refreshPendingCount();
 }
 

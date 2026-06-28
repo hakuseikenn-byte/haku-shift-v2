@@ -618,9 +618,7 @@ function buildWeek(sm,em){
   if(chipStaff.length>0){
     html+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;align-items:center;">';
     html+='<span style="font-size:11px;color:#888;">表示：</span>';
-    if(me.canManage){
-      html+='<button onclick="window._wkSel=null;renderCal()" style="padding:4px 10px;border-radius:99px;border:1.5px solid '+(selId===null?'#5a6b7a':'#ddd')+';background:'+(selId===null?'#5a6b7a':'#fff')+';color:'+(selId===null?'#fff':'#666')+';font-size:11px;font-weight:700;cursor:pointer;">全員</button>';
-    }
+    html+='<button onclick="window._wkSel=null;renderCal()" style="padding:4px 10px;border-radius:99px;border:1.5px solid '+(selId===null?'#5a6b7a':'#ddd')+';background:'+(selId===null?'#5a6b7a':'#fff')+';color:'+(selId===null?'#fff':'#666')+';font-size:11px;font-weight:700;cursor:pointer;">全員</button>';
     chipStaff.forEach(s=>{
       const sc=staffColorMap[s.id]||'#5a6b7a';
       const on=selId===s.id;
@@ -629,7 +627,7 @@ function buildWeek(sm,em){
     });
     html+='</div>';
   }
-  html+='<p class="hint" style="margin-bottom:8px;">'+(me.canManage?'スタッフを選ぶとその人のシフトが強調されます。':'あなたのシフトが強調表示されます。')+'枠をタップで詳細。</p>';
+  html+='<p class="hint" style="margin-bottom:8px;">スタッフを選ぶとその人のシフトが強調されます。「全員」で全表示に戻ります。枠をタップで詳細。</p>';
 
   html+='<div class="wk-scroll"><div style="min-width:340px;">';
   html+='<div style="display:flex;">';

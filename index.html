@@ -548,7 +548,12 @@ function buildDayPanel(day,sm,em){
       }
     }
     if(isAdmin){
-      if(iAmIn)acts+='<div style="height:6px;"></div>';
+      // 管理者自身がこの枠に入れる場合（未参加・タイプ一致・空きあり）
+      const adminCanJoin=!myE&&me.id!=='admin'&&!isFull&&((slot.staff_type==='part'&&me.isPart)||(slot.staff_type==='full'&&!me.isPart));
+      if(adminCanJoin){
+        acts+='<button class="joinbtn" onclick="joinSlot(\''+slot.id+'\',\''+ds+'\')">自分が参加</button> ';
+      }
+      if(iAmIn||adminCanJoin)acts+='<div style="height:6px;"></div>';
       acts+='<button class="bsm bd" onclick="openManageSlot(\''+slot.id+'\',\''+ds+'\')">割当</button> ';
       acts+='<button class="bsm bg" onclick="openEditSlot(\''+slot.id+'\')">編集</button> ';
       acts+='<button class="bsm br" onclick="delSlot(\''+slot.id+'\',\''+ds+'\')">削除</button>';
@@ -666,15 +671,21 @@ function buildWeek(sm,em){
         if(topPx<-5||topPx>totalH)return;
         const ents=em[slot.id]||[];
         const isFull=ents.length>=slot.max_staff;
+        const isEmpty=ents.length===0;
         // 選択スタッフがこの枠にいるか
         const hasSel=selId&&ents.some(e=>e.staff_id===selId);
-        let bg,bord='',op='1',star='';
-        // 平常はタイプ別の統一色。選択時のみ強調。
-        if(hasSel){
+        let bg,bord='',op='1',star='',extraStyle='';
+        if(isEmpty){
+          // 空き枠：色なし・破線枠
+          bg='transparent';extraStyle='border:1.5px dashed #c0c0c0;color:#aaa;';
+          if(selId)op='0.4';
+        }else if(hasSel){
+          // 選択された人がいる枠：その人の色で強調・維持
           bg=staffColorMap[selId]||'#c9b896';bord='border:2px solid #5a4a2a;';star='★';
         }else{
-          bg=slot.staff_type==='full'?'#a3b5c4':'#aec0a8';
-          if(selId)op='0.3'; // 誰か選択中は非該当を薄く
+          // 平常：先頭メンバーの個人カラー（全員ハイライト）
+          bg=staffColorMap[ents[0].staff_id]||'#8aa085';
+          if(selId)op='0.3'; // 誰か選択中なら非該当を薄く
         }
         const w=Math.floor(100/nCol);
         const left=ci*w;
@@ -692,7 +703,7 @@ function buildWeek(sm,em){
           }).join('');
         }
         const fontPx=isNarrow?8:9;
-        html+='<div data-sid="'+slot.id+'" data-ds="'+ds+'" onclick="event.stopPropagation();wkSlotClick(this)" style="position:absolute;top:'+topPx+'px;left:'+left+'%;width:'+(w-1)+'%;height:'+Math.max(hPx-1,16)+'px;background:'+bg+';opacity:'+op+';color:#fff;border-radius:3px;padding:2px 1px;font-size:'+fontPx+'px;font-weight:600;overflow:hidden;cursor:pointer;line-height:1.2;'+bord+'z-index:'+(hasSel?'2':'1')+';">';
+        html+='<div data-sid="'+slot.id+'" data-ds="'+ds+'" onclick="event.stopPropagation();wkSlotClick(this)" style="position:absolute;top:'+topPx+'px;left:'+left+'%;width:'+(w-1)+'%;height:'+Math.max(hPx-1,16)+'px;background:'+bg+';opacity:'+op+';color:'+(isEmpty?'#aaa':'#fff')+';border-radius:3px;padding:2px 1px;font-size:'+fontPx+'px;font-weight:600;overflow:hidden;cursor:pointer;line-height:1.2;'+bord+extraStyle+'z-index:'+(hasSel?'2':'1')+';">';
         html+=(star?'<span style="font-size:8px;">'+star+'</span>':'')+memHtml+'</div>';
       });
     });

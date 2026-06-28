@@ -7,6 +7,7 @@
 <title>Café La Petite Haku シフト管理</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="jpfont.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{height:100%;overflow:hidden;font-family:'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif;color:#222;background:#f5f3ef;}
@@ -393,9 +394,14 @@ async function renderCal(){
       html+='<div style="text-align:right;margin-top:6px;"><button onclick="openSelfPW()" style="background:none;border:none;color:#aaa;font-size:10px;cursor:pointer;text-decoration:underline;">🔑 パスワード変更</button></div>';
       html+='</div>';
     } else {
-      const maxMon=(staff.find(s=>s.id===me.id)?.max_hours)||0;
+      const myFS=staff.find(s=>s.id===me.id);
+      const wkH40=getWeeklyH(me.id);
+      const maxMon=(myFS?.max_hours)||160;
       html+='<div class="card">';
-      html+='<div style="display:flex;justify-content:space-between;"><span style="font-size:12px;color:#666;">今月のシフト時間</span><span style="font-size:13px;font-weight:600;color:#5a6b7a;">'+myMH+'h'+(maxMon?' / '+maxMon+'h':'')+'</span></div>';
+      html+='<div style="display:flex;justify-content:space-between;margin-bottom:3px;"><span style="font-size:12px;color:#666;">今週のシフト時間</span><span style="font-size:13px;font-weight:700;color:'+(wkH40>40?'#a8584a':'#5a6b7a')+';">'+wkH40+'h / 40h</span></div>';
+      const pctW=Math.min(wkH40/40*100,100);
+      html+='<div class="prog"><div class="progf" style="width:'+pctW+'%;background:'+(wkH40>40?'#a8584a':'#7a8b73')+';"></div></div>';
+      html+='<div style="display:flex;justify-content:space-between;"><span style="font-size:12px;color:#666;">今月のシフト合計</span><span style="font-size:13px;font-weight:600;color:#5a6b7a;">'+myMH+'h / '+maxMon+'h</span></div>';
       html+='<div style="text-align:right;margin-top:6px;"><button onclick="openSelfPW()" style="background:none;border:none;color:#aaa;font-size:10px;cursor:pointer;text-decoration:underline;">🔑 パスワード変更</button></div>';
       html+='</div>';
     }
@@ -542,33 +548,56 @@ function buildWeek(sm,em){
   const START_H=6,END_H=23,HOUR_H=40;
   const totalH=(END_H-START_H)*HOUR_H;
 
+  // 選択中スタッフ（デフォルト：自分。管理者ログインはnull）
+  if(window._wkSel===undefined)window._wkSel=(me.id!=='admin')?me.id:null;
+  const selId=window._wkSel;
+
   let html='<div class="mnav">';
   html+='<button class="arr" onclick="chW(-1)">‹</button>';
   html+='<span style="font-size:13px;font-weight:700;color:#5a6b7a;">'+fd(days[0]).slice(5)+' 〜 '+fd(days[6]).slice(5)+'</span>';
   html+='<div style="display:flex;gap:4px;"><button class="tbtn2" onclick="wOff=0;renderCal()">今週</button><button class="arr" onclick="chW(1)">›</button></div></div>';
-  html+='<p class="hint" style="margin-bottom:8px;">シフトをタップすると詳細・参加できます。</p>';
+
+  // ── スタッフ色チップ選択器 ──
+  // この週にシフトがあるスタッフを集める
+  const weekStaffIds=new Set();
+  days.forEach(d=>{
+    const ds=fd(d);
+    (sm[ds]||[]).forEach(slot=>{(em[slot.id]||[]).forEach(e=>weekStaffIds.add(e.staff_id));});
+  });
+  const chipStaff=me.canManage?staff.filter(s=>weekStaffIds.has(s.id)):staff.filter(s=>s.id===me.id);
+  if(chipStaff.length>0){
+    html+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;align-items:center;">';
+    html+='<span style="font-size:11px;color:#888;">表示：</span>';
+    if(me.canManage){
+      html+='<button onclick="window._wkSel=null;renderCal()" style="padding:4px 10px;border-radius:99px;border:1.5px solid '+(selId===null?'#5a6b7a':'#ddd')+';background:'+(selId===null?'#5a6b7a':'#fff')+';color:'+(selId===null?'#fff':'#666')+';font-size:11px;font-weight:700;cursor:pointer;">全員</button>';
+    }
+    chipStaff.forEach(s=>{
+      const sc=staffColorMap[s.id]||'#5a6b7a';
+      const on=selId===s.id;
+      html+='<button onclick="window._wkSel=\''+s.id+'\';renderCal()" style="display:flex;align-items:center;gap:4px;padding:4px 10px 4px 4px;border-radius:99px;border:1.5px solid '+(on?sc:'#ddd')+';background:'+(on?sc:'#fff')+';color:'+(on?'#fff':'#666')+';font-size:11px;font-weight:700;cursor:pointer;">';
+      html+='<span style="width:16px;height:16px;border-radius:50%;background:'+(on?'#fff':sc)+';color:'+(on?sc:'#fff')+';display:inline-flex;align-items:center;justify-content:center;font-size:9px;">'+s.name[0]+'</span>'+s.name+'</button>';
+    });
+    html+='</div>';
+  }
+  html+='<p class="hint" style="margin-bottom:8px;">'+(me.canManage?'スタッフを選ぶとその人のシフトが強調されます。':'あなたのシフトが強調表示されます。')+'枠をタップで詳細。</p>';
 
   html+='<div class="wk-scroll"><div style="min-width:340px;">';
-  // ヘッダー
   html+='<div style="display:flex;">';
   html+='<div style="width:34px;flex-shrink:0;background:#5a6b7a;"></div>';
   days.forEach((d,i)=>{
     const isT=fd(d)===ts;
     const dow=d.getDay();
-    const tcol=isT?'#5a6b7a':dow===0?'#ffb3b3':dow===6?'#b3d4ff':'#fff';
-    html+='<div style="flex:1;text-align:center;padding:5px 1px;background:'+(isT?'#c9b896':'#5a6b7a')+';color:'+tcol+';border-left:1px solid #3d5166;">';
+    const tcol=isT?'#5a6b7a':dow===0?'#e8b4b4':dow===6?'#b4c4e8':'#fff';
+    html+='<div style="flex:1;text-align:center;padding:5px 1px;background:'+(isT?'#c9b896':'#5a6b7a')+';color:'+tcol+';border-left:1px solid #6b7d8c;">';
     html+='<div style="font-size:10px;">'+DJP_MON[i]+'</div><div style="font-size:13px;font-weight:700;">'+d.getDate()+'</div></div>';
   });
   html+='</div>';
-  // グリッド本体
   html+='<div style="display:flex;position:relative;">';
-  // 時間軸
   html+='<div style="width:34px;flex-shrink:0;">';
   for(let h=START_H;h<END_H;h++){
     html+='<div style="height:'+HOUR_H+'px;border-top:1px solid #eee;font-size:8px;color:#aaa;text-align:center;padding-top:1px;">'+String(h).padStart(2,'0')+'</div>';
   }
   html+='</div>';
-  // 各曜日列
   days.forEach(d=>{
     const ds=fd(d),daySlots=(sm[ds]||[]).slice().sort((a,b)=>a.start_time.localeCompare(b.start_time));
     const isT=ds===ts;
@@ -576,15 +605,12 @@ function buildWeek(sm,em){
     for(let h=0;h<END_H-START_H;h++){
       html+='<div style="position:absolute;top:'+(h*HOUR_H)+'px;left:0;right:0;height:1px;background:#f2f2f2;"></div>';
     }
-    // 重なり防止：列分け
     const cols=[];
     daySlots.forEach(slot=>{
       const ss=(parseInt(slot.start_time.slice(0,2))*60+parseInt(slot.start_time.slice(3,5)));
       const se=(parseInt(slot.end_time.slice(0,2))*60+parseInt(slot.end_time.slice(3,5)));
       let placed=false;
-      for(const col of cols){
-        if(col.every(x=>x.se<=ss||x.ss>=se)){col.push({slot,ss,se});placed=true;break;}
-      }
+      for(const col of cols){if(col.every(x=>x.se<=ss||x.ss>=se)){col.push({slot,ss,se});placed=true;break;}}
       if(!placed)cols.push([{slot,ss,se}]);
     });
     const nCol=Math.max(1,cols.length);
@@ -595,15 +621,22 @@ function buildWeek(sm,em){
         if(topPx<-5||topPx>totalH)return;
         const ents=em[slot.id]||[];
         const isFull=ents.length>=slot.max_staff;
-        const isMine=ents.some(e=>e.staff_id===me?.id);
-        let bg,myB='';
-        if(isMine){bg='#b89968';myB='border:1.5px solid #8a6d3b;';}
-        else if(ents.length>0){bg=staffColorMap[ents[0].staff_id]||'#888';}
-        else bg=slot.staff_type==='full'?'#a3b5c4':'#aec0a8';
+        // 選択スタッフがこの枠にいるか
+        const hasSel=selId&&ents.some(e=>e.staff_id===selId);
+        let bg,bord='',op='1',star='';
+        if(hasSel){
+          bg=staffColorMap[selId]||'#c9b896';bord='border:2px solid #5a4a2a;';star='★';
+        }else if(ents.length>0){
+          bg=staffColorMap[ents[0].staff_id]||'#888';
+          if(selId)op='0.35'; // 選択中は他を薄く
+        }else{
+          bg=slot.staff_type==='full'?'#a3b5c4':'#aec0a8';
+          if(selId)op='0.35';
+        }
         const w=Math.floor(100/nCol);
         const left=ci*w;
-        html+='<div data-sid="'+slot.id+'" data-ds="'+ds+'" onclick="event.stopPropagation();wkSlotClick(this)" style="position:absolute;top:'+topPx+'px;left:'+left+'%;width:'+(w-1)+'%;height:'+Math.max(hPx-1,16)+'px;background:'+bg+';color:#fff;border-radius:3px;padding:1px 2px;font-size:8px;font-weight:700;overflow:hidden;cursor:pointer;line-height:1.1;border-left:2px solid rgba(0,0,0,.25);'+myB+'">';
-        html+=(isMine?'★':'')+slot.slot_name+'<br><span style="opacity:.85;">'+ents.length+'/'+slot.max_staff+'</span></div>';
+        html+='<div data-sid="'+slot.id+'" data-ds="'+ds+'" onclick="event.stopPropagation();wkSlotClick(this)" style="position:absolute;top:'+topPx+'px;left:'+left+'%;width:'+(w-1)+'%;height:'+Math.max(hPx-1,16)+'px;background:'+bg+';opacity:'+op+';color:#fff;border-radius:3px;padding:1px 2px;font-size:8px;font-weight:700;overflow:hidden;cursor:pointer;line-height:1.1;'+bord+'z-index:'+(hasSel?'2':'1')+';">';
+        html+=star+slot.slot_name+'<br><span style="opacity:.85;">'+ents.length+'/'+slot.max_staff+'</span></div>';
       });
     });
     html+='</div>';
@@ -811,7 +844,7 @@ async function renderLeave(){
   html+='<button class="btn" onclick="doLeave()">申請する</button></div></div>';
   // 履歴トグル
   html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">';
-  html+='<span style="font-size:13px;font-weight:700;color:#5a6b7a;">'+(showHist?'すべての申請':'最近の申請（審査中・直近30日の結果）')+'</span>';
+  html+='<span style="font-size:13px;font-weight:700;color:#5a6b7a;">'+(showHist?'すべての申請':'審査中の申請')+'</span>';
   html+='<button class="bsm bgr" onclick="window._leaveHist='+(!showHist)+';renderLeave()">'+(showHist?'審査中のみ':'過去の記録も見る')+'</button></div>';
   if(leaves.length===0)html+='<p class="empty">'+(showHist?'記録がありません':'審査中の申請はありません')+'</p>';
   else leaves.forEach(l=>{
@@ -856,19 +889,13 @@ async function renderMyCancel(){
   const{data}=await sb.from('cancel_requests').select('*,shift_slots(slot_name,date,start_time,end_time)').eq('staff_id',me.id).order('created_at',{ascending:false});
   const showHist=window._myCancelHist||false;
   const all=data||[];
-  // デフォルト：審査中 ＋ 過去30日以内に処理された申請（結果を本人に見せる）
-  const cutoff=new Date();cutoff.setDate(cutoff.getDate()-30);
-  const list=showHist?all:all.filter(c=>{
-    if(c.status==='pending')return true;
-    const ad=c.approved_at?new Date(c.approved_at):new Date(c.created_at);
-    return ad>=cutoff;
-  });
+  const list=showHist?all:all.filter(c=>c.status==='pending');
   let html='<div style="font-weight:800;font-size:17px;color:#5a6b7a;margin-bottom:6px;">↩️ 取消申請の状況</div>';
   html+='<p class="hint" style="margin-bottom:12px;">提出した取消出勤申請の承認状況を確認できます。</p>';
   html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">';
-  html+='<span style="font-size:13px;font-weight:700;color:#5a6b7a;">'+(showHist?'すべての申請':'最近の申請（審査中・直近30日の結果）')+'</span>';
+  html+='<span style="font-size:13px;font-weight:700;color:#5a6b7a;">'+(showHist?'すべての申請':'審査中の申請')+'</span>';
   html+='<button class="bsm bgr" onclick="window._myCancelHist='+(!showHist)+';renderMyCancel()">'+(showHist?'審査中のみ':'過去の記録も見る')+'</button></div>';
-  if(list.length===0)html+='<p class="empty">'+(showHist?'記録がありません':'申請はありません')+'</p>';
+  if(list.length===0)html+='<p class="empty">'+(showHist?'記録がありません':'審査中の申請はありません')+'</p>';
   else list.forEach(c=>{
     const sc=c.status==='pending'?'bp':c.status==='approved'?'ba':'brej';
     const sl=c.status==='pending'?'審査中':c.status==='approved'?'承認されました':'却下されました';
@@ -945,6 +972,8 @@ async function renderRequests(){
       if(c.reason)html+='<div style="font-size:12px;color:#666;margin-bottom:8px;">理由：'+c.reason+'</div>';
       if(c.status==='pending'){
         html+='<div style="display:flex;gap:7px;"><button class="bsm bg" onclick="appCancel(\''+c.id+'\',\''+(c.slot_entry_id||'')+'\',\''+(c.date||'')+'\')">承認（シフトから外す）</button><button class="bsm br" onclick="rejCancel(\''+c.id+'\')">却下</button></div>';
+      }else if(c.approved_by){
+        html+='<div style="font-size:11px;color:#999;margin-top:4px;">'+(c.status==='approved'?'承認':'却下')+'：'+c.approved_by+'</div>';
       }
       html+='</div>';
     } else {
@@ -962,6 +991,8 @@ async function renderRequests(){
       if(l.reason)html+='<div style="font-size:12px;color:#666;margin-bottom:8px;">理由：'+l.reason+'</div>';
       if(l.status==='pending'){
         html+='<div style="display:flex;gap:7px;"><button class="bsm bg" onclick="appLeave(\''+l.id+'\')">承認</button><button class="bsm br" onclick="rejLeave(\''+l.id+'\')">却下</button></div>';
+      }else if(l.approved_by){
+        html+='<div style="font-size:11px;color:#999;margin-top:4px;">'+(l.status==='approved'?'承認':'却下')+'：'+l.approved_by+'</div>';
       }
       html+='</div>';
     }
@@ -1005,44 +1036,20 @@ async function cleanOldRequests(){
 // PDF出力（シフト表）
 // ════════════════════════════════════════════════════════════
 let _jpFontLoaded=false;
-async function loadJPFont(doc){
-  if(_jpFontLoaded&&window._jpFontB64){
-    doc.addFileToVFS('NotoSansJP.ttf',window._jpFontB64);
+function loadJPFont(doc){
+  try{
+    if(!window.HAKU_JP_FONT)return false;
+    doc.addFileToVFS('NotoSansJP.ttf',window.HAKU_JP_FONT);
     doc.addFont('NotoSansJP.ttf','NotoSansJP','normal');
     return true;
-  }
-  const sources=[
-    'https://cdn.jsdelivr.net/npm/@expo-google-fonts/noto-sans-jp@0.4.3/NotoSansJP_400Regular.ttf',
-    'https://unpkg.com/@expo-google-fonts/noto-sans-jp@0.4.3/NotoSansJP_400Regular.ttf'
-  ];
-  toast('日本語フォントを準備中…（初回のみ数秒かかります）');
-  for(const url of sources){
-    try{
-      const res=await fetch(url);
-      if(!res.ok)continue;
-      const blob=await res.blob();
-      const b64=await new Promise((resolve,reject)=>{
-        const fr=new FileReader();
-        fr.onloadend=()=>resolve(fr.result.split(',')[1]);
-        fr.onerror=reject;
-        fr.readAsDataURL(blob);
-      });
-      if(!b64||b64.length<10000)continue;
-      window._jpFontB64=b64;_jpFontLoaded=true;
-      doc.addFileToVFS('NotoSansJP.ttf',b64);
-      doc.addFont('NotoSansJP.ttf','NotoSansJP','normal');
-      return true;
-    }catch(e){continue;}
-  }
-  toast('フォント読込に失敗しました。文字化けする場合があります','err');
-  return false;
+  }catch(e){return false;}
 }
 
 async function exportWeekPDF(){
   const{jsPDF}=window.jspdf;
   const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
   // 日本語フォント読み込み
-  const fontOK=await loadJPFont(doc);
+  const fontOK=loadJPFont(doc);
   const FONT=fontOK?'NotoSansJP':'helvetica';
   doc.setFont(FONT);
   // 当前表示中の週を計算（月曜始まり）

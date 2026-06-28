@@ -857,27 +857,29 @@ async function adminAddEnt(slotId,ds){
   const sid=document.getElementById('addsel').value;if(!sid)return;
   const{data:exist}=await sb.from('slot_entries').select('id').eq('slot_id',slotId).eq('staff_id',sid);
   if(exist&&exist.length>0){toast('既に割り当てられています','err');return;}
-  // アルバイトの週上限チェック（管理者には警告のみ。ブロックしない）
+  // アルバイトの週上限チェック（管理者には警告のみ。DBから直接集計）
   const targetS=staff.find(s=>s.id===sid);
   if(targetS&&targetS.staff_type==='part'){
-    const k=calY+'-'+calM;
-    let slot=null;
-    Object.values(SC[k]||{}).forEach(slots=>slots.forEach(s=>{if(s.id===slotId)slot=s;}));
-    if(slot){
-      const slotH=chft(slot.start_time,slot.end_time);
+    // 対象枠の情報
+    const{data:thisSlot}=await sb.from('shift_slots').select('*').eq('id',slotId).single();
+    if(thisSlot){
+      const slotH=chft(thisSlot.start_time,thisSlot.end_time);
       const slotDate=new Date(ds+'T00:00:00');
       const diffToMon=(slotDate.getDay()+6)%7;
-      const wkStart=new Date(slotDate);wkStart.setDate(slotDate.getDate()-diffToMon);wkStart.setHours(0,0,0,0);
-      const wkEnd=new Date(wkStart);wkEnd.setDate(wkStart.getDate()+6);wkEnd.setHours(23,59,59,999);
+      const wkStart=new Date(slotDate);wkStart.setDate(slotDate.getDate()-diffToMon);
+      const wkEnd=new Date(wkStart);wkEnd.setDate(wkStart.getDate()+6);
+      const wkStartStr=fd(wkStart),wkEndStr=fd(wkEnd);
+      // その週の枠を取得
+      const{data:wkSlots}=await sb.from('shift_slots').select('*').gte('date',wkStartStr).lte('date',wkEndStr);
+      // この人のエントリを取得
+      const{data:myEnts}=await sb.from('slot_entries').select('slot_id').eq('staff_id',sid);
+      const myslotIds=new Set((myEnts||[]).map(e=>e.slot_id));
       let weekH=0;const counted=new Set();
-      Object.entries(SC[k]||{}).forEach(([date,slots])=>{
-        const dd=new Date(date+'T00:00:00');if(dd<wkStart||dd>wkEnd)return;
-        slots.forEach(s=>{
-          if(!(EC[k]?.[s.id]||[]).find(e=>e.staff_id===sid))return;
-          const key=date+'_'+s.start_time+'_'+s.end_time;
-          if(counted.has(key))return;counted.add(key);
-          weekH+=chft(s.start_time,s.end_time);
-        });
+      (wkSlots||[]).forEach(s=>{
+        if(!myslotIds.has(s.id))return;
+        const key=s.date+'_'+s.start_time+'_'+s.end_time;
+        if(counted.has(key))return;counted.add(key);
+        weekH+=chft(s.start_time,s.end_time);
       });
       const maxWk=targetS.max_hours_per_week||20;
       if(weekH+slotH>maxWk){

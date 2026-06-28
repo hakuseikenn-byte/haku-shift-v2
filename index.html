@@ -649,19 +649,21 @@ function buildWeek(sm,em){
         }
         const w=Math.floor(100/nCol);
         const left=ci*w;
-        // 格子内：人名のみ（複数人は縦に並べる）
+        // 狭い格子（重なりが多い）は名前の先頭1文字、広い格子はフルネーム
+        const isNarrow=nCol>=2;
         let memHtml='';
         if(ents.length===0){
-          memHtml='<span style="opacity:.7;">空き</span>';
+          memHtml=isNarrow?'':'<span style="opacity:.7;">空き</span>';
         }else{
           memHtml=ents.map(e=>{
             const nm=e.shift_staff?.name||'?';
-            const ec=staffColorMap[e.staff_id]||'#888';
             const isSelMem=selId&&e.staff_id===selId;
-            return '<div style="background:rgba(255,255,255,.25);border-radius:2px;padding:0 2px;margin-bottom:1px;'+(isSelMem?'font-weight:800;':'')+'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+nm+'</div>';
+            const disp=isNarrow?nm[0]:nm;
+            return '<div style="background:rgba(255,255,255,.25);border-radius:2px;padding:0 '+(isNarrow?'0':'2')+'px;margin-bottom:1px;text-align:'+(isNarrow?'center':'left')+';'+(isSelMem?'font-weight:800;':'')+'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+disp+'</div>';
           }).join('');
         }
-        html+='<div data-sid="'+slot.id+'" data-ds="'+ds+'" onclick="event.stopPropagation();wkSlotClick(this)" style="position:absolute;top:'+topPx+'px;left:'+left+'%;width:'+(w-1)+'%;height:'+Math.max(hPx-1,16)+'px;background:'+bg+';opacity:'+op+';color:#fff;border-radius:3px;padding:2px 2px;font-size:9px;font-weight:600;overflow:hidden;cursor:pointer;line-height:1.2;'+bord+'z-index:'+(hasSel?'2':'1')+';">';
+        const fontPx=isNarrow?8:9;
+        html+='<div data-sid="'+slot.id+'" data-ds="'+ds+'" onclick="event.stopPropagation();wkSlotClick(this)" style="position:absolute;top:'+topPx+'px;left:'+left+'%;width:'+(w-1)+'%;height:'+Math.max(hPx-1,16)+'px;background:'+bg+';opacity:'+op+';color:#fff;border-radius:3px;padding:2px 1px;font-size:'+fontPx+'px;font-weight:600;overflow:hidden;cursor:pointer;line-height:1.2;'+bord+'z-index:'+(hasSel?'2':'1')+';">';
         html+=(star?'<span style="font-size:8px;">'+star+'</span>':'')+memHtml+'</div>';
       });
     });
@@ -855,6 +857,35 @@ async function adminAddEnt(slotId,ds){
   const sid=document.getElementById('addsel').value;if(!sid)return;
   const{data:exist}=await sb.from('slot_entries').select('id').eq('slot_id',slotId).eq('staff_id',sid);
   if(exist&&exist.length>0){toast('既に割り当てられています','err');return;}
+  // アルバイトの週上限チェック（管理者には警告のみ。ブロックしない）
+  const targetS=staff.find(s=>s.id===sid);
+  if(targetS&&targetS.staff_type==='part'){
+    const k=calY+'-'+calM;
+    let slot=null;
+    Object.values(SC[k]||{}).forEach(slots=>slots.forEach(s=>{if(s.id===slotId)slot=s;}));
+    if(slot){
+      const slotH=chft(slot.start_time,slot.end_time);
+      const slotDate=new Date(ds+'T00:00:00');
+      const diffToMon=(slotDate.getDay()+6)%7;
+      const wkStart=new Date(slotDate);wkStart.setDate(slotDate.getDate()-diffToMon);wkStart.setHours(0,0,0,0);
+      const wkEnd=new Date(wkStart);wkEnd.setDate(wkStart.getDate()+6);wkEnd.setHours(23,59,59,999);
+      let weekH=0;const counted=new Set();
+      Object.entries(SC[k]||{}).forEach(([date,slots])=>{
+        const dd=new Date(date+'T00:00:00');if(dd<wkStart||dd>wkEnd)return;
+        slots.forEach(s=>{
+          if(!(EC[k]?.[s.id]||[]).find(e=>e.staff_id===sid))return;
+          const key=date+'_'+s.start_time+'_'+s.end_time;
+          if(counted.has(key))return;counted.add(key);
+          weekH+=chft(s.start_time,s.end_time);
+        });
+      });
+      const maxWk=targetS.max_hours_per_week||20;
+      if(weekH+slotH>maxWk){
+        const ok=confirm(targetS.name+'さんは今週'+maxWk+'時間を超えます。\n（現在'+Math.round(weekH*10)/10+'h ＋ 今回'+slotH+'h ＝ '+Math.round((weekH+slotH)*10)/10+'h）\n\n雇用保険の加入義務が発生する可能性があります。\nそれでも割り当てますか？');
+        if(!ok)return;
+      }
+    }
+  }
   const{error}=await sb.from('slot_entries').insert({slot_id:slotId,staff_id:sid,status:'confirmed'});
   if(error){toast('追加に失敗しました','err');return;}
   const sName=staff.find(s=>s.id===sid)?.name||'';

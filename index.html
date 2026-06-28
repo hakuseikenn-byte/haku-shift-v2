@@ -125,7 +125,7 @@ textarea{resize:vertical;min-height:60px;}
   <div class="hnav">
     <button class="hbtn on" id="nb-cal" onclick="nav('cal')" title="シフト表">📅</button>
     <button class="hbtn" id="nb-leave" onclick="nav('leave')" title="休暇申請" style="display:none;">🌿</button>
-    <button class="hbtn" id="nb-mycancel" onclick="nav('mycancel')" title="申請状況" style="display:none;">↩️</button>
+    <button class="hbtn" id="nb-mycancel" onclick="nav('mycancel')" title="申請状況" style="display:none;">↩️<span class="ndot" id="myswapdot" style="display:none;">0</span></button>
     <button class="hbtn" id="nb-requests" onclick="nav('requests')" title="申請確認" style="display:none;">📋<span class="ndot" id="reqdot" style="display:none;">0</span></button>
     <button class="hbtn" id="nb-admin" onclick="nav('admin')" title="管理" style="display:none;">⚙</button>
     <button class="hout" onclick="logout()">退出</button>
@@ -217,7 +217,7 @@ function nav(name){
   showP(name);
   if(name==='cal')renderCal();
   else if(name==='leave')renderLeave();
-  else if(name==='mycancel')renderMyCancel();
+  else if(name==='mycancel'){renderMyCancel();setTimeout(refreshPendingCount,500);}
   else if(name==='requests')renderRequests();
   else if(name==='admin')renderAdmin();
 }
@@ -368,7 +368,16 @@ function logout(){
 }
 
 async function refreshPendingCount(){
-  if(!me||!me.canManage){return;}
+  if(!me)return;
+  // 代班依頼バッジは全員チェック（canManageでなくても）
+  if(!me.canManage){
+    if(me.id!=='admin'){
+      const{data:myReq}=await sb.from('swap_requests').select('id').eq('target_id',me.id).eq('status','waiting_b');
+      const sd=document.getElementById('myswapdot');
+      if(sd){const n=(myReq||[]).length;if(n>0){sd.style.display='flex';sd.textContent=n;}else sd.style.display='none';}
+    }
+    return;
+  }
   const[lr,cr,sr]=await Promise.all([
     sb.from('leave_requests').select('id').eq('status','pending'),
     sb.from('cancel_requests').select('id').eq('status','pending'),
@@ -379,6 +388,15 @@ async function refreshPendingCount(){
   if(dot){
     if(pendingCount>0){dot.style.display='flex';dot.textContent=pendingCount;}
     else dot.style.display='none';
+  }
+  // 自分宛ての代班依頼バッジ（全員）
+  if(me&&me.id!=='admin'){
+    const{data:myReq}=await sb.from('swap_requests').select('id').eq('target_id',me.id).eq('status','waiting_b');
+    const sd=document.getElementById('myswapdot');
+    if(sd){
+      const n=(myReq||[]).length;
+      if(n>0){sd.style.display='flex';sd.textContent=n;}else sd.style.display='none';
+    }
   }
 }
 // ════════════════════════════════════════════════════════════
@@ -519,15 +537,25 @@ function buildDayPanel(day,sm,em){
       return '<span class="mtag'+(isMe?' me':'')+'" style="'+(isMe?'':'border-color:'+sc+';color:'+sc+';')+'">'+(e.shift_staff?.name||'?')+'</span>';
     }).join('');
     let acts='';
+    // 自分がこの枠にいる場合は、管理者でも自分用の操作（代班・取消/休暇）を表示
+    const iAmIn=myE&&me.id!=='admin';
+    if(iAmIn){
+      if(me.isPart){
+        acts+='<button class="bsm bgold" onclick="openSwapReq(\''+myE.id+'\',\''+slot.id+'\',\''+ds+'\',\''+slot.slot_name+'\')">代わりを探す</button> ';
+        acts+='<button class="bsm br" onclick="openCancelReq(\''+myE.id+'\',\''+slot.id+'\',\''+ds+'\',\''+slot.slot_name+'\')">取消申請</button>';
+      }else{
+        acts+='<button class="bsm bgold" onclick="openSwapReq(\''+myE.id+'\',\''+slot.id+'\',\''+ds+'\',\''+slot.slot_name+'\')">代わりを探す</button>';
+      }
+    }
     if(isAdmin){
+      if(iAmIn)acts+='<div style="height:6px;"></div>';
       acts+='<button class="bsm bd" onclick="openManageSlot(\''+slot.id+'\',\''+ds+'\')">割当</button> ';
       acts+='<button class="bsm bg" onclick="openEditSlot(\''+slot.id+'\')">編集</button> ';
       acts+='<button class="bsm br" onclick="delSlot(\''+slot.id+'\',\''+ds+'\')">削除</button>';
     } else {
       const canJoin=(slot.staff_type==='part'&&me.isPart)||(slot.staff_type==='full'&&!me.isPart);
-      if(canJoin){
-        if(myE)acts='<button class="bsm bgold" onclick="openSwapReq(\''+myE.id+'\',\''+slot.id+'\',\''+ds+'\',\''+slot.slot_name+'\')">代わりを探す</button> <button class="bsm br" onclick="openCancelReq(\''+myE.id+'\',\''+slot.id+'\',\''+ds+'\',\''+slot.slot_name+'\')">取消申請</button>';
-        else if(!isFull)acts='<button class="joinbtn" onclick="joinSlot(\''+slot.id+'\',\''+ds+'\')">参加する</button>';
+      if(canJoin&&!myE){
+        if(!isFull)acts='<button class="joinbtn" onclick="joinSlot(\''+slot.id+'\',\''+ds+'\')">参加する</button>';
         else acts='<span style="font-size:11px;color:#888;">満員</span>';
       }
     }
@@ -565,8 +593,8 @@ function buildWeek(sm,em){
   const START_H=6,END_H=23,HOUR_H=40;
   const totalH=(END_H-START_H)*HOUR_H;
 
-  // 選択中スタッフ（デフォルト：自分。管理者ログインはnull）
-  if(window._wkSel===undefined)window._wkSel=(me.id!=='admin')?me.id:null;
+  // 選択中スタッフ（デフォルト：誰も選択しない＝全員同じ色）
+  if(window._wkSel===undefined)window._wkSel=null;
   const selId=window._wkSel;
 
   let html='<div class="mnav">';

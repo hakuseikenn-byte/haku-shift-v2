@@ -811,7 +811,7 @@ async function renderLeave(){
   html+='<button class="btn" onclick="doLeave()">申請する</button></div></div>';
   // 履歴トグル
   html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">';
-  html+='<span style="font-size:13px;font-weight:700;color:#5a6b7a;">'+(showHist?'すべての申請':'審査中の申請')+'</span>';
+  html+='<span style="font-size:13px;font-weight:700;color:#5a6b7a;">'+(showHist?'すべての申請':'最近の申請（審査中・直近30日の結果）')+'</span>';
   html+='<button class="bsm bgr" onclick="window._leaveHist='+(!showHist)+';renderLeave()">'+(showHist?'審査中のみ':'過去の記録も見る')+'</button></div>';
   if(leaves.length===0)html+='<p class="empty">'+(showHist?'記録がありません':'審査中の申請はありません')+'</p>';
   else leaves.forEach(l=>{
@@ -856,13 +856,19 @@ async function renderMyCancel(){
   const{data}=await sb.from('cancel_requests').select('*,shift_slots(slot_name,date,start_time,end_time)').eq('staff_id',me.id).order('created_at',{ascending:false});
   const showHist=window._myCancelHist||false;
   const all=data||[];
-  const list=showHist?all:all.filter(c=>c.status==='pending');
+  // デフォルト：審査中 ＋ 過去30日以内に処理された申請（結果を本人に見せる）
+  const cutoff=new Date();cutoff.setDate(cutoff.getDate()-30);
+  const list=showHist?all:all.filter(c=>{
+    if(c.status==='pending')return true;
+    const ad=c.approved_at?new Date(c.approved_at):new Date(c.created_at);
+    return ad>=cutoff;
+  });
   let html='<div style="font-weight:800;font-size:17px;color:#5a6b7a;margin-bottom:6px;">↩️ 取消申請の状況</div>';
   html+='<p class="hint" style="margin-bottom:12px;">提出した取消出勤申請の承認状況を確認できます。</p>';
   html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">';
-  html+='<span style="font-size:13px;font-weight:700;color:#5a6b7a;">'+(showHist?'すべての申請':'審査中の申請')+'</span>';
+  html+='<span style="font-size:13px;font-weight:700;color:#5a6b7a;">'+(showHist?'すべての申請':'最近の申請（審査中・直近30日の結果）')+'</span>';
   html+='<button class="bsm bgr" onclick="window._myCancelHist='+(!showHist)+';renderMyCancel()">'+(showHist?'審査中のみ':'過去の記録も見る')+'</button></div>';
-  if(list.length===0)html+='<p class="empty">'+(showHist?'記録がありません':'審査中の申請はありません')+'</p>';
+  if(list.length===0)html+='<p class="empty">'+(showHist?'記録がありません':'申請はありません')+'</p>';
   else list.forEach(c=>{
     const sc=c.status==='pending'?'bp':c.status==='approved'?'ba':'brej';
     const sl=c.status==='pending'?'審査中':c.status==='approved'?'承認されました':'却下されました';
@@ -998,43 +1004,78 @@ async function cleanOldRequests(){
 // ════════════════════════════════════════════════════════════
 // PDF出力（シフト表）
 // ════════════════════════════════════════════════════════════
+let _jpFontLoaded=false;
+async function loadJPFont(doc){
+  if(_jpFontLoaded&&window._jpFontB64){
+    doc.addFileToVFS('NotoSansJP.ttf',window._jpFontB64);
+    doc.addFont('NotoSansJP.ttf','NotoSansJP','normal');
+    return true;
+  }
+  const sources=[
+    'https://cdn.jsdelivr.net/npm/@expo-google-fonts/noto-sans-jp@0.4.3/NotoSansJP_400Regular.ttf',
+    'https://unpkg.com/@expo-google-fonts/noto-sans-jp@0.4.3/NotoSansJP_400Regular.ttf'
+  ];
+  toast('日本語フォントを準備中…（初回のみ数秒かかります）');
+  for(const url of sources){
+    try{
+      const res=await fetch(url);
+      if(!res.ok)continue;
+      const blob=await res.blob();
+      const b64=await new Promise((resolve,reject)=>{
+        const fr=new FileReader();
+        fr.onloadend=()=>resolve(fr.result.split(',')[1]);
+        fr.onerror=reject;
+        fr.readAsDataURL(blob);
+      });
+      if(!b64||b64.length<10000)continue;
+      window._jpFontB64=b64;_jpFontLoaded=true;
+      doc.addFileToVFS('NotoSansJP.ttf',b64);
+      doc.addFont('NotoSansJP.ttf','NotoSansJP','normal');
+      return true;
+    }catch(e){continue;}
+  }
+  toast('フォント読込に失敗しました。文字化けする場合があります','err');
+  return false;
+}
+
 async function exportWeekPDF(){
   const{jsPDF}=window.jspdf;
   const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
-  doc.setFont('helvetica');
+  // 日本語フォント読み込み
+  const fontOK=await loadJPFont(doc);
+  const FONT=fontOK?'NotoSansJP':'helvetica';
+  doc.setFont(FONT);
   // 当前表示中の週を計算（月曜始まり）
   const today=new Date();
   const diffToMon=(today.getDay()+6)%7;
   const sw=new Date(today);sw.setDate(today.getDate()-diffToMon+wOff*7);
   const days=Array.from({length:7},(_,i)=>{const d=new Date(sw);d.setDate(d.getDate()+i);return d;});
-  // 該当月のデータをロード（週が月をまたぐ場合両方）
   const months=new Set();
   days.forEach(d=>months.add(d.getFullYear()+'-'+d.getMonth()));
   for(const mk of months){const[yy,mm]=mk.split('-').map(Number);await loadMonth(yy,mm);}
 
   const pageW=297,pageH=210,margin=10;
-  const colW=(pageW-margin*2-22)/7; // 22mm = 時間軸
+  const colW=(pageW-margin*2-22)/7;
   const headerY=28,gridTop=34;
   const START_H=8,END_H=22,HOUR_H=(pageH-gridTop-margin)/(END_H-START_H);
 
-  // タイトル
-  doc.setFontSize(16);doc.setTextColor(90,107,122);
-  doc.text('Cafe La Petite Haku - Shift',margin,16);
+  doc.setFontSize(15);doc.setTextColor(90,107,122);
+  doc.text('Café La Petite Haku　シフト表',margin,16);
   doc.setFontSize(11);doc.setTextColor(100,100,100);
-  doc.text(fd(days[0])+'  -  '+fd(days[6]),margin,23);
+  doc.text(fd(days[0])+'  〜  '+fd(days[6]),margin,23);
 
-  const DOW_EN=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-  // ヘッダー（曜日）
+  // ヘッダー（曜日・日本語）
   for(let i=0;i<7;i++){
     const x=margin+22+colW*i;
     const d=days[i];
-    const isWeekend=d.getDay()===0||d.getDay()===6;
-    doc.setFillColor(isWeekend?233:90,isWeekend?233:107,isWeekend?240:122);
+    const dow=d.getDay();
+    const isWeekend=dow===0||dow===6;
     if(isWeekend){doc.setFillColor(228,230,235);}else{doc.setFillColor(90,107,122);}
     doc.rect(x,headerY-5,colW,7,'F');
-    doc.setTextColor(isWeekend?90:255,isWeekend?107:255,isWeekend?122:255);
+    if(isWeekend){doc.setTextColor(dow===0?168:90,dow===0?88:107,dow===0?74:122);}
+    else{doc.setTextColor(255,255,255);}
     doc.setFontSize(9);
-    doc.text(DOW_EN[i]+' '+(d.getMonth()+1)+'/'+d.getDate(),x+colW/2,headerY,{align:'center'});
+    doc.text(DJP_MON[i]+'　'+(d.getMonth()+1)+'/'+d.getDate(),x+colW/2,headerY,{align:'center'});
   }
   // 時間軸＋グリッド線
   doc.setDrawColor(220,220,220);doc.setFontSize(7);doc.setTextColor(150,150,150);
@@ -1050,11 +1091,9 @@ async function exportWeekPDF(){
   // シフトブロック
   days.forEach((d,di)=>{
     const ds=fd(d);
-    let sm2={},em2={};
     const mk=d.getFullYear()+'-'+d.getMonth();
-    sm2=SC[mk]||{};em2=EC[mk]||{};
+    const sm2=SC[mk]||{},em2=EC[mk]||{};
     const daySlots=(sm2[ds]||[]).slice().sort((a,b)=>a.start_time.localeCompare(b.start_time));
-    // 重なり防止
     const cols=[];
     daySlots.forEach(slot=>{
       const ss=parseInt(slot.start_time.slice(0,2))*60+parseInt(slot.start_time.slice(3,5));
@@ -1074,13 +1113,16 @@ async function exportWeekPDF(){
         const isFull2=slot.staff_type==='full';
         if(isFull2)doc.setFillColor(163,181,196);else doc.setFillColor(174,192,168);
         doc.roundedRect(bx+0.5,topY+0.3,bw-1,Math.max(hH-0.6,5),1,1,'F');
-        doc.setTextColor(255,255,255);doc.setFontSize(6.5);
+        doc.setTextColor(255,255,255);doc.setFontSize(7);
         const ents=em2[slot.id]||[];
-        const names=ents.map(e=>e.shift_staff?.name||'?').join(',');
-        doc.text(slot.slot_name,bx+1.5,topY+3);
-        doc.setFontSize(5.5);
-        doc.text(slot.start_time.slice(0,5)+'-'+slot.end_time.slice(0,5),bx+1.5,topY+5.5);
-        if(names&&hH>9){doc.text(names.slice(0,12),bx+1.5,topY+8);}
+        const names=ents.map(e=>e.shift_staff?.name||'?').join('、');
+        doc.text(slot.slot_name,bx+1.5,topY+3.5);
+        doc.setFontSize(6);
+        doc.text(slot.start_time.slice(0,5)+'-'+slot.end_time.slice(0,5),bx+1.5,topY+6.5);
+        if(names&&hH>10){
+          const maxChars=Math.floor(bw/2);
+          doc.text(names.slice(0,maxChars),bx+1.5,topY+9.5);
+        }
       });
     });
   });

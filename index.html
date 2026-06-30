@@ -1612,7 +1612,7 @@ async function delStaff(id,name){
 }
 // 離職：データは残す（過去のシフト表に名前が残る）。現役名簿・ログイン・排班候補から外れる
 async function retireStaff(id,name){
-  if(!confirm(name+' を離職にします。\n\n・過去のシフト表には名前が残ります\n・今後のログイン・排班には表示されません\n・あとで「復職」できます\n\nよろしいですか？'))return;
+  if(!confirm(name+' を離職にします。\n\n・登録済みのシフト表（過去・未来とも）には名前が残ります\n・今後あたらしく排班する際の選択肢には出てきません\n・ログインできなくなります\n・あとで「復職」できます\n\nよろしいですか？'))return;
   const{error}=await sb.from('shift_staff').update({is_active:false}).eq('id',id);
   if(error){toast('処理に失敗しました','err');return;}
   allStaff=allStaff.map(s=>s.id===id?{...s,is_active:false}:s);

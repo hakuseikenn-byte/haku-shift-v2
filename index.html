@@ -232,6 +232,25 @@ function skillBadges(arr,col){
   return (arr||[]).map(k=>'<span class="badge" style="background:'+(col||'#eef2ec')+';color:#5a6b7a;margin-right:3px;">'+(SKILLS[k]||k)+'</span>').join('');
 }
 function inVacation(ds){return vacations.some(v=>ds>=v.start_date&&ds<=v.end_date);}
+// 分に変換
+function toMin(t){const[h,m]=t.split(':').map(Number);return h*60+m;}
+// 同じ日の枠が重なっていても二重に数えない：日ごとに時間帯を合併し、休憩を引く
+function dayHoursOf(slots){
+  const byDay={};
+  (slots||[]).forEach(s=>{(byDay[s.date]=byDay[s.date]||[]).push(s);});
+  const out={};
+  Object.entries(byDay).forEach(([d,list])=>{
+    const iv=list.map(s=>[toMin(s.start_time),toMin(s.end_time)]).filter(x=>x[1]>x[0]).sort((a,b)=>a[0]-b[0]);
+    let mins=0,cs=null,ce=null;
+    iv.forEach(([a,b])=>{if(cs===null){cs=a;ce=b;}else if(a<=ce){ce=Math.max(ce,b);}else{mins+=ce-cs;cs=a;ce=b;}});
+    if(cs!==null)mins+=ce-cs;
+    const brk=list.reduce((t,s)=>t+(Number(s.break_minutes)||0),0);
+    out[d]={hours:Math.max(0,mins-brk)/60,span:mins/60};
+  });
+  return out;
+}
+function sumHours(slots){return Object.values(dayHoursOf(slots)).reduce((t,x)=>t+x.hours,0);}
+function overlaps(a,b){return a.date===b.date&&toMin(a.start_time)<toMin(b.end_time)&&toMin(b.start_time)<toMin(a.end_time);}
 function weekRangeOf(ds){
   const d=new Date(ds+'T00:00:00');const diff=(d.getDay()+6)%7;
   const ws=new Date(d);ws.setDate(d.getDate()-diff);
@@ -250,15 +269,19 @@ async function assignCheck(sid,slot,ds){
     sb.from('slot_entries').select('slot_id').eq('staff_id',sid)
   ]);
   const mine=new Set((ents||[]).map(e=>e.slot_id));
-  let weekH=0,dayH=0,sameDay=false;const counted=new Set();
-  (wkSlots||[]).forEach(x=>{
-    if(!mine.has(x.id)||x.id===slot.id)return;
-    const key=x.date+'_'+x.start_time+'_'+x.end_time;if(counted.has(key))return;counted.add(key);
-    const h=slotHrs(x);weekH+=h;if(x.date===ds){dayH+=h;sameDay=true;}
-  });
-  res.weekH=r1(weekH);
-  const h=slotHrs(slot),newW=r1(weekH+h),newD=r1(dayH+h);
-  if(sameDay)res.warns.push('同じ日に別のシフトがあります');
+  // 重なる時間は1回分として計算（日ごとに合併）
+  const newSlot={...slot,date:ds};
+  const myWeek=(wkSlots||[]).filter(x=>mine.has(x.id)&&x.id!==slot.id);
+  const withNew=myWeek.concat([newSlot]);
+  res.weekH=r1(sumHours(myWeek));
+  const newW=r1(sumHours(withNew));
+  const day=dayHoursOf(withNew.filter(x=>x.date===ds))[ds]||{hours:0,span:0};
+  const newD=r1(day.hours);
+  res.dayH=newD;
+  const dayBrk=withNew.filter(x=>x.date===ds).reduce((t,x)=>t+(Number(x.break_minutes)||0),0);
+  const ov=myWeek.find(x=>overlaps(x,newSlot));
+  if(ov){res.overlap=true;res.warns.push('「'+ov.slot_name+'」と時間が重なっています（重なった時間は1回分として計算）');}
+  else if(myWeek.some(x=>x.date===ds))res.warns.push('同じ日に別のシフトがあります（この日合計'+newD+'h）');
   if(s.staff_type==='part'){
     const cat=s.category||'general';
     if((cat==='intl'||cat==='wh')&&s.visa_expiry&&s.visa_expiry<ds){
@@ -279,11 +302,13 @@ async function assignCheck(sid,slot,ds){
     const ins=settings.insurance_threshold_weekly||20;
     if(cat!=='student'&&cat!=='intl'&&newW>=ins)res.warns.push('週'+ins+'時間以上：雇用保険の加入対象です（'+newW+'h）');
     if(newW>=30)res.warns.push('週30時間以上：社会保険の加入対象です（'+newW+'h）');
-    if(h>6)res.warns.push('6時間を超える枠です：45分以上の休憩が必要です');
   }else{
-    if(newD>8)res.warns.push('1日8時間を超えます（'+newD+'h）：残業になります');
     if(newW>40)res.warns.push('週40時間を超えます（'+newW+'h）：残業になります');
   }
+  // 1日の法定ルール（アルバイト・正社員共通）
+  if(newD>8)res.warns.push('1日8時間を超えます（この日'+newD+'h）：超えた分は残業（割増25%）');
+  if(newD>8&&dayBrk<60)res.warns.push('この日の勤務が8時間を超えます：60分以上の休憩が必要です');
+  else if(newD>6&&dayBrk<45)res.warns.push('この日の勤務が6時間を超えます：45分以上の休憩が必要です');
   return res;
 }
 
@@ -364,38 +389,24 @@ function getWeeklyH(staffId){
   const diffToMon=(today.getDay()+6)%7;
   const ws=new Date(today);ws.setDate(today.getDate()-diffToMon+wOff*7);ws.setHours(0,0,0,0);
   const we=new Date(ws);we.setDate(ws.getDate()+6);we.setHours(23,59,59,999);
-  let total=0;
+  const mine=[];
   Object.entries(sm).forEach(([date,slots])=>{
     const d=new Date(date+'T00:00:00');if(d<ws||d>we)return;
-    // 同日・同時間帯の重複を防ぐ
-    const counted=new Set();
-    slots.forEach(slot=>{
-      if(!(em[slot.id]||[]).find(e=>e.staff_id===staffId))return;
-      const key=date+'_'+slot.start_time+'_'+slot.end_time;
-      if(counted.has(key))return;
-      counted.add(key);
-      total+=slotHrs(slot);
-    });
+    slots.forEach(slot=>{if((em[slot.id]||[]).find(e=>e.staff_id===staffId))mine.push(slot);});
   });
-  return Math.round(total*10)/10;
+  // 重なる時間は1回分（日ごとに合併）
+  return r1(sumHours(mine));
 }
 // 月合計時数
 function getMonthlyH(staffId){
   const k=calY+'-'+calM,sm=SC[k]||{};
   const pre=calY+'-'+String(calM+1).padStart(2,'0')+'-';
-  let total=0;
+  const mine=[];
   Object.entries(sm).forEach(([date,slots])=>{
     if(!date.startsWith(pre))return; // 前後の週は除外
-    const counted=new Set();
-    slots.forEach(slot=>{
-      if(!(EC[k]?.[slot.id]||[]).find(e=>e.staff_id===staffId))return;
-      const key=date+'_'+slot.start_time+'_'+slot.end_time;
-      if(counted.has(key))return;
-      counted.add(key);
-      total+=slotHrs(slot);
-    });
+    slots.forEach(slot=>{if((EC[k]?.[slot.id]||[]).find(e=>e.staff_id===staffId))mine.push(slot);});
   });
-  return Math.round(total*10)/10;
+  return r1(sumHours(mine));
 }
 
 // 監査ログ記録
@@ -933,6 +944,8 @@ async function joinSlot(slotId,ds){
     if(slot){
       const chk=await assignCheck(me.id,slot,ds);
       if(chk.block){toast(chk.block,'err');return;}
+      if(chk.overlap){toast('同じ日の別のシフトと時間が重なっています。長く入りたい場合は管理者に相談してください','err');return;}
+      if(chk.dayH>8){toast('1日8時間を超えるシフトは自分では入れません（この日'+chk.dayH+'h）。管理者に相談してください','err');return;}
       if(chk.overPersonal){
         const myS=staff.find(s=>s.id===me.id);
         toast('この週は最大'+(myS?.max_hours_per_week||20)+'時間までです（現在'+chk.weekH+'h＋今回'+r1(slotHrs(slot))+'h）','err');
@@ -1134,13 +1147,7 @@ async function openSwapReq(entryId,slotId,ds,slotName){
     const sameDaySlot=(wkSlots||[]).find(s=>s.date===ds&&candSlotIds.has(s.id));
     if(sameDaySlot)continue;
     // 週上限チェック
-    let weekH=0;const counted=new Set();
-    (wkSlots||[]).forEach(s=>{
-      if(!candSlotIds.has(s.id))return;
-      const key=s.date+'_'+s.start_time+'_'+s.end_time;
-      if(counted.has(key))return;counted.add(key);
-      weekH+=slotHrs(s);
-    });
+    const weekH=sumHours((wkSlots||[]).filter(s=>candSlotIds.has(s.id)));
     const maxWk=cand.staff_type==='part'?(cand.max_hours_per_week||20):9999;
     if(weekH+slotH>maxWk)continue; // 超える人は除外
     // 留学生28h・在留期限など法定ルールで不可の人も除外
@@ -1203,13 +1210,7 @@ async function agreeSwap(swapId,agree){
   const{data:wkSlots}=await sb.from('shift_slots').select('*').gte('date',fd(wkStart)).lte('date',fd(wkEnd));
   const{data:myEnts}=await sb.from('slot_entries').select('slot_id').eq('staff_id',me.id);
   const mySlotIds=new Set((myEnts||[]).map(e=>e.slot_id));
-  let weekH=0;const counted=new Set();
-  (wkSlots||[]).forEach(s=>{
-    if(!mySlotIds.has(s.id))return;
-    const key=s.date+'_'+s.start_time+'_'+s.end_time;
-    if(counted.has(key))return;counted.add(key);
-    weekH+=slotHrs(s);
-  });
+  const weekH=sumHours((wkSlots||[]).filter(s=>mySlotIds.has(s.id)));
   const myS=staff.find(s=>s.id===me.id);
   const maxWk=myS?.staff_type==='part'?(myS.max_hours_per_week||20):9999;
   if(weekH+slotH>maxWk){

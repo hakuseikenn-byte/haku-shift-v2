@@ -99,7 +99,7 @@ textarea{resize:vertical;min-height:60px;}
 .mbox{background:#fff;border-radius:18px 18px 0 0;padding:22px 18px 40px;width:100%;max-width:480px;max-height:88vh;overflow-y:auto;}
 .mtit{font-weight:800;font-size:15px;color:#5a6b7a;margin-bottom:14px;}
 .mbtns{display:flex;gap:8px;margin-top:16px;}
-#toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);padding:10px 20px;border-radius:8px;color:#fff;font-size:13px;font-weight:600;z-index:999;box-shadow:0 4px 16px rgba(0,0,0,.2);display:none;white-space:nowrap;max-width:90vw;}
+#toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);padding:10px 20px;border-radius:8px;color:#fff;font-size:13px;font-weight:600;z-index:999;box-shadow:0 4px 16px rgba(0,0,0,.2);display:none;white-space:normal;max-width:90vw;text-align:center;line-height:1.5;}
 @keyframes spin{to{transform:rotate(360deg);}}
 .spin{display:inline-block;width:14px;height:14px;border:2px solid #ddd;border-top-color:#5a6b7a;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px;}
 .loading{text-align:center;color:#aaa;font-size:13px;padding:30px 0;}
@@ -196,7 +196,7 @@ function toast(m,t='ok'){
   const e=document.getElementById('toast');
   e.textContent=m;e.style.background=t==='err'?'#a8584a':'#6b8268';
   e.style.display='block';clearTimeout(window._tt);
-  window._tt=setTimeout(()=>e.style.display='none',2800);
+  window._tt=setTimeout(()=>e.style.display='none',t==='err'?6000:2800);
 }
 function openM(h){document.getElementById('mbox').innerHTML=h;document.getElementById('mbg').classList.add('show');}
 function closeM(){document.getElementById('mbg').classList.remove('show');}
@@ -941,7 +941,7 @@ async function joinSlot(slotId,ds){
     }
   }
   const{error}=await sb.from('slot_entries').insert({slot_id:slotId,staff_id:me.id,status:'confirmed'});
-  if(error){toast('参加できませんでした','err');return;}
+  if(error){toast('参加できませんでした：'+(error.message||error.code||''),'err');console.error(error);return;}
   await logAction('シフト参加',ds,me.name+'が参加');
   toast('シフトに参加しました！');await loadMonth(calY,calM);renderCal();
 }
@@ -997,7 +997,7 @@ async function doAddSlot(ds){
   }
   const ins=dates.map(d=>({date:d,slot_name:name,staff_type:stype,start_time:start,end_time:end,max_staff:max,...extra}));
   const{error}=await sb.from('shift_slots').insert(ins);
-  if(error){toast('追加に失敗しました','err');return;}
+  if(error){toast('追加に失敗しました：'+(error.message||error.code||''),'err');console.error(error);return;}
   await logAction('シフト枠追加',ds,name+'（'+start+'〜'+end+'）'+ins.length+'件');
   toast(ins.length+'件追加しました');closeM();await loadMonth(calY,calM);renderCal();
 }
@@ -1024,7 +1024,7 @@ async function doEditSlot(slotId){
   const extra=readSlotExtra('es');
   if(!name){toast('枠名を入力してください','err');return;}
   const{error}=await sb.from('shift_slots').update({slot_name:name,staff_type:stype,start_time:start,end_time:end,max_staff:max,...extra}).eq('id',slotId);
-  if(error){toast('更新に失敗しました','err');return;}
+  if(error){toast('更新に失敗しました：'+(error.message||error.code||''),'err');console.error(error);return;}
   await logAction('シフト枠編集',window._editSlotDs,name+'（'+start+'〜'+end+'）');
   toast('更新しました');closeM();await loadMonth(calY,calM);renderCal();
 }
@@ -1076,7 +1076,7 @@ async function adminAddEnt(slotId,ds){
     }
   }
   const{error}=await sb.from('slot_entries').insert({slot_id:slotId,staff_id:sid,status:'confirmed'});
-  if(error){toast('追加に失敗しました','err');return;}
+  if(error){toast('追加に失敗しました：'+(error.message||error.code||''),'err');console.error(error);return;}
   const sName=staff.find(s=>s.id===sid)?.name||'';
   await logAction('割当追加',ds,sName+'を枠に追加');
   toast('追加しました');closeM();await loadMonth(calY,calM);renderCal();
@@ -1100,7 +1100,7 @@ async function doCancelReq(){
   const detail=document.getElementById('cr-reason').value;
   const reason=rtype+(detail?'：'+detail:'');
   const{error}=await sb.from('cancel_requests').insert({staff_id:me.id,slot_id:slotId,slot_entry_id:entryId,date:ds,reason,status:'pending'});
-  if(error){toast('申請に失敗しました','err');return;}
+  if(error){toast('申請に失敗しました：'+(error.message||error.code||''),'err');console.error(error);return;}
   toast('取消申請を送信しました');closeM();refreshPendingCount();
 }
 
@@ -1175,7 +1175,7 @@ async function doSwapReq(targetId,targetName){
     target_id:targetId,target_name:targetName,
     reason,status:'waiting_b'
   });
-  if(error){toast('依頼に失敗しました','err');return;}
+  if(error){toast('依頼に失敗しました：'+(error.message||error.code||''),'err');console.error(error);return;}
   toast(targetName+'さんに代班を依頼しました');closeM();
 }
 
@@ -1273,7 +1273,7 @@ async function doLeave(){
   else if(dur==='half_am'){startT='09:00';endT='13:00';}
   else if(dur==='half_pm'){startT='13:00';endT='17:00';}
   const{error}=await sb.from('leave_requests').insert({staff_id:me.id,date,leave_type:type,duration_type:dur,start_time:startT,end_time:endT,reason,status:'pending'});
-  if(error){toast('申請に失敗しました','err');return;}
+  if(error){toast('申請に失敗しました：'+(error.message||error.code||''),'err');console.error(error);return;}
   toast('休暇を申請しました');document.getElementById('lvreason').value='';renderLeave();refreshPendingCount();
 }
 
@@ -1787,7 +1787,7 @@ async function adminAddStaff(){
   const stypeV=(stype==='manager'||stype==='owner')?'full':stype;
   const extra=readPartFields('a',isPart);
   const{data,error}=await sb.from('shift_staff').insert({name,staff_type:stypeV,role:roleV,wage:0,max_hours:maxH,max_hours_per_week:maxWeek,monthly_salary:0,...extra}).select().single();
-  if(error){toast('追加に失敗しました','err');return;}
+  if(error){toast('追加に失敗しました：'+(error.message||error.code||''),'err');console.error(error);return;}
   allStaff.push(data);staff.push(data);buildStaffColorMap();toast(name+' を追加しました');renderAdmin();
 }
 function openEditStaff(id){
@@ -1816,7 +1816,7 @@ async function doEditStaff(id){
   const maxH=!isPart?(parseInt(document.getElementById('esm').value)||0):0;
   const upd={name,staff_type:stypeV,role:roleV,max_hours:maxH,max_hours_per_week:maxWeek,...readPartFields('e',isPart)};
   const{error}=await sb.from('shift_staff').update(upd).eq('id',id);
-  if(error){toast('更新に失敗しました','err');return;}
+  if(error){toast('更新に失敗しました：'+(error.message||error.code||''),'err');console.error(error);return;}
   staff=staff.map(s=>s.id===id?{...s,...upd}:s);
   allStaff=allStaff.map(s=>s.id===id?{...s,...upd}:s);
   buildStaffColorMap();closeM();toast('更新しました');renderAdmin();
@@ -1853,7 +1853,7 @@ async function saveTpl(){
   if(rec.staff_type==='part'&&chft(rec.start_time,rec.end_time)>6&&!confirm('6時間を超えるアルバイト枠です。45分以上の休憩が必要になります。\nこのまま保存しますか？'))return;
   const q=id?sb.from('shift_templates').update(rec).eq('id',id):sb.from('shift_templates').insert(rec);
   const{error}=await q;
-  if(error){toast('保存に失敗しました','err');return;}
+  if(error){toast('保存に失敗しました：'+(error.message||error.code||''),'err');console.error(error);return;}
   await logAction('テンプレート'+(id?'編集':'追加'),null,rec.slot_name+'（'+rec.start_time+'〜'+rec.end_time+'）');
   await loadV3();closeM();toast('保存しました');renderAdmin();
 }
@@ -1861,7 +1861,7 @@ async function delTpl(id){
   const t=templates.find(x=>x.id===id);
   if(!confirm((t?.slot_name||'')+' のテンプレートを削除しますか？\n（作成済みのシフト枠は消えません）'))return;
   const{error}=await sb.from('shift_templates').delete().eq('id',id);
-  if(error){toast('削除に失敗しました','err');return;}
+  if(error){toast('削除に失敗しました：'+(error.message||error.code||''),'err');console.error(error);return;}
   await loadV3();toast('削除しました');renderAdmin();
 }
 async function genFromTemplates(){
@@ -1884,7 +1884,7 @@ async function genFromTemplates(){
   if(!ins.length){toast('作成する枠はありません（すべて作成済み）');return;}
   if(!confirm(from+' 〜 '+to+' に '+ins.length+'件のシフト枠を作成します。よろしいですか？'))return;
   const{error}=await sb.from('shift_slots').insert(ins);
-  if(error){toast('作成に失敗しました','err');return;}
+  if(error){toast('作成に失敗しました：'+(error.message||error.code||''),'err');console.error(error);return;}
   await logAction('テンプレートから枠作成',from,from+'〜'+to+'：'+ins.length+'件');
   toast(ins.length+'件の枠を作成しました');await loadMonth(calY,calM);
 }
@@ -1894,7 +1894,7 @@ async function addVac(){
   const s=document.getElementById('vc-s').value,e=document.getElementById('vc-e').value,l=document.getElementById('vc-l').value.trim();
   if(!s||!e||s>e){toast('期間を正しく入力してください','err');return;}
   const{error}=await sb.from('long_vacations').insert({start_date:s,end_date:e,label:l});
-  if(error){toast('追加に失敗しました','err');return;}
+  if(error){toast('追加に失敗しました：'+(error.message||error.code||''),'err');console.error(error);return;}
   await logAction('長期休暇追加',s,s+'〜'+e+' '+l);
   await loadV3();toast('追加しました');renderAdmin();
 }
@@ -1906,7 +1906,7 @@ async function delVac(id){
 async function togglePerm(id,val){
   val=val==='true'||val===true;
   const{error}=await sb.from('shift_staff').update({can_manage_shift:val}).eq('id',id);
-  if(error){toast('更新に失敗しました','err');return;}
+  if(error){toast('更新に失敗しました：'+(error.message||error.code||''),'err');console.error(error);return;}
   staff=staff.map(s=>s.id===id?{...s,can_manage_shift:val}:s);
   allStaff=allStaff.map(s=>s.id===id?{...s,can_manage_shift:val}:s);
   const sName=staff.find(s=>s.id===id)?.name||'';
@@ -1924,7 +1924,7 @@ async function delStaff(id,name){
 async function retireStaff(id,name){
   if(!confirm(name+' を離職にします。\n\n・登録済みのシフト表（過去・未来とも）には名前が残ります\n・今後あたらしく排班する際の選択肢には出てきません\n・ログインできなくなります\n・あとで「復職」できます\n\nよろしいですか？'))return;
   const{error}=await sb.from('shift_staff').update({is_active:false}).eq('id',id);
-  if(error){toast('処理に失敗しました','err');return;}
+  if(error){toast('処理に失敗しました：'+(error.message||error.code||''),'err');console.error(error);return;}
   allStaff=allStaff.map(s=>s.id===id?{...s,is_active:false}:s);
   staff=staff.filter(s=>s.id!==id);
   await logAction('スタッフ離職',null,name+'を離職に設定');
@@ -1933,7 +1933,7 @@ async function retireStaff(id,name){
 async function reactivateStaff(id,name){
   if(!confirm(name+' を復職させますか？'))return;
   const{error}=await sb.from('shift_staff').update({is_active:true}).eq('id',id);
-  if(error){toast('処理に失敗しました','err');return;}
+  if(error){toast('処理に失敗しました：'+(error.message||error.code||''),'err');console.error(error);return;}
   allStaff=allStaff.map(s=>s.id===id?{...s,is_active:true}:s);
   staff=allStaff.filter(s=>s.is_active!==false);
   buildStaffColorMap();

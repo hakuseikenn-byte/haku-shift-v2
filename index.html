@@ -1780,6 +1780,7 @@ async function adminAddStaff(){
   const name=document.getElementById('aname').value.trim(),stype=document.getElementById('atype').value;
   if(!name){toast('名前を入力してください','err');return;}
   if(staff.find(s=>s.name===name)){toast('同じ名前が既にあります','err');return;}
+  if(allStaff.find(s=>s.name===name)){toast('離職者に同じ名前「'+name+'」がいます。「離職者を表示」から復職させるか、フルネームなど別の名前で登録してください','err');return;}
   const isPart=stype==='part';
   const maxWeek=isPart?(parseInt(document.getElementById('awkh').value)||20):0;
   const maxH=!isPart?(parseInt(document.getElementById('amax').value)||0):0;

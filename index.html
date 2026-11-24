@@ -180,6 +180,10 @@ const DUR={full:'全日',half_am:'午前半休',half_pm:'午後半休',custom:'�
 const CAT={student:'学生',intl:'留学生',wh:'ワーホリ',general:'一般'};
 const SKILLS={open:'開店可',close:'閉店可',assemble:'組立可',produce:'製造可'};
 const DOW_SUN=['日','月','火','水','木','金','土'];
+// 週の起算日（0=日曜、労基法の原則どおり日曜〜土曜を1週とする）
+const WEEK_START=0;
+function wkDiff(d){return (d.getDay()-WEEK_START+7)%7;}
+const DOW_WK=Array.from({length:7},(_,i)=>DOW_SUN[(i+WEEK_START)%7]);
 
 // ── 状態 ──
 let APW='haku2026';
@@ -252,7 +256,7 @@ function dayHoursOf(slots){
 function sumHours(slots){return Object.values(dayHoursOf(slots)).reduce((t,x)=>t+x.hours,0);}
 function overlaps(a,b){return a.date===b.date&&toMin(a.start_time)<toMin(b.end_time)&&toMin(b.start_time)<toMin(a.end_time);}
 function weekRangeOf(ds){
-  const d=new Date(ds+'T00:00:00');const diff=(d.getDay()+6)%7;
+  const d=new Date(ds+'T00:00:00');const diff=wkDiff(d);
   const ws=new Date(d);ws.setDate(d.getDate()-diff);
   const we=new Date(ws);we.setDate(ws.getDate()+6);
   return[fd(ws),fd(we)];
@@ -382,11 +386,11 @@ async function loadMonth(y,m){
   EC[k]=em;
 }
 
-// 週合計時数（月曜始まり）
+// 週合計時数（日曜始まり）
 function getWeeklyH(staffId){
   const k=calY+'-'+calM,sm=SC[k]||{},em=EC[k]||{};
   const today=new Date();
-  const diffToMon=(today.getDay()+6)%7;
+  const diffToMon=wkDiff(today);
   const ws=new Date(today);ws.setDate(today.getDate()-diffToMon+wOff*7);ws.setHours(0,0,0,0);
   const we=new Date(ws);we.setDate(ws.getDate()+6);we.setHours(23,59,59,999);
   const mine=[];
@@ -521,7 +525,7 @@ async function renderCal(){
   wrap.innerHTML='<div class="loading"><span class="spin"></span>読み込み中…</div>';
   if(calView==='week'){
     // 表示中の週（木曜基準）の月のデータを読み込む
-    const t=new Date();const th=new Date(t);th.setDate(t.getDate()-((t.getDay()+6)%7)+wOff*7+3);
+    const t=new Date();const th=new Date(t);th.setDate(t.getDate()-wkDiff(t)+wOff*7+3);
     calY=th.getFullYear();calM=th.getMonth();
   }
   await loadMonth(calY,calM);
@@ -580,12 +584,12 @@ async function renderCal(){
   html+='<span class="mtitle" onclick="openJump()">'+calY+'年'+(calM+1)+'月</span>';
   html+='<div style="display:flex;gap:4px;"><button class="tbtn2" onclick="goToday()">今日</button><button class="arr" onclick="chM(1)">›</button></div></div>';
 
-  // グリッド（月曜始まり）
+  // グリッド（日曜始まり）
   const dim=new Date(calY,calM+1,0).getDate();
   const fdow=new Date(calY,calM,1).getDay();
-  const fdowMon=(fdow+6)%7;
+  const fdowMon=(fdow-WEEK_START+7)%7;
   const ts=fd(new Date());
-  let g=DJP_MON.map((d,i)=>'<div class="dh" style="color:'+(i===5?'#2471a3':i===6?'#a8584a':'#555')+'">'+d+'</div>').join('');
+  let g=DOW_WK.map((d,i)=>{const w=(i+WEEK_START)%7;return '<div class="dh" style="color:'+(w===6?'#2471a3':w===0?'#a8584a':'#555')+'">'+d+'</div>';}).join('');
   for(let i=0;i<fdowMon;i++)g+='<div></div>';
   for(let day=1;day<=dim;day++){
     const thisDate=new Date(calY,calM,day);
@@ -675,7 +679,7 @@ function buildDayPanel(day,sm,em){
   const daySlots=sm[ds]||[];
   const isAdmin=me.canManage;
   const dateObj=new Date(calY,calM,day);
-  const dowName=DJP_MON[(dateObj.getDay()+6)%7];
+  const dowName=DOW_SUN[dateObj.getDay()];
   let html='<div class="dp"><div class="dptitle">'+(calM+1)+'月'+day+'日（'+dowName+'）</div>';
   const pSlots=daySlots.filter(s=>s.staff_type==='part');
   const fSlots=daySlots.filter(s=>s.staff_type==='full');
@@ -751,7 +755,7 @@ function buildDayPanel(day,sm,em){
 // ── 週ビュー（連続ブロック・個人別カラー）──
 function buildWeek(sm,em){
   const today=new Date();
-  const diffToMon=(today.getDay()+6)%7;
+  const diffToMon=wkDiff(today);
   const sw=new Date(today);sw.setDate(today.getDate()-diffToMon+wOff*7);
   const days=Array.from({length:7},(_,i)=>{const d=new Date(sw);d.setDate(d.getDate()+i);return d;});
   const ts=fd(today);
@@ -797,7 +801,7 @@ function buildWeek(sm,em){
     const dow=d.getDay();
     const tcol=isT?'#5a6b7a':dow===0?'#e8b4b4':dow===6?'#b4c4e8':'#fff';
     html+='<div style="flex:1;text-align:center;padding:5px 1px;background:'+(isT?'#c9b896':'#5a6b7a')+';color:'+tcol+';border-left:1px solid #6b7d8c;">';
-    html+='<div style="font-size:10px;">'+DJP_MON[i]+'</div><div style="font-size:13px;font-weight:700;">'+d.getDate()+'</div></div>';
+    html+='<div style="font-size:10px;">'+DOW_SUN[dow]+'</div><div style="font-size:13px;font-weight:700;">'+d.getDate()+'</div></div>';
   });
   html+='</div>';
   html+='<div style="display:flex;position:relative;">';
@@ -1131,7 +1135,7 @@ async function openSwapReq(entryId,slotId,ds,slotName){
   const sameType=staff.filter(s=>s.staff_type===slot.staff_type&&s.id!==me.id);
   // その日に既にこの人が別の枠に入っていないか＆週上限チェック
   const slotDate=new Date(ds+'T00:00:00');
-  const diffToMon=(slotDate.getDay()+6)%7;
+  const diffToMon=wkDiff(slotDate);
   const wkStart=new Date(slotDate);wkStart.setDate(slotDate.getDate()-diffToMon);
   const wkEnd=new Date(wkStart);wkEnd.setDate(wkStart.getDate()+6);
   const wkStartStr=fd(wkStart),wkEndStr=fd(wkEnd);
@@ -1204,7 +1208,7 @@ async function agreeSwap(swapId,agree){
   const slot=sw.shift_slots;
   const slotH=slotHrs(slot);
   const slotDate=new Date(sw.date+'T00:00:00');
-  const diffToMon=(slotDate.getDay()+6)%7;
+  const diffToMon=wkDiff(slotDate);
   const wkStart=new Date(slotDate);wkStart.setDate(slotDate.getDate()-diffToMon);
   const wkEnd=new Date(wkStart);wkEnd.setDate(wkStart.getDate()+6);
   const{data:wkSlots}=await sb.from('shift_slots').select('*').gte('date',fd(wkStart)).lte('date',fd(wkEnd));
@@ -1515,7 +1519,7 @@ async function cleanOldRequests(){
 async function exportWeekImage(){
   toast('画像を作成中…');
   const today=new Date();
-  const diffToMon=(today.getDay()+6)%7;
+  const diffToMon=wkDiff(today);
   const sw=new Date(today);sw.setDate(today.getDate()-diffToMon+wOff*7);
   const days=Array.from({length:7},(_,i)=>{const d=new Date(sw);d.setDate(d.getDate()+i);return d;});
   const ts=fd(today);
@@ -1548,7 +1552,7 @@ async function exportWeekImage(){
     const headBg=isT?'#c9b896':(dow===0?'#c98a8a':dow===6?'#8a9ec9':'#5a6b7a');
     html+='<div style="flex:1;border-left:1px solid #eee;position:relative;">';
     html+='<div style="height:44px;background:'+headBg+';color:#fff;text-align:center;display:flex;flex-direction:column;justify-content:center;">';
-    html+='<div style="font-size:13px;">'+DJP_MON[(dow+6)%7]+'</div><div style="font-size:17px;font-weight:800;">'+(d.getMonth()+1)+'/'+d.getDate()+'</div></div>';
+    html+='<div style="font-size:13px;">'+DOW_SUN[dow]+'</div><div style="font-size:17px;font-weight:800;">'+(d.getMonth()+1)+'/'+d.getDate()+'</div></div>';
     html+='<div style="position:relative;height:'+((END_H-START_H)*HOUR_H)+'px;">';
     for(let h=0;h<END_H-START_H;h++){
       html+='<div style="position:absolute;top:'+(h*HOUR_H)+'px;left:0;right:0;height:1px;background:#f0f0f0;"></div>';
@@ -1693,7 +1697,7 @@ async function renderAdmin(){
       const groups={};
       templates.forEach(t=>{const key=(t.dows||[]).slice().sort().join(',');(groups[key]=groups[key]||[]).push(t);});
       Object.entries(groups).forEach(([key,list])=>{
-        const lbl=key.split(',').filter(x=>x!=='').map(Number).sort((a,b)=>((a+6)%7)-((b+6)%7)).map(d=>DOW_SUN[d]).join('・');
+        const lbl=key.split(',').filter(x=>x!=='').map(Number).sort((a,b)=>((a-WEEK_START+7)%7)-((b-WEEK_START+7)%7)).map(d=>DOW_SUN[d]).join('・');
         html+='<div style="font-size:12px;font-weight:800;color:#5a6b7a;margin:10px 0 6px;">'+lbl+'</div>';
         list.sort((a,b)=>(a.sort||0)-(b.sort||0)||a.start_time.localeCompare(b.start_time)).forEach(t=>{
           const hrs=r1(slotHrs(t));
@@ -1828,7 +1832,7 @@ async function doEditStaff(id){
 function openTpl(id){
   const t=templates.find(x=>x.id===id)||{dows:[],slot_name:'',staff_type:'part',start_time:'10:00',end_time:'16:00',max_staff:1,required_skills:[],break_minutes:0,sort:0};
   window._tplId=id;
-  const dowOrder=[1,2,3,4,5,6,0];
+  const dowOrder=Array.from({length:7},(_,i)=>(i+WEEK_START)%7);
   openM('<div class="mtit">'+(id?'テンプレートを編集':'テンプレートを追加')+'</div><div class="fcol">'
     +'<div><span class="flabel">曜日</span><div style="display:flex;flex-wrap:wrap;gap:10px;">'
     +dowOrder.map(d=>'<label style="display:flex;align-items:center;gap:3px;font-size:13px;cursor:pointer;"><input type="checkbox" id="tp-d'+d+'" style="width:auto;"'+((t.dows||[]).includes(d)?' checked':'')+'/> '+DOW_SUN[d]+'</label>').join('')+'</div></div>'

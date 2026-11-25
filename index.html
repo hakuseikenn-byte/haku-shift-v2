@@ -607,7 +607,7 @@ async function renderCal(){
       let bg=isMine?(staffColorMap[me.id]||'#c9b896'):isFull?'#b5654a':slot.staff_type==='full'?'#7d92a8':'#8aa085';
       chips+='<div class="chip" style="background:'+bg+';">'+warn+slot.slot_name+' '+cnt+'/'+slot.max_staff+'</div>';
     });
-    const numColor=dow===6?'#a8584a':dow===0?'#2471a3':'#222';
+    const numColor=dow===0?'#a8584a':dow===6?'#2471a3':'#222';
     g+='<button class="cd'+(isSel?' sel':'')+(isToday?' tod':'')+'" onclick="selD('+day+')">';
     g+='<span class="cdn" style="color:'+(isSel?'#5a6b7a':numColor)+'">'+day+'</span>';
     g+=chips+'</button>';
